@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INVERSO.BIO // SYSTEM_ROOT</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --text-primary: #e0e0e0;
+            --text-dim: #666666;
+            --accent-cyan: #00f0ff;
+            --accent-red: #ff3333;
+            --font-stack: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-stack);
+            line-height: 1.6;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            border-left: 1px solid var(--text-dim);
+            border-right: 1px solid var(--text-dim);
+            min-height: 100vh;
+        }
+
+        /* HEADER HUD */
+        header {
+            border-bottom: 2px solid var(--text-primary);
+            padding-bottom: 1rem;
+            margin-bottom: 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        h1 {
+            font-size: 2rem;
+            letter-spacing: -2px;
+            text-transform: uppercase;
+        }
+
+        .status-badge {
+            font-size: 0.8rem;
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 2px 8px;
+        }
+
+        /* SECTIONS */
+        section {
+            margin-bottom: 4rem;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--text-dim);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        h2::before {
+            content: ">> ";
+            color: var(--accent-cyan);
+        }
+
+        h3 {
+            font-size: 1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-weight: bold;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        /* LISTS & DATA */
+        ul {
+            list-style: none;
+            padding-left: 1rem;
+            border-left: 2px solid var(--text-dim);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        li::before {
+            content: "[+] ";
+            color: var(--text-dim);
+        }
+
+        .highlight {
+            color: var(--accent-cyan);
+            font-weight: bold;
+        }
+
+        .warning {
+            color: var(--accent-red);
+        }
+
+        /* FOOTER */
+        footer {
+            margin-top: 5rem;
+            border-top: 1px dashed var(--text-dim);
+            padding-top: 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        a {
+            color: var(--text-primary);
+            text-decoration: none;
+            border-bottom: 1px solid var(--accent-cyan);
+        }
+
+        a:hover {
+            background-color: var(--accent-cyan);
+            color: var(--bg-color);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 600px) {
+            body { padding: 1rem; border: none; }
+            h1 { font-size: 1.5rem; }
+        }
+
+        .cursor {
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>INVERSO.BIO<span class="cursor">_</span></h1>
+            <small>ID: AXEL // LOC: ES-MAD // ARCHITECT_MODE</small>
+        </div>
+        <div class="status-badge">SYSTEM: ONLINE</div>
+    </header>
+
+    <section>
+        <p>
+            ESTA WEB NO ES UN BLOG. ES UNA <span class="highlight">HERRAMIENTA DE INGENIERÍA DE CARRERA</span>.
+            ACTÚA COMO CUADERNO DE LABORATORIO DIGITAL Y PORTAFOLIO DINÁMICO.
+        </p>
+        <p>
+            OBJETIVO: CENTRALIZACIÓN DE DATOS, VALIDACIÓN EXTERNA Y DISCIPLINA PÚBLICA.
+        </p>
+    </section>
+
+    <section>
+        <h2>📂 FASE 0. ROOT ACCESS (EL DIAGNÓSTICO)</h2>
+        <h3>0.1. La Paradoja de la Eficiencia</h3>
+        <p>El consumo de información compleja (neurología, toxicología) no es ocio, es ingesta de datos. Existe un coste de oportunidad crítico entre el rendimiento académico estándar y el aprendizaje real.</p>
+        
+        <h3>0.2. Mentalidad High Agency</h3>
+        <ul>
+            <li>Elección de funcionalidad sobre estatus.</li>
+            <li>Cuestionamiento del consenso como método de optimización.</li>
+            <li>Filosofía de Transparencia Radical.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>📂 FASE 1. SYSTEM ERROR (EL PROBLEMA)</h2>
+        <h3>1.1. Escasez Temporal (Time Scarcity)</h3>
+        <p>Cálculo matemático: La vida humana estándar es insuficiente para la maestría multidisciplinar. La muerte se define aquí como una <span class="warning">pérdida de datos inaceptable</span>.</p>
+        
+        <h3>1.2. Fallos de Ingeniería en Medicina</h3>
+        <ul>
+            <li>Crítica al modelo reactivo ("Reparación de Averías").</li>
+            <li>Objetivo: Transición hacia la Prevención de Fallos (Ingeniería de Sistemas).</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>📂 FASE 2. THE ARCHITECTURE (LA SOLUCIÓN)</h2>
+        <h3>2.1. El Gemelo Digital</h3>
+        <p>Construcción de una simulación biológica integral mediante IA y Computación Cuántica. Transición del Wet Lab al Dry Lab.</p>
+        
+        <h3>2.2. Vectores de Ataque</h3>
+        <ul>
+            <li>Modificación de Telómeros (Mantenimiento del código base).</li>
+            <li>Inmunomodulación (Depuración de errores de compilación).</li>
+            <li>Toxicología Sistémica (Control de inputs).</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>📂 FASE 4. SYSTEM LOGS (PROTOCOLOS)</h2>
+        <p>Aplicación práctica en tiempo de ejecución (Runtime: 17 años).</p>
+        <ul>
+            <li><strong>Rendimiento Físico:</strong> Entrenamiento de alta intensidad y escalada. Gestión química de la intolerancia (Lactasa 22k FCC).</li>
+            <li><strong>Estética Teardown:</strong> Visualización de procesos internos. "One Take" video philosophy.</li>
+        </ul>
+    </section>
+
+    <footer>
+        <p>CONTACTO ENCRIPTADO: <a href="mailto:axel@inverso.bio">axel@inverso.bio</a></p>
+        <br>
+        <p>© 2025 INVERSO PROTOCOL. ALL RIGHTS RESERVED.</p>
+        <p>END OF LINE_</p>
+    </footer>
+
+</body>
+</html>
