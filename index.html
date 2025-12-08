@@ -3,218 +3,484 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INVERSO PROJECT // DEBUG MODE</title>
+    <title>INVERSO PROJECT // SYSTEM CORE V4</title>
     
+    <!-- FUENTE: MONTSERRAT (Geométrica y Limpia) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;600;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --white: #ffffff;
-            --accent: #00f3ff;
-            --error: #ff3333;
+            --bg-deep: #050505;
+            --text-main: #ffffff;
+            --accent: #00f3ff; /* Cian Eléctrico */
+            --glass-bg: rgba(10, 10, 10, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-blur: 12px;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
             font-family: 'Montserrat', sans-serif;
-            color: var(--white);
-            background: #050505;
-            overflow-x: hidden;
-            margin: 0;
+            overflow: hidden; /* El canvas maneja el scroll si fuera necesario */
+            height: 100vh;
+            width: 100vw;
         }
 
-        /* --- DEBUG CONSOLE (SOLO PARA DIAGNÓSTICO) --- */
-        #sys-log {
+        /* --- CAPA 0: EL LIENZO (CANVAS) --- */
+        #render-core {
             position: fixed;
-            top: 10px;
-            left: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            color: var(--accent);
-            z-index: 9999;
-            background: rgba(0,0,0,0.8);
-            padding: 10px;
-            pointer-events: none;
-            max-width: 300px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
         }
 
-        /* --- VÍDEO --- */
-        #bg-video {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            object-fit: cover;
-            z-index: -1;
-            opacity: 0; 
-            transition: opacity 2s ease;
-        }
-
-        /* --- PANTALLA INICIO --- */
-        #start-screen {
+        /* --- CAPA 1: PANTALLA DE INICIALIZACIÓN --- */
+        #init-layer {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #050505; z-index: 999;
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            transition: opacity 0.5s ease;
+            background: #000;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease;
         }
 
-        #init-btn {
-            background: transparent; color: var(--accent);
+        .loader-bar {
+            width: 200px;
+            height: 2px;
+            background: #333;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loader-progress {
+            position: absolute;
+            top: 0; left: 0; height: 100%; width: 0%;
+            background: var(--accent);
+            transition: width 0.1s;
+        }
+
+        #start-btn {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 15px 40px;
             font-family: 'Montserrat', sans-serif;
-            padding: 1.5rem 3rem; border: 1px solid var(--accent);
-            cursor: pointer; text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.5s ease;
         }
 
-        /* --- UI ELEMENTS --- */
+        #start-btn:hover {
+            background: rgba(0, 243, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+        }
+
+        /* --- CAPA 2: INTERFAZ DE USUARIO --- */
+        #ui-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10;
+            pointer-events: none; /* Dejamos pasar clicks al canvas si no hay elemento UI */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* TÍTULO GIGANTE */
         #hero-title {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 6vw; font-weight: 900;
-            opacity: 0; transition: opacity 0.2s;
-            mix-blend-mode: overlay;
+            font-size: 8vw;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: -0.02em;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.1s, transform 3s ease-out;
+            text-transform: uppercase;
+            mix-blend-mode: overlay; /* Fusión elegante con el canvas */
         }
 
-        #main-interface {
-            opacity: 0; transform: translateY(50px);
-            transition: all 1.5s ease;
-            padding: 100vh 5vw 10vh 5vw;
-            max-width: 1400px; margin: 0 auto;
-            display: grid; grid-template-columns: repeat(12, 1fr); gap: 2rem;
+        /* GRID DE CONTENIDO */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2rem;
+            max-width: 1400px;
+            width: 90%;
+            margin: 0 auto;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1.5s ease, transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            pointer-events: auto; /* Reactivar clicks */
         }
 
         .glass-panel {
-            grid-column: span 12; background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(10px); padding: 2rem; border: 1px solid rgba(255,255,255,0.1);
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s ease;
         }
 
-        .col-half { grid-column: span 6; }
-        @media (max-width: 768px) { .col-half { grid-column: span 12; } }
+        .glass-panel:hover {
+            border-color: var(--accent);
+        }
 
-        /* ESTADOS */
-        .visible { opacity: 1 !important; transform: translateY(0) !important; }
-        .hidden { opacity: 0 !important; pointer-events: none; }
-        .video-on { opacity: 0.6 !important; }
+        /* Decoración técnica en esquinas */
+        .glass-panel::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 10px; height: 10px;
+            border-top: 1px solid var(--text-main); border-left: 1px solid var(--text-main);
+            opacity: 0.3;
+        }
 
+        .col-12 { grid-column: span 12; }
+        .col-6 { grid-column: span 6; }
+
+        h2 {
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2::after {
+            content: ''; flex-grow: 1; height: 1px; background: rgba(255,255,255,0.1);
+        }
+
+        h3 {
+            font-size: 2rem;
+            font-weight: 200;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #ccc;
+            font-weight: 300;
+        }
+
+        a { color: var(--text-main); text-decoration: none; border-bottom: 1px solid var(--accent); padding-bottom: 2px; transition: color 0.3s; }
+        a:hover { color: var(--accent); }
+
+        /* ESTADOS DE ANIMACIÓN */
+        .ui-visible { opacity: 1 !important; transform: translateY(0) !important; }
+        .title-visible { opacity: 1 !important; transform: scale(1) !important; }
+        .fade-out { opacity: 0 !important; pointer-events: none; }
+        .hidden-video { display: none; } /* Ocultamos el elemento video del DOM */
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .col-6 { grid-column: span 12; }
+            #hero-title { font-size: 12vw; }
+            .glass-panel { padding: 2rem; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="sys-log">
-        > SYSTEM BOOT...<br>
-    </div>
-
-    <div id="start-screen">
-        <button id="init-btn">INITIALIZE SYSTEM</button>
-    </div>
-
-    <video id="bg-video" muted playsinline loop>
-        <source src="./background.mp4" type="video/mp4">
+    <!-- RECURSO OCULTO (SOURCE) -->
+    <!-- Preload auto para intentar cargar metadatos rápido -->
+    <video id="source-video" class="hidden-video" playsinline muted loop preload="auto">
+        <source src="background.mp4" type="video/mp4">
     </video>
 
-    <div id="hero-title">INVERSO PROJECT</div>
+    <!-- CAPA 0: LIENZO DE RENDERIZADO -->
+    <canvas id="render-core"></canvas>
 
-    <div id="main-interface">
-        <div class="glass-panel col-full">
-            <h2>I. El Contexto</h2>
-            <p>Si lees esto, el sistema gráfico ha cargado correctamente.</p>
+    <!-- CAPA 1: CARGA -->
+    <div id="init-layer">
+        <div class="loader-bar">
+            <div class="loader-progress" id="progress-bar"></div>
         </div>
-        <div class="glass-panel col-half">
-            <h2>II. Estado</h2>
-            <p>Diagnóstico de vídeo completado.</p>
-        </div>
-        <div class="glass-panel col-half">
-            <h2>III. Contacto</h2>
-            <p>axel@inverso.bio</p>
+        <div id="loading-text" style="font-size: 10px; letter-spacing: 2px; color: #666; margin-bottom: 20px;">LOADING ASSETS...</div>
+        <button id="start-btn">INITIALIZE PROTOCOL</button>
+    </div>
+
+    <!-- CAPA 2: INTERFAZ -->
+    <div id="ui-layer">
+        <div id="hero-title">INVERSO PROJECT</div>
+
+        <div class="content-grid" id="main-content">
+            <div class="glass-panel col-12">
+                <h2>I. Context // Physics of Progress</h2>
+                <h3>La Infraestructura de la Luz</h3>
+                <p>El progreso humano son miles de haces de luz ascendentes. Ciencia de Materiales, Física Cuántica, IA. Para que suban, necesitamos infraestructura dura. Pero el componente más crítico del sistema sigue siendo el más frágil: <strong>La Mente Humana.</strong></p>
+            </div>
+
+            <div class="glass-panel col-6">
+                <h2>II. Error // Data Loss</h2>
+                <h3>La Paradoja de la Intuición</h3>
+                <p>El dato se guarda, la intuición muere. Cuando un físico de 80 años fallece, no perdemos libros, perdemos la capacidad de "ver" la solución. Es una quema de biblioteca cíclica.</p>
+            </div>
+
+            <div class="glass-panel col-6">
+                <h2>III. Mission // Engineering</h2>
+                <h3>Hub de Resistencia</h3>
+                <p>No busco inmortalidad por vanidad. Busco ganar tiempo biológico para quienes resuelven la Fusión Nuclear. Mi trabajo es mantener el interruptor encendido.</p>
+            </div>
+
+            <div class="glass-panel col-12" style="text-align: center; border: none; background: transparent;">
+                <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; margin-bottom: 1rem; color: var(--accent);">Node Connection Available</p>
+                <a href="mailto:axel@inverso.bio" style="font-size: 2rem; font-weight: 200;">axel@inverso.bio</a>
+            </div>
         </div>
     </div>
 
     <script>
-        // --- SISTEMA DE LOGGING ---
-        const logBox = document.getElementById('sys-log');
-        function log(msg, type = 'info') {
-            const color = type === 'error' ? '#ff3333' : '#00f3ff';
-            logBox.innerHTML += `<span style="color:${color}">> ${msg}</span><br>`;
-            console.log(msg);
+        /**
+         * SISTEMA DE RENDERIZADO HÍBRIDO
+         * Autor: Inverso Project
+         * Tecnología: Canvas 2D + Video Decoding + Particle System
+         */
+
+        const canvas = document.getElementById('render-core');
+        const ctx = canvas.getContext('2d');
+        const video = document.getElementById('source-video');
+        
+        // Elementos UI
+        const initLayer = document.getElementById('init-layer');
+        const progressBar = document.getElementById('progress-bar');
+        const startBtn = document.getElementById('start-btn');
+        const loadingText = document.getElementById('loading-text');
+        const heroTitle = document.getElementById('hero-title');
+        const mainContent = document.getElementById('main-content');
+
+        // Estado del Sistema
+        let systemState = {
+            width: window.innerWidth,
+            height: window.innerHeight,
+            playing: false,
+            videoReady: false,
+            time: 0,
+            phase: 0, // 0: Init, 1: Title, 2: Content
+            mouse: { x: 0, y: 0 }
+        };
+
+        // --- 1. CONFIGURACIÓN DEL CANVAS ---
+        function resize() {
+            systemState.width = window.innerWidth;
+            systemState.height = window.innerHeight;
+            canvas.width = systemState.width;
+            canvas.height = systemState.height;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- 2. SISTEMA DE PARTÍCULAS (METÁFORA DE NODOS) ---
+        class NodeParticle {
+            constructor() {
+                this.x = Math.random() * systemState.width;
+                this.y = Math.random() * systemState.height;
+                this.vx = (Math.random() - 0.5) * 0.5; // Velocidad lenta
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Rebote en bordes
+                if (this.x < 0 || this.x > systemState.width) this.vx *= -1;
+                if (this.y < 0 || this.y > systemState.height) this.vy *= -1;
+
+                // Interacción ratón (Repulsión sutil)
+                const dx = this.x - systemState.mouse.x;
+                const dy = this.y - systemState.mouse.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 150) {
+                    this.x += dx * 0.02;
+                    this.y += dy * 0.02;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
 
-        const btn = document.getElementById('init-btn');
-        const screen = document.getElementById('start-screen');
-        const video = document.getElementById('bg-video');
-        const title = document.getElementById('hero-title');
-        const ui = document.getElementById('main-interface');
+        const nodes = [];
+        for(let i=0; i<60; i++) nodes.push(new NodeParticle()); // 60 Nodos
 
-        // CHECK 1: ¿Existe el archivo de vídeo?
-        video.onerror = function() {
-            log("ERROR CRÍTICO: No se puede cargar 'background.mp4'", "error");
-            log("Causa probable: Nombre incorrecto o no subido a GitHub.", "error");
-            log("Intentando forzar interfaz sin vídeo...", "info");
-            setTimeout(() => launchInterface(), 1000);
-        };
+        window.addEventListener('mousemove', (e) => {
+            systemState.mouse.x = e.clientX;
+            systemState.mouse.y = e.clientY;
+        });
 
-        video.onloadeddata = function() {
-            log("VIDEO ASSET: OK (Datos cargados)");
-        };
+        // --- 3. BUCLE DE RENDERIZADO (MAIN LOOP) ---
+        function render() {
+            // A. Limpiar
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, systemState.width, systemState.height);
 
-        // INTERACCIÓN USUARIO
-        btn.addEventListener('click', () => {
-            log("USER INPUT: Click detectado");
-            screen.classList.add('hidden');
-            
-            const playPromise = video.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.then(_ => {
-                    log("PLAYBACK: Iniciado correctamente");
-                    video.classList.add('video-on');
-                })
-                .catch(error => {
-                    log("PLAYBACK ERROR: " + error, "error");
-                    // Fallback si falla el vídeo
-                    launchInterface();
+            // B. Dibujar Vídeo (Si está listo)
+            if (systemState.playing && systemState.videoReady) {
+                // Algoritmo "Cover" para el vídeo en canvas (mantener ratio)
+                const vidRatio = video.videoWidth / video.videoHeight;
+                const screenRatio = systemState.width / systemState.height;
+                let drawW, drawH, startX, startY;
+
+                if (screenRatio > vidRatio) {
+                    drawW = systemState.width;
+                    drawH = drawW / vidRatio;
+                    startX = 0;
+                    startY = (systemState.height - drawH) / 2;
+                } else {
+                    drawH = systemState.height;
+                    drawW = drawH * vidRatio;
+                    startX = (systemState.width - drawW) / 2;
+                    startY = 0;
+                }
+
+                ctx.globalAlpha = 0.6; // Opacidad del vídeo para que sea oscuro
+                ctx.drawImage(video, startX, startY, drawW, drawH);
+                ctx.globalAlpha = 1.0;
+            } else if (systemState.playing && !systemState.videoReady) {
+                // FALLBACK: Si el vídeo falla, dibujar Grid Cibernética
+                drawGridFallback();
+            }
+
+            // C. Dibujar Nodos y Conexiones (La Red)
+            nodes.forEach(node => {
+                node.update();
+                node.draw();
+                
+                // Conectar nodos cercanos
+                nodes.forEach(other => {
+                    const dx = node.x - other.x;
+                    const dy = node.y - other.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 100) {
+                        ctx.strokeStyle = `rgba(0, 243, 255, ${1 - dist/100})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(node.x, node.y);
+                        ctx.lineTo(other.x, other.y);
+                        ctx.stroke();
+                    }
                 });
-            }
-        });
+            });
 
-        // BUCLE DE TIEMPO
-        let phase1 = false; // Título
-        let phase2 = false; // Interfaz
-
-        video.addEventListener('timeupdate', () => {
-            // Mostrar tiempo cada segundo entero para ver si avanza
-            if(Math.floor(video.currentTime) > 0 && Math.floor(video.currentTime) % 2 === 0) {
-                // log("TIME: " + Math.floor(video.currentTime) + "s"); 
-                // Comentado para no saturar, descomentar si es necesario
+            // D. Scanlines (Efecto Monitor)
+            ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            for(let i=0; i<systemState.height; i+=4) {
+                ctx.fillRect(0, i, systemState.width, 1);
             }
 
-            // SEGUNDO 5
-            if (video.currentTime >= 5 && !phase1) {
-                log("EVENT: Trigger Título (5s)");
-                title.classList.add('visible');
-                phase1 = true;
+            // E. Gestión de Tiempo y Eventos
+            if (systemState.playing) {
+                manageTimeline();
             }
 
-            // SEGUNDO 7
-            if (video.currentTime >= 7 && !phase2) {
-                log("EVENT: Trigger UI (7s)");
-                title.style.opacity = 0.1; // Marca de agua
-                ui.classList.add('visible');
-                phase2 = true;
-            }
-        });
-
-        // FUNCIÓN DE EMERGENCIA
-        function launchInterface() {
-            log("BYPASS: Iniciando interfaz modo estático");
-            title.classList.add('visible');
-            setTimeout(() => {
-                ui.classList.add('visible');
-                title.style.opacity = 0.1;
-            }, 2000);
+            requestAnimationFrame(render);
         }
 
-        log("SYSTEM READY. WAITING FOR INPUT.");
+        function drawGridFallback() {
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.1)';
+            ctx.lineWidth = 1;
+            const step = 50;
+            // Movimiento del grid
+            const offset = (Date.now() / 50) % step;
+            
+            for(let x=0; x<=systemState.width; x+=step) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, systemState.height); ctx.stroke();
+            }
+            for(let y=offset; y<=systemState.height; y+=step) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(systemState.width, y); ctx.stroke();
+            }
+        }
+
+        function manageTimeline() {
+            const t = video.currentTime || ((Date.now() - systemState.startTime) / 1000); // Fallback time
+
+            // EVENTO 1: TÍTULO (5s)
+            if (t > 5 && systemState.phase === 0) {
+                heroTitle.classList.add('title-visible');
+                systemState.phase = 1;
+            }
+
+            // EVENTO 2: CONTENIDO (7s)
+            if (t > 7 && systemState.phase === 1) {
+                // Título a modo marca de agua (desaparece visualmente para dejar leer)
+                heroTitle.style.opacity = '0.05'; 
+                heroTitle.style.transform = 'scale(1.1)';
+                
+                mainContent.classList.add('ui-visible');
+                systemState.phase = 2;
+            }
+        }
+
+        // --- 4. INICIALIZACIÓN Y CARGA ---
+        
+        // Simulación de carga de assets
+        let loadProgress = 0;
+        const loadInterval = setInterval(() => {
+            loadProgress += Math.random() * 10;
+            if (loadProgress > 100) loadProgress = 100;
+            progressBar.style.width = loadProgress + '%';
+
+            if (loadProgress === 100) {
+                clearInterval(loadInterval);
+                loadingText.innerText = "SYSTEM READY";
+                loadingText.style.color = "var(--accent)";
+                startBtn.style.opacity = 1;
+                startBtn.style.transform = "translateY(0)";
+            }
+        }, 200);
+
+        // Listeners del Video
+        video.addEventListener('canplay', () => {
+            systemState.videoReady = true;
+            console.log("Video Decoder: READY");
+        });
+        
+        video.addEventListener('error', (e) => {
+            console.log("Video Decoder: FAILED. Switching to Procedural Grid.");
+            systemState.videoReady = false; // Activará el fallback
+        });
+
+        // Click de Inicio
+        startBtn.addEventListener('click', () => {
+            initLayer.classList.add('fade-out');
+            systemState.playing = true;
+            systemState.startTime = Date.now(); // Por si el video falla, tenemos reloj interno
+            
+            // Intentar reproducir vídeo
+            video.play().catch(e => {
+                console.log("Autoplay failed or video missing. Running simulation.");
+                systemState.videoReady = false;
+            });
+        });
+
+        // Arrancar Motor
+        render();
+
     </script>
 </body>
 </html>
