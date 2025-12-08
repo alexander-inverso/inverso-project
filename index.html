@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INVERSO.BIO // SYSTEM_ROOT</title>
+    <title>INVERSO PROJECT // CONTINUITY MANIFESTO</title>
     <style>
         :root {
-            --bg-color: #0a0a0a;
-            --text-primary: #e0e0e0;
-            --text-dim: #666666;
+            --text-primary: #ffffff;
+            --text-dim: #a0a0a0;
             --accent-cyan: #00f0ff;
-            --accent-red: #ff3333;
-            --font-stack: 'Courier New', Courier, monospace;
+            --accent-light: #ffffff;
+            --font-stack: 'Courier New', Courier, monospace; /* Mantenemos la raíz ingenieril */
         }
 
         * {
@@ -21,207 +20,219 @@
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
             font-family: var(--font-stack);
-            line-height: 1.6;
-            padding: 2rem;
-            max-width: 900px;
-            margin: 0 auto;
-            border-left: 1px solid var(--text-dim);
-            border-right: 1px solid var(--text-dim);
+            line-height: 1.7;
+            color: var(--text-primary);
+            background-color: #050505; /* Color de respaldo si falla el vídeo */
+            overflow-x: hidden;
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* HEADER HUD */
+        /* --- VIDEO DE FONDO --- */
+        #bg-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -2;
+            object-fit: cover;
+            opacity: 0.6; /* Ajusta esto si el vídeo es muy brillante */
+        }
+
+        /* Capa de oscurecimiento sobre el vídeo */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: -1;
+        }
+
+        /* --- CONTENEDOR PRINCIPAL "CRISTAL" --- */
+        .main-container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 4rem auto;
+            padding: 3rem;
+            
+            /* Efecto Glassmorphism */
+            background: rgba(15, 15, 15, 0.65); /* Fondo oscuro semitransparente */
+            backdrop-filter: blur(12px); /* Desenfoque del fondo */
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- TIPOGRAFÍA Y ESTRUCTURA --- */
         header {
-            border-bottom: 2px solid var(--text-primary);
-            padding-bottom: 1rem;
-            margin-bottom: 3rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 1.5rem;
+            margin-bottom: 4rem;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
+            letter-spacing: 1px;
         }
 
         h1 {
-            font-size: 2rem;
-            letter-spacing: -2px;
-            text-transform: uppercase;
+            font-weight: normal;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
         }
 
-        .status-badge {
-            font-size: 0.8rem;
-            border: 1px solid var(--accent-cyan);
-            color: var(--accent-cyan);
-            padding: 2px 8px;
-        }
+        .node-id { color: var(--accent-cyan); font-size: 0.9rem;}
 
-        /* SECTIONS */
-        section {
-            margin-bottom: 4rem;
-        }
+        section { margin-bottom: 5rem; }
 
         h2 {
-            font-size: 1.2rem;
-            border-bottom: 1px solid var(--text-dim);
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            color: var(--text-dim);
+            font-size: 1.4rem;
+            color: var(--accent-light);
+            margin-bottom: 2rem;
+            font-weight: normal;
             text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
         }
-
+        
         h2::before {
-            content: ">> ";
-            color: var(--accent-cyan);
+            content: "";
+            display: inline-block;
+            width: 20px;
+            height: 1px;
+            background-color: var(--accent-cyan);
+            margin-right: 15px;
         }
 
         h3 {
-            font-size: 1rem;
-            margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--accent-cyan);
+            margin-bottom: 1rem;
+            margin-top: 2.5rem;
+            font-weight: normal;
         }
 
         p {
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-dim);
+            font-size: 1.05rem;
             text-align: justify;
         }
 
-        /* LISTS & DATA */
-        ul {
-            list-style: none;
-            padding-left: 1rem;
-            border-left: 2px solid var(--text-dim);
-        }
-
-        li {
-            margin-bottom: 0.5rem;
-        }
-
-        li::before {
-            content: "[+] ";
-            color: var(--text-dim);
-        }
-
-        .highlight {
-            color: var(--accent-cyan);
-            font-weight: bold;
-        }
-
-        .warning {
-            color: var(--accent-red);
-        }
-
-        /* FOOTER */
-        footer {
-            margin-top: 5rem;
-            border-top: 1px dashed var(--text-dim);
-            padding-top: 2rem;
-            text-align: center;
-            font-size: 0.8rem;
-            color: var(--text-dim);
-        }
-
-        a {
+        .lead-text {
+            font-size: 1.3rem;
             color: var(--text-primary);
-            text-decoration: none;
-            border-bottom: 1px solid var(--accent-cyan);
+            line-height: 1.5;
+            border-left: 3px solid var(--accent-cyan);
+            padding-left: 2rem;
+            margin-bottom: 4rem;
         }
 
-        a:hover {
-            background-color: var(--accent-cyan);
-            color: var(--bg-color);
+        .accent { color: var(--text-primary); }
+
+        /* --- FOOTER --- */
+        footer {
+            margin-top: 6rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.9rem;
         }
+
+        a { color: var(--accent-cyan); text-decoration: none; border-bottom: 1px dotted var(--accent-cyan); transition: all 0.3s ease;}
+        a:hover { border-bottom: 1px solid var(--accent-cyan); color: var(--accent-light); }
 
         /* RESPONSIVE */
-        @media (max-width: 600px) {
-            body { padding: 1rem; border: none; }
+        @media (max-width: 768px) {
+            .main-container { width: 95%; padding: 1.5rem; margin: 2rem auto; }
+            header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .lead-text { font-size: 1.1rem; padding-left: 1rem; }
             h1 { font-size: 1.5rem; }
-        }
-
-        .cursor {
-            animation: blink 1s step-end infinite;
-        }
-
-        @keyframes blink {
-            50% { opacity: 0; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div>
-            <h1>INVERSO.BIO<span class="cursor">_</span></h1>
-            <small>ID: AXEL // LOC: ES-MAD // ARCHITECT_MODE</small>
-        </div>
-        <div class="status-badge">SYSTEM: ONLINE</div>
-    </header>
+    <video autoplay muted loop playsinline id="bg-video">
+        <source src="background.mp4" type="video/mp4">
+    </video>
+    <div class="overlay"></div>
 
-    <section>
-        <p>
-            ESTA WEB NO ES UN BLOG. ES UNA <span class="highlight">HERRAMIENTA DE INGENIERÍA DE CARRERA</span>.
-            ACTÚA COMO CUADERNO DE LABORATORIO DIGITAL Y PORTAFOLIO DINÁMICO.
-        </p>
-        <p>
-            OBJETIVO: CENTRALIZACIÓN DE DATOS, VALIDACIÓN EXTERNA Y DISCIPLINA PÚBLICA.
-        </p>
-    </section>
+    <div class="main-container">
+        <header>
+            <div>
+                <h1>INVERSO PROJECT</h1>
+                <small class="node-id">GLOBAL_NODE: ALEXANDER // ARCHITECT_MODE</small>
+            </div>
+            <div class="node-id">SYSTEM STATUS: ASCENDING</div>
+        </header>
 
-    <section>
-        <h2>📂 FASE 0. ROOT ACCESS (EL DIAGNÓSTICO)</h2>
-        <h3>0.1. La Paradoja de la Eficiencia</h3>
-        <p>El consumo de información compleja (neurología, toxicología) no es ocio, es ingesta de datos. Existe un coste de oportunidad crítico entre el rendimiento académico estándar y el aprendizaje real.</p>
-        
-        <h3>0.2. Mentalidad High Agency</h3>
-        <ul>
-            <li>Elección de funcionalidad sobre estatus.</li>
-            <li>Cuestionamiento del consenso como método de optimización.</li>
-            <li>Filosofía de Transparencia Radical.</li>
-        </ul>
-    </section>
+        <section>
+            <div class="lead-text">
+                <p>
+                    El progreso humano son miles de haces de luz ascendentes: Física, IA, Materiales, Energía. 
+                    Tenemos la infraestructura para que brillen. Pero el componente más crítico del sistema sigue siendo el más frágil: <span class="accent">La Mente Humana</span>.
+                </p>
+            </div>
+        </section>
 
-    <section>
-        <h2>📂 FASE 1. SYSTEM ERROR (EL PROBLEMA)</h2>
-        <h3>1.1. Escasez Temporal (Time Scarcity)</h3>
-        <p>Cálculo matemático: La vida humana estándar es insuficiente para la maestría multidisciplinar. La muerte se define aquí como una <span class="warning">pérdida de datos inaceptable</span>.</p>
-        
-        <h3>1.2. Fallos de Ingeniería en Medicina</h3>
-        <ul>
-            <li>Crítica al modelo reactivo ("Reparación de Averías").</li>
-            <li>Objetivo: Transición hacia la Prevención de Fallos (Ingeniería de Sistemas).</li>
-        </ul>
-    </section>
+        <section>
+            <h2>I. El Cuello de Botella: La Pérdida de Intuición</h2>
+            <p>
+                El problema no es la muerte física, es la <span class="accent">discontinuidad del dato procesado</span>. La ciencia (los papers) es transferible a un disco duro. La Intuición —la capacidad de conectar puntos inconexos basada en décadas de experiencia— es biológica y muere con el especialista.
+            </p>
+            <p>
+                Cada vez que una mente trascendente se apaga por un fallo biológico, la civilización sufre una quema de capital intelectual. Es un error de diseño sistémico que ralentiza la latencia del progreso global.
+            </p>
+        </section>
 
-    <section>
-        <h2>📂 FASE 2. THE ARCHITECTURE (LA SOLUCIÓN)</h2>
-        <h3>2.1. El Gemelo Digital</h3>
-        <p>Construcción de una simulación biológica integral mediante IA y Computación Cuántica. Transición del Wet Lab al Dry Lab.</p>
-        
-        <h3>2.2. Vectores de Ataque</h3>
-        <ul>
-            <li>Modificación de Telómeros (Mantenimiento del código base).</li>
-            <li>Inmunomodulación (Depuración de errores de compilación).</li>
-            <li>Toxicología Sistémica (Control de inputs).</li>
-        </ul>
-    </section>
+        <section>
+            <h2>II. La Misión: Ingeniería de la Trascendencia</h2>
+            <h3>Colaboración Radial</h3>
+            <p>
+                Inverso Project no busca el ocio eterno. Busca mantener operativas a las mentes clave en el "Convento" del conocimiento. 
+            </p>
+            <p>
+                Yo opero en la vertical de Sistemas Biológicos, pero mi trabajo es dependiente y subsidiario: Ruego por superconductores, necesito a la IA para modelar la complejidad, y dependo de la física avanzada. Mi rol es asegurar el sustrato biológico para que esas otras disciplinas alcancen su potencial.
+            </p>
+        </section>
 
-    <section>
-        <h2>📂 FASE 4. SYSTEM LOGS (PROTOCOLOS)</h2>
-        <p>Aplicación práctica en tiempo de ejecución (Runtime: 17 años).</p>
-        <ul>
-            <li><strong>Rendimiento Físico:</strong> Entrenamiento de alta intensidad y escalada. Gestión química de la intolerancia (Lactasa 22k FCC).</li>
-            <li><strong>Estética Teardown:</strong> Visualización de procesos internos. "One Take" video philosophy.</li>
-        </ul>
-    </section>
+        <section>
+            <h2>III. La Propuesta: Hub de Resistencia</h2>
+            <p>
+                Esto no es un blog de salud. Es un <span class="accent">Think Tank operativo</span> enfocado en resolver el problema de la discontinuidad. Utilizamos herramientas de ingeniería para hackear el código de la vida y ofrecer tiempo como recurso.
+            </p>
+            <h3>Diversidad de Propósitos</h3>
+            <p>
+                El sistema necesita que tú quieras explorar Marte, componer la sinfonía perfecta o resolver la fusión nuclear. Mi único trabajo es asegurarme de que tengas el tiempo biológico suficiente para lograrlo.
+            </p>
+        </section>
 
-    <footer>
-        <p>CONTACTO ENCRIPTADO: <a href="mailto:alexander@inverso.bio">alexander@inverso.bio</a></p>
-        <br>
-        <p>© 2025 INVERSO PROTOCOL. ALL RIGHTS RESERVED.</p>
-        <p>END OF LINE_</p>
-    </footer>
+        <section>
+            <p class="lead-text" style="border: none; padding-left: 0; text-align: center; margin-bottom: 2rem;">
+                "El futuro no se construye con una sola mente, sino con una red de mentes que no se apagan. Yo estoy trabajando en el interruptor."
+            </p>
+            <p style="text-align: center; color: var(--accent-cyan);">
+                 Busca tu haz de luz. Encuéntrame ahí arriba.
+            </p>
+        </section>
+
+        <footer>
+            <p>NODO DE CONTACTO: <a href="mailto:alexander@inverso.bio">alexander@inverso.bio</a></p>
+            <br>
+            <p>© 2025 INVERSO GLOBAL ARCHITECTURE. MANIFESTO V2.1</p>
+        </footer>
+    </div>
 
 </body>
 </html>
