@@ -3,236 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INVERSO PROJECT // CONTINUITY MANIFESTO</title>
+    <title>INVERSO PROJECT // GLOBAL INTERFACE</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;900&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            --text-primary: #ffffff;
-            --text-dim: #a0a0a0;
-            --accent-cyan: #00f0ff;
-            --accent-light: #ffffff;
-            --font-stack: 'Courier New', Courier, monospace; /* Mantenemos la raíz ingenieril */
+            --white: #ffffff;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-hover: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #00f3ff; /* Cian eléctrico para energía */
         }
 
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: var(--font-stack);
-            line-height: 1.7;
-            color: var(--text-primary);
-            background-color: #050505; /* Color de respaldo si falla el vídeo */
+            font-family: 'Montserrat', sans-serif;
+            color: var(--white);
+            background: #000;
             overflow-x: hidden;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
-        /* --- VIDEO DE FONDO --- */
+        /* --- VÍDEO BACKGROUND --- */
         #bg-video {
-            position: fixed;
-            right: 0;
-            bottom: 0;
-            min-width: 100%;
-            min-height: 100%;
-            width: auto;
-            height: auto;
-            z-index: -2;
-            object-fit: cover;
-            opacity: 0.6; /* Ajusta esto si el vídeo es muy brillante */
-        }
-
-        /* Capa de oscurecimiento sobre el vídeo */
-        .overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            object-fit: cover;
             z-index: -1;
+            opacity: 0.7; /* Ajuste de luminosidad */
         }
 
-        /* --- CONTENEDOR PRINCIPAL "CRISTAL" --- */
-        .main-container {
-            width: 90%;
-            max-width: 1000px;
-            margin: 4rem auto;
-            padding: 3rem;
-            
-            /* Efecto Glassmorphism */
-            background: rgba(15, 15, 15, 0.65); /* Fondo oscuro semitransparente */
-            backdrop-filter: blur(12px); /* Desenfoque del fondo */
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 4px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        /* --- TIPOGRAFÍA Y ESTRUCTURA --- */
-        header {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 1.5rem;
-            margin-bottom: 4rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            letter-spacing: 1px;
-        }
-
-        h1 {
-            font-weight: normal;
-            font-size: 1.8rem;
-            letter-spacing: 2px;
-        }
-
-        .node-id { color: var(--accent-cyan); font-size: 0.9rem;}
-
-        section { margin-bottom: 5rem; }
-
-        h2 {
-            font-size: 1.4rem;
-            color: var(--accent-light);
-            margin-bottom: 2rem;
-            font-weight: normal;
+        /* --- PANTALLA DE TÍTULO (SECUENCIA INICIAL) --- */
+        #hero-title {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5vw; /* Escala con la pantalla */
+            font-weight: 900;
+            letter-spacing: -2px;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            display: flex;
-            align-items: center;
+            text-align: center;
+            opacity: 0; /* Invisible al inicio */
+            z-index: 100;
+            pointer-events: none; /* Permite clickar a través */
+            mix-blend-mode: overlay; /* Fusión moderna con el vídeo */
         }
-        
-        h2::before {
-            content: "";
-            display: inline-block;
-            width: 20px;
-            height: 1px;
-            background-color: var(--accent-cyan);
-            margin-right: 15px;
+
+        .title-visible {
+            opacity: 1 !important;
+            /* Aparición de golpe, sin transición suave (Hard Cut) */
+        }
+
+        /* --- CONTENIDO PRINCIPAL --- */
+        #main-interface {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1.5s ease, transform 1.5s ease-out;
+            padding: 100vh 5vw 10vh 5vw; /* Empieza debajo del fold */
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2rem;
+        }
+
+        .interface-visible {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+
+        /* --- TARJETAS DE CRISTAL (NODOS) --- */
+        .glass-panel {
+            grid-column: span 12;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            padding: 3rem;
+            border-radius: 0; /* Bordes rectos, más arquitectónico */
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-panel:hover {
+            background: var(--glass-hover);
+            border-color: var(--accent);
+            transform: scale(1.01);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+        }
+
+        /* Metáfora visual: La barra de carga/energía */
+        .glass-panel::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.4s ease;
+        }
+
+        .glass-panel:hover::after {
+            width: 100%;
+        }
+
+        /* --- TIPOGRAFÍA --- */
+        h2 {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
         }
 
         h3 {
-            font-size: 1.1rem;
-            color: var(--accent-cyan);
+            font-size: 1.2rem;
+            color: var(--accent);
             margin-bottom: 1rem;
-            margin-top: 2.5rem;
-            font-weight: normal;
+            font-weight: 700;
+            text-transform: uppercase;
         }
 
         p {
-            margin-bottom: 1.5rem;
-            color: var(--text-dim);
-            font-size: 1.05rem;
-            text-align: justify;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #d0d0d0;
+            font-weight: 300;
+            max-width: 800px;
         }
 
-        .lead-text {
-            font-size: 1.3rem;
-            color: var(--text-primary);
-            line-height: 1.5;
-            border-left: 3px solid var(--accent-cyan);
-            padding-left: 2rem;
-            margin-bottom: 4rem;
-        }
+        /* --- GRID LAYOUT --- */
+        .col-half { grid-column: span 6; }
+        .col-full { grid-column: span 12; }
 
-        .accent { color: var(--text-primary); }
-
-        /* --- FOOTER --- */
-        footer {
-            margin-top: 6rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-            color: var(--text-dim);
-            font-size: 0.9rem;
-        }
-
-        a { color: var(--accent-cyan); text-decoration: none; border-bottom: 1px dotted var(--accent-cyan); transition: all 0.3s ease;}
-        a:hover { border-bottom: 1px solid var(--accent-cyan); color: var(--accent-light); }
-
-        /* RESPONSIVE */
+        /* Responsive */
         @media (max-width: 768px) {
-            .main-container { width: 95%; padding: 1.5rem; margin: 2rem auto; }
-            header { flex-direction: column; align-items: flex-start; gap: 1rem; }
-            .lead-text { font-size: 1.1rem; padding-left: 1rem; }
-            h1 { font-size: 1.5rem; }
+            .col-half { grid-column: span 12; }
+            #hero-title { font-size: 10vw; width: 100%; }
+            .glass-panel { padding: 1.5rem; }
+        }
+
+        /* Footer */
+        footer {
+            grid-column: span 12;
+            text-align: center;
+            padding-top: 5rem;
+            opacity: 0.5;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
         }
     </style>
 </head>
 <body>
 
-    <video autoplay muted loop playsinline id="bg-video">
+    <video id="bg-video" autoplay muted loop playsinline>
         <source src="background.mp4" type="video/mp4">
     </video>
-    <div class="overlay"></div>
 
-    <div class="main-container">
-        <header>
-            <div>
-                <h1>INVERSO PROJECT</h1>
-                <small class="node-id">GLOBAL_NODE: ALEXANDER // ARCHITECT_MODE</small>
-            </div>
-            <div class="node-id">SYSTEM STATUS: ASCENDING</div>
-        </header>
+    <div id="hero-title">INVERSO PROJECT</div>
 
-        <section>
-            <div class="lead-text">
-                <p>
-                    El progreso humano son miles de haces de luz ascendentes: Física, IA, Materiales, Energía. 
-                    Tenemos la infraestructura para que brillen. Pero el componente más crítico del sistema sigue siendo el más frágil: <span class="accent">La Mente Humana</span>.
-                </p>
-            </div>
-        </section>
+    <div id="main-interface">
+        
+        <div class="glass-panel col-full">
+            <h2>I. El Contexto</h2>
+            <h3>La Física del Progreso</h3>
+            <p>
+                Imagina el progreso humano como miles de haces de luz ascendentes. Ciencia de Materiales, Física Cuántica, IA. Para que suban, necesitamos infraestructura. Pero el componente más crítico sigue siendo el más frágil: <strong style="color:white">La Mente Humana.</strong>
+            </p>
+        </div>
 
-        <section>
-            <h2>I. El Cuello de Botella: La Pérdida de Intuición</h2>
+        <div class="glass-panel col-half">
+            <h2>II. System Failure</h2>
+            <h3>Pérdida de Intuición</h3>
             <p>
-                El problema no es la muerte física, es la <span class="accent">discontinuidad del dato procesado</span>. La ciencia (los papers) es transferible a un disco duro. La Intuición —la capacidad de conectar puntos inconexos basada en décadas de experiencia— es biológica y muere con el especialista.
+                El dato se guarda, la intuición muere. Cuando un experto fallece, se quema una biblioteca de conexiones neuronales únicas. Es un fallo de diseño en la transmisión del conocimiento.
             </p>
-            <p>
-                Cada vez que una mente trascendente se apaga por un fallo biológico, la civilización sufre una quema de capital intelectual. Es un error de diseño sistémico que ralentiza la latencia del progreso global.
-            </p>
-        </section>
+        </div>
 
-        <section>
-            <h2>II. La Misión: Ingeniería de la Trascendencia</h2>
-            <h3>Colaboración Radial</h3>
+        <div class="glass-panel col-half">
+            <h2>III. La Misión</h2>
+            <h3>Arquitectura de Trascendencia</h3>
             <p>
-                Inverso Project no busca el ocio eterno. Busca mantener operativas a las mentes clave en el "Convento" del conocimiento. 
+                No busco vivir para siempre. Busco que las mentes que resuelven la fusión nuclear y la IA general tengan el tiempo biológico para terminar su trabajo.
             </p>
-            <p>
-                Yo opero en la vertical de Sistemas Biológicos, pero mi trabajo es dependiente y subsidiario: Ruego por superconductores, necesito a la IA para modelar la complejidad, y dependo de la física avanzada. Mi rol es asegurar el sustrato biológico para que esas otras disciplinas alcancen su potencial.
-            </p>
-        </section>
+        </div>
 
-        <section>
-            <h2>III. La Propuesta: Hub de Resistencia</h2>
-            <p>
-                Esto no es un blog de salud. Es un <span class="accent">Think Tank operativo</span> enfocado en resolver el problema de la discontinuidad. Utilizamos herramientas de ingeniería para hackear el código de la vida y ofrecer tiempo como recurso.
+        <div class="glass-panel col-full" style="text-align: center;">
+            <h2>Únete a la Red</h2>
+            <p style="margin: 0 auto;">
+                El futuro se construye conectando nodos. Encuéntrame en la señal.
             </p>
-            <h3>Diversidad de Propósitos</h3>
-            <p>
-                El sistema necesita que tú quieras explorar Marte, componer la sinfonía perfecta o resolver la fusión nuclear. Mi único trabajo es asegurarme de que tengas el tiempo biológico suficiente para lograrlo.
-            </p>
-        </section>
-
-        <section>
-            <p class="lead-text" style="border: none; padding-left: 0; text-align: center; margin-bottom: 2rem;">
-                "El futuro no se construye con una sola mente, sino con una red de mentes que no se apagan. Yo estoy trabajando en el interruptor."
-            </p>
-            <p style="text-align: center; color: var(--accent-cyan);">
-                 Busca tu haz de luz. Encuéntrame ahí arriba.
-            </p>
-        </section>
+            <br>
+            <a href="mailto:axel@inverso.bio" style="color: var(--accent); text-decoration: none; font-weight: bold; font-size: 1.5rem; border-bottom: 2px solid var(--accent);">axel@inverso.bio</a>
+        </div>
 
         <footer>
-            <p>NODO DE CONTACTO: <a href="mailto:alexander@inverso.bio">alexander@inverso.bio</a></p>
-            <br>
-            <p>© 2025 INVERSO GLOBAL ARCHITECTURE. MANIFESTO V2.1</p>
+            SYSTEM STATUS: ONLINE // NODE ID: ES-MAD // V3.0
         </footer>
     </div>
 
+    <script>
+        const video = document.getElementById('bg-video');
+        const title = document.getElementById('hero-title');
+        const interface = document.getElementById('main-interface');
+        
+        let titleShown = false;
+        let contentShown = false;
+
+        // Escuchamos el tiempo del vídeo para precisión quirúrgica
+        video.addEventListener('timeupdate', () => {
+            
+            // SEGUNDO 5: TÍTULO DE GOLPE
+            if (video.currentTime >= 5 && !titleShown) {
+                title.classList.add('title-visible');
+                titleShown = true;
+            }
+
+            // SEGUNDO 7: INTERFAZ SUBE Y APARECE
+            if (video.currentTime >= 7 && !contentShown) {
+                interface.classList.add('interface-visible');
+                // Hacemos que el título se desvanezca un poco o se integre, 
+                // pero por ahora lo dejamos fijo como "marca de agua" gigante o 
+                // podemos ocultarlo si molesta al scroll. 
+                // Decisión de diseño: Lo dejamos fijo al fondo para impacto.
+                title.style.opacity = '0.1'; // Se queda como marca de agua sutil
+                title.style.transition = 'opacity 2s ease';
+                contentShown = true;
+            }
+        });
+
+        // Fallback por si el vídeo no carga rápido (fuerza la carga)
+        window.addEventListener('load', () => {
+            video.play().catch(e => console.log("Autoplay bloqueado por navegador, interacción requerida"));
+        });
+    </script>
 </body>
 </html>
