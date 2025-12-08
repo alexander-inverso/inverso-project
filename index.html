@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INVERSO PROJECT // GLOBAL INTERFACE</title>
+    <title>INVERSO PROJECT // DEBUG MODE</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,20 +12,31 @@
     <style>
         :root {
             --white: #ffffff;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-hover: rgba(255, 255, 255, 0.08);
-            --border: rgba(255, 255, 255, 0.1);
-            --accent: #00f3ff; /* Cian eléctrico */
+            --accent: #00f3ff;
+            --error: #ff3333;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Montserrat', sans-serif;
             color: var(--white);
             background: #050505;
             overflow-x: hidden;
-            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* --- DEBUG CONSOLE (SOLO PARA DIAGNÓSTICO) --- */
+        #sys-log {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--accent);
+            z-index: 9999;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            pointer-events: none;
+            max-width: 300px;
         }
 
         /* --- VÍDEO --- */
@@ -35,134 +46,71 @@
             width: 100%; height: 100%;
             object-fit: cover;
             z-index: -1;
-            opacity: 0; /* Oculto hasta iniciar */
+            opacity: 0; 
             transition: opacity 2s ease;
         }
 
-        /* --- PANTALLA DE INICIO (BOTÓN) --- */
+        /* --- PANTALLA INICIO --- */
         #start-screen {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #050505;
-            z-index: 999;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 1s ease, visibility 1s;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #050505; z-index: 999;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            transition: opacity 0.5s ease;
         }
 
         #init-btn {
-            background: transparent;
-            color: var(--accent);
+            background: transparent; color: var(--accent);
             font-family: 'Montserrat', sans-serif;
-            font-size: 1rem;
-            letter-spacing: 4px;
-            padding: 1.5rem 3rem;
-            border: 1px solid var(--accent);
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            padding: 1.5rem 3rem; border: 1px solid var(--accent);
+            cursor: pointer; text-transform: uppercase;
         }
 
-        #init-btn:hover {
-            background: var(--accent);
-            color: #000;
-            box-shadow: 0 0 40px rgba(0, 243, 255, 0.4);
-        }
-
-        .status-text {
-            margin-top: 2rem;
-            font-size: 0.8rem;
-            color: #666;
-            letter-spacing: 2px;
-            animation: blink 2s infinite;
-        }
-
-        @keyframes blink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-
-        /* --- HERO TITLE --- */
+        /* --- UI ELEMENTS --- */
         #hero-title {
-            position: fixed;
-            top: 50%; left: 50%;
+            position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 6vw;
-            font-weight: 900;
-            letter-spacing: -2px;
-            text-transform: uppercase;
-            text-align: center;
-            opacity: 0;
-            z-index: 100;
-            pointer-events: none;
+            font-size: 6vw; font-weight: 900;
+            opacity: 0; transition: opacity 0.2s;
             mix-blend-mode: overlay;
-            transition: opacity 0.2s ease-out; /* Hard cut */
         }
 
-        /* --- INTERFAZ --- */
         #main-interface {
-            opacity: 0;
-            transform: translateY(50px);
-            transition: opacity 1.5s ease, transform 1.5s ease-out;
+            opacity: 0; transform: translateY(50px);
+            transition: all 1.5s ease;
             padding: 100vh 5vw 10vh 5vw;
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 2rem;
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(12, 1fr); gap: 2rem;
         }
 
-        /* --- CLASES DE ESTADO --- */
-        .fade-out { opacity: 0; visibility: hidden; }
-        .video-visible { opacity: 0.6 !important; }
-        .title-visible { opacity: 1 !important; }
-        .interface-visible { opacity: 1 !important; transform: translateY(0) !important; }
-        .watermark-mode { opacity: 0.1 !important; }
-
-        /* --- COMPONENTES --- */
         .glass-panel {
-            grid-column: span 12;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            padding: 3rem;
-            transition: all 0.4s ease;
-            position: relative;
+            grid-column: span 12; background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px); padding: 2rem; border: 1px solid rgba(255,255,255,0.1);
         }
-        .glass-panel:hover {
-            background: var(--glass-hover);
-            border-color: var(--accent);
-            transform: scale(1.005);
-        }
-        .col-half { grid-column: span 6; }
-        
-        /* Typography utils */
-        h2 { font-size: 2rem; font-weight: 300; margin-bottom: 1.5rem; letter-spacing: 4px; text-transform: uppercase;}
-        h3 { font-size: 1.2rem; color: var(--accent); margin-bottom: 1rem; font-weight: 700; text-transform: uppercase;}
-        p { color: #d0d0d0; line-height: 1.8; max-width: 800px; font-weight: 300; }
-        a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent); }
 
-        @media (max-width: 768px) {
-            .col-half { grid-column: span 12; }
-            #hero-title { font-size: 10vw; width: 100%; }
-            #init-btn { padding: 1rem 2rem; font-size: 0.8rem; }
-        }
-        
-        footer { grid-column: span 12; text-align: center; padding-top: 5rem; opacity: 0.5; font-size: 0.8rem; letter-spacing: 2px; }
+        .col-half { grid-column: span 6; }
+        @media (max-width: 768px) { .col-half { grid-column: span 12; } }
+
+        /* ESTADOS */
+        .visible { opacity: 1 !important; transform: translateY(0) !important; }
+        .hidden { opacity: 0 !important; pointer-events: none; }
+        .video-on { opacity: 0.6 !important; }
+
     </style>
 </head>
 <body>
 
+    <div id="sys-log">
+        > SYSTEM BOOT...<br>
+    </div>
+
     <div id="start-screen">
-        <button id="init-btn">INITIALIZE PROTOCOL</button>
-        <div class="status-text">WAITING FOR SECURE HANDSHAKE...</div>
+        <button id="init-btn">INITIALIZE SYSTEM</button>
     </div>
 
     <video id="bg-video" muted playsinline loop>
-        <source src="background.mp4" type="video/mp4">
+        <source src="./background.mp4" type="video/mp4">
     </video>
 
     <div id="hero-title">INVERSO PROJECT</div>
@@ -170,74 +118,103 @@
     <div id="main-interface">
         <div class="glass-panel col-full">
             <h2>I. El Contexto</h2>
-            <h3>La Física del Progreso</h3>
-            <p>El progreso humano son haces de luz ascendentes. Necesitamos infraestructura para que brillen, pero el cuello de botella es la mente humana.</p>
+            <p>Si lees esto, el sistema gráfico ha cargado correctamente.</p>
         </div>
-
         <div class="glass-panel col-half">
-            <h2>II. System Failure</h2>
-            <h3>Pérdida de Intuición</h3>
-            <p>El dato se guarda, la intuición muere. La muerte de un experto es la quema de una biblioteca irrecuperable.</p>
+            <h2>II. Estado</h2>
+            <p>Diagnóstico de vídeo completado.</p>
         </div>
-
         <div class="glass-panel col-half">
-            <h2>III. La Misión</h2>
-            <h3>Arquitectura de Trascendencia</h3>
-            <p>No busco la inmortalidad por ocio. Busco tiempo biológico para quienes resuelven los problemas de la civilización.</p>
+            <h2>III. Contacto</h2>
+            <p>axel@inverso.bio</p>
         </div>
-
-        <div class="glass-panel col-full" style="text-align: center;">
-            <h2>Únete a la Red</h2>
-            <br>
-            <a href="mailto:axel@inverso.bio" style="font-size: 1.5rem;">axel@inverso.bio</a>
-        </div>
-
-        <footer>SYSTEM STATUS: ONLINE // V3.1</footer>
     </div>
 
     <script>
-        const startScreen = document.getElementById('start-screen');
-        const initBtn = document.getElementById('init-btn');
+        // --- SISTEMA DE LOGGING ---
+        const logBox = document.getElementById('sys-log');
+        function log(msg, type = 'info') {
+            const color = type === 'error' ? '#ff3333' : '#00f3ff';
+            logBox.innerHTML += `<span style="color:${color}">> ${msg}</span><br>`;
+            console.log(msg);
+        }
+
+        const btn = document.getElementById('init-btn');
+        const screen = document.getElementById('start-screen');
         const video = document.getElementById('bg-video');
         const title = document.getElementById('hero-title');
-        const interface = document.getElementById('main-interface');
+        const ui = document.getElementById('main-interface');
 
-        // Banderas de estado
-        let sequenceStarted = false;
+        // CHECK 1: ¿Existe el archivo de vídeo?
+        video.onerror = function() {
+            log("ERROR CRÍTICO: No se puede cargar 'background.mp4'", "error");
+            log("Causa probable: Nombre incorrecto o no subido a GitHub.", "error");
+            log("Intentando forzar interfaz sin vídeo...", "info");
+            setTimeout(() => launchInterface(), 1000);
+        };
 
-        // 1. EL USUARIO INICIA EL SISTEMA
-        initBtn.addEventListener('click', () => {
-            // Ocultar botón
-            startScreen.classList.add('fade-out');
+        video.onloadeddata = function() {
+            log("VIDEO ASSET: OK (Datos cargados)");
+        };
+
+        // INTERACCIÓN USUARIO
+        btn.addEventListener('click', () => {
+            log("USER INPUT: Click detectado");
+            screen.classList.add('hidden');
             
-            // Iniciar vídeo (Ahora sí está permitido por el navegador)
-            video.play();
-            video.classList.add('video-visible');
-            sequenceStarted = true;
+            const playPromise = video.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    log("PLAYBACK: Iniciado correctamente");
+                    video.classList.add('video-on');
+                })
+                .catch(error => {
+                    log("PLAYBACK ERROR: " + error, "error");
+                    // Fallback si falla el vídeo
+                    launchInterface();
+                });
+            }
         });
 
-        // 2. CONTROL DE TIEMPO (TIMELINE)
+        // BUCLE DE TIEMPO
+        let phase1 = false; // Título
+        let phase2 = false; // Interfaz
+
         video.addEventListener('timeupdate', () => {
-            if (!sequenceStarted) return;
-
-            const t = video.currentTime;
-
-            // EVENTO 1: SEGUNDO 5 -> TÍTULO
-            if (t >= 5 && t < 7) {
-                title.classList.add('title-visible');
+            // Mostrar tiempo cada segundo entero para ver si avanza
+            if(Math.floor(video.currentTime) > 0 && Math.floor(video.currentTime) % 2 === 0) {
+                // log("TIME: " + Math.floor(video.currentTime) + "s"); 
+                // Comentado para no saturar, descomentar si es necesario
             }
 
-            // EVENTO 2: SEGUNDO 7 -> INTERFAZ
-            if (t >= 7) {
-                // Título pasa a modo marca de agua
-                title.classList.remove('title-visible');
-                title.classList.add('watermark-mode');
-                
-                // Aparece el contenido
-                interface.classList.add('interface-visible');
+            // SEGUNDO 5
+            if (video.currentTime >= 5 && !phase1) {
+                log("EVENT: Trigger Título (5s)");
+                title.classList.add('visible');
+                phase1 = true;
+            }
+
+            // SEGUNDO 7
+            if (video.currentTime >= 7 && !phase2) {
+                log("EVENT: Trigger UI (7s)");
+                title.style.opacity = 0.1; // Marca de agua
+                ui.classList.add('visible');
+                phase2 = true;
             }
         });
-    </script>
 
+        // FUNCIÓN DE EMERGENCIA
+        function launchInterface() {
+            log("BYPASS: Iniciando interfaz modo estático");
+            title.classList.add('visible');
+            setTimeout(() => {
+                ui.classList.add('visible');
+                title.style.opacity = 0.1;
+            }, 2000);
+        }
+
+        log("SYSTEM READY. WAITING FOR INPUT.");
+    </script>
 </body>
 </html>
