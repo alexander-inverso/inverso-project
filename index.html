@@ -15,63 +15,98 @@
             --glass: rgba(255, 255, 255, 0.03);
             --glass-hover: rgba(255, 255, 255, 0.08);
             --border: rgba(255, 255, 255, 0.1);
-            --accent: #00f3ff; /* Cian eléctrico para energía */
+            --accent: #00f3ff; /* Cian eléctrico */
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Montserrat', sans-serif;
             color: var(--white);
-            background: #000;
+            background: #050505;
             overflow-x: hidden;
             min-height: 100vh;
         }
 
-        /* --- VÍDEO BACKGROUND --- */
+        /* --- VÍDEO --- */
         #bg-video {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             object-fit: cover;
             z-index: -1;
-            opacity: 0.7; /* Ajuste de luminosidad */
+            opacity: 0; /* Oculto hasta iniciar */
+            transition: opacity 2s ease;
         }
 
-        /* --- PANTALLA DE TÍTULO (SECUENCIA INICIAL) --- */
+        /* --- PANTALLA DE INICIO (BOTÓN) --- */
+        #start-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #050505;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s ease, visibility 1s;
+        }
+
+        #init-btn {
+            background: transparent;
+            color: var(--accent);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 4px;
+            padding: 1.5rem 3rem;
+            border: 1px solid var(--accent);
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #init-btn:hover {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.4);
+        }
+
+        .status-text {
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: #666;
+            letter-spacing: 2px;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* --- HERO TITLE --- */
         #hero-title {
             position: fixed;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 5vw; /* Escala con la pantalla */
+            font-size: 6vw;
             font-weight: 900;
             letter-spacing: -2px;
             text-transform: uppercase;
             text-align: center;
-            opacity: 0; /* Invisible al inicio */
+            opacity: 0;
             z-index: 100;
-            pointer-events: none; /* Permite clickar a través */
-            mix-blend-mode: overlay; /* Fusión moderna con el vídeo */
+            pointer-events: none;
+            mix-blend-mode: overlay;
+            transition: opacity 0.2s ease-out; /* Hard cut */
         }
 
-        .title-visible {
-            opacity: 1 !important;
-            /* Aparición de golpe, sin transición suave (Hard Cut) */
-        }
-
-        /* --- CONTENIDO PRINCIPAL --- */
+        /* --- INTERFAZ --- */
         #main-interface {
             opacity: 0;
             transform: translateY(50px);
             transition: opacity 1.5s ease, transform 1.5s ease-out;
-            padding: 100vh 5vw 10vh 5vw; /* Empieza debajo del fold */
+            padding: 100vh 5vw 10vh 5vw;
             max-width: 1400px;
             margin: 0 auto;
             display: grid;
@@ -79,12 +114,14 @@
             gap: 2rem;
         }
 
-        .interface-visible {
-            opacity: 1 !important;
-            transform: translateY(0) !important;
-        }
+        /* --- CLASES DE ESTADO --- */
+        .fade-out { opacity: 0; visibility: hidden; }
+        .video-visible { opacity: 0.6 !important; }
+        .title-visible { opacity: 1 !important; }
+        .interface-visible { opacity: 1 !important; transform: translateY(0) !important; }
+        .watermark-mode { opacity: 0.1 !important; }
 
-        /* --- TARJETAS DE CRISTAL (NODOS) --- */
+        /* --- COMPONENTES --- */
         .glass-panel {
             grid-column: span 12;
             background: var(--glass);
@@ -92,164 +129,115 @@
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border);
             padding: 3rem;
-            border-radius: 0; /* Bordes rectos, más arquitectónico */
             transition: all 0.4s ease;
             position: relative;
-            overflow: hidden;
         }
-
         .glass-panel:hover {
             background: var(--glass-hover);
             border-color: var(--accent);
-            transform: scale(1.01);
-            box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+            transform: scale(1.005);
         }
-
-        /* Metáfora visual: La barra de carga/energía */
-        .glass-panel::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0%;
-            height: 2px;
-            background: var(--accent);
-            transition: width 0.4s ease;
-        }
-
-        .glass-panel:hover::after {
-            width: 100%;
-        }
-
-        /* --- TIPOGRAFÍA --- */
-        h2 {
-            font-size: 2rem;
-            font-weight: 300;
-            margin-bottom: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-        }
-
-        h3 {
-            font-size: 1.2rem;
-            color: var(--accent);
-            margin-bottom: 1rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        p {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: #d0d0d0;
-            font-weight: 300;
-            max-width: 800px;
-        }
-
-        /* --- GRID LAYOUT --- */
         .col-half { grid-column: span 6; }
-        .col-full { grid-column: span 12; }
+        
+        /* Typography utils */
+        h2 { font-size: 2rem; font-weight: 300; margin-bottom: 1.5rem; letter-spacing: 4px; text-transform: uppercase;}
+        h3 { font-size: 1.2rem; color: var(--accent); margin-bottom: 1rem; font-weight: 700; text-transform: uppercase;}
+        p { color: #d0d0d0; line-height: 1.8; max-width: 800px; font-weight: 300; }
+        a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent); }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .col-half { grid-column: span 12; }
             #hero-title { font-size: 10vw; width: 100%; }
-            .glass-panel { padding: 1.5rem; }
+            #init-btn { padding: 1rem 2rem; font-size: 0.8rem; }
         }
-
-        /* Footer */
-        footer {
-            grid-column: span 12;
-            text-align: center;
-            padding-top: 5rem;
-            opacity: 0.5;
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-        }
+        
+        footer { grid-column: span 12; text-align: center; padding-top: 5rem; opacity: 0.5; font-size: 0.8rem; letter-spacing: 2px; }
     </style>
 </head>
 <body>
 
-    <video id="bg-video" autoplay muted loop playsinline>
+    <div id="start-screen">
+        <button id="init-btn">INITIALIZE PROTOCOL</button>
+        <div class="status-text">WAITING FOR SECURE HANDSHAKE...</div>
+    </div>
+
+    <video id="bg-video" muted playsinline loop>
         <source src="background.mp4" type="video/mp4">
     </video>
 
     <div id="hero-title">INVERSO PROJECT</div>
 
     <div id="main-interface">
-        
         <div class="glass-panel col-full">
             <h2>I. El Contexto</h2>
             <h3>La Física del Progreso</h3>
-            <p>
-                Imagina el progreso humano como miles de haces de luz ascendentes. Ciencia de Materiales, Física Cuántica, IA. Para que suban, necesitamos infraestructura. Pero el componente más crítico sigue siendo el más frágil: <strong style="color:white">La Mente Humana.</strong>
-            </p>
+            <p>El progreso humano son haces de luz ascendentes. Necesitamos infraestructura para que brillen, pero el cuello de botella es la mente humana.</p>
         </div>
 
         <div class="glass-panel col-half">
             <h2>II. System Failure</h2>
             <h3>Pérdida de Intuición</h3>
-            <p>
-                El dato se guarda, la intuición muere. Cuando un experto fallece, se quema una biblioteca de conexiones neuronales únicas. Es un fallo de diseño en la transmisión del conocimiento.
-            </p>
+            <p>El dato se guarda, la intuición muere. La muerte de un experto es la quema de una biblioteca irrecuperable.</p>
         </div>
 
         <div class="glass-panel col-half">
             <h2>III. La Misión</h2>
             <h3>Arquitectura de Trascendencia</h3>
-            <p>
-                No busco vivir para siempre. Busco que las mentes que resuelven la fusión nuclear y la IA general tengan el tiempo biológico para terminar su trabajo.
-            </p>
+            <p>No busco la inmortalidad por ocio. Busco tiempo biológico para quienes resuelven los problemas de la civilización.</p>
         </div>
 
         <div class="glass-panel col-full" style="text-align: center;">
             <h2>Únete a la Red</h2>
-            <p style="margin: 0 auto;">
-                El futuro se construye conectando nodos. Encuéntrame en la señal.
-            </p>
             <br>
-            <a href="mailto:axel@inverso.bio" style="color: var(--accent); text-decoration: none; font-weight: bold; font-size: 1.5rem; border-bottom: 2px solid var(--accent);">axel@inverso.bio</a>
+            <a href="mailto:axel@inverso.bio" style="font-size: 1.5rem;">axel@inverso.bio</a>
         </div>
 
-        <footer>
-            SYSTEM STATUS: ONLINE // NODE ID: ES-MAD // V3.0
-        </footer>
+        <footer>SYSTEM STATUS: ONLINE // V3.1</footer>
     </div>
 
     <script>
+        const startScreen = document.getElementById('start-screen');
+        const initBtn = document.getElementById('init-btn');
         const video = document.getElementById('bg-video');
         const title = document.getElementById('hero-title');
         const interface = document.getElementById('main-interface');
-        
-        let titleShown = false;
-        let contentShown = false;
 
-        // Escuchamos el tiempo del vídeo para precisión quirúrgica
-        video.addEventListener('timeupdate', () => {
+        // Banderas de estado
+        let sequenceStarted = false;
+
+        // 1. EL USUARIO INICIA EL SISTEMA
+        initBtn.addEventListener('click', () => {
+            // Ocultar botón
+            startScreen.classList.add('fade-out');
             
-            // SEGUNDO 5: TÍTULO DE GOLPE
-            if (video.currentTime >= 5 && !titleShown) {
-                title.classList.add('title-visible');
-                titleShown = true;
-            }
-
-            // SEGUNDO 7: INTERFAZ SUBE Y APARECE
-            if (video.currentTime >= 7 && !contentShown) {
-                interface.classList.add('interface-visible');
-                // Hacemos que el título se desvanezca un poco o se integre, 
-                // pero por ahora lo dejamos fijo como "marca de agua" gigante o 
-                // podemos ocultarlo si molesta al scroll. 
-                // Decisión de diseño: Lo dejamos fijo al fondo para impacto.
-                title.style.opacity = '0.1'; // Se queda como marca de agua sutil
-                title.style.transition = 'opacity 2s ease';
-                contentShown = true;
-            }
+            // Iniciar vídeo (Ahora sí está permitido por el navegador)
+            video.play();
+            video.classList.add('video-visible');
+            sequenceStarted = true;
         });
 
-        // Fallback por si el vídeo no carga rápido (fuerza la carga)
-        window.addEventListener('load', () => {
-            video.play().catch(e => console.log("Autoplay bloqueado por navegador, interacción requerida"));
+        // 2. CONTROL DE TIEMPO (TIMELINE)
+        video.addEventListener('timeupdate', () => {
+            if (!sequenceStarted) return;
+
+            const t = video.currentTime;
+
+            // EVENTO 1: SEGUNDO 5 -> TÍTULO
+            if (t >= 5 && t < 7) {
+                title.classList.add('title-visible');
+            }
+
+            // EVENTO 2: SEGUNDO 7 -> INTERFAZ
+            if (t >= 7) {
+                // Título pasa a modo marca de agua
+                title.classList.remove('title-visible');
+                title.classList.add('watermark-mode');
+                
+                // Aparece el contenido
+                interface.classList.add('interface-visible');
+            }
         });
     </script>
+
 </body>
 </html>
