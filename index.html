@@ -1,485 +1,574 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INVERSO PROJECT // SYSTEM CORE V4</title>
-    
-    <!-- FUENTE: MONTSERRAT (Geométrica y Limpia) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;600;800&display=swap" rel="stylesheet">
-
+    <title>TEFQ: The Supremacy Manifesto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --bg-deep: #050505;
-            --text-main: #ffffff;
-            --accent: #00f3ff; /* Cian Eléctrico */
-            --glass-bg: rgba(10, 10, 10, 0.4);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-blur: 12px;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
         body {
-            background-color: var(--bg-deep);
-            color: var(--text-main);
-            font-family: 'Montserrat', sans-serif;
-            overflow: hidden; /* El canvas maneja el scroll si fuera necesario */
-            height: 100vh;
-            width: 100vw;
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light background per requirements */
+            color: #111827;
         }
 
-        /* --- CAPA 0: EL LIENZO (CANVAS) --- */
-        #render-core {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .font-mono {
+            font-family: 'Space Mono', monospace;
+        }
+
+        .chart-container {
+            position: relative;
             width: 100%;
-            height: 100%;
-            z-index: 0;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 500px;
         }
 
-        /* --- CAPA 1: PANTALLA DE INICIALIZACIÓN --- */
-        #init-layer {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #000;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.8s ease;
+        /* Custom Scrollbar for a "Lab Equipment" feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e5e7eb;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #111827; 
         }
 
-        .loader-bar {
-            width: 200px;
-            height: 2px;
-            background: #333;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .loader-progress {
-            position: absolute;
-            top: 0; left: 0; height: 100%; width: 0%;
-            background: var(--accent);
-            transition: width 0.1s;
-        }
-
-        #start-btn {
-            background: transparent;
-            color: var(--accent);
-            border: 1px solid var(--accent);
-            padding: 15px 40px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 14px;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            cursor: pointer;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.5s ease;
-        }
-
-        #start-btn:hover {
-            background: rgba(0, 243, 255, 0.1);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
-        }
-
-        /* --- CAPA 2: INTERFAZ DE USUARIO --- */
-        #ui-layer {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 10;
-            pointer-events: none; /* Dejamos pasar clicks al canvas si no hay elemento UI */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        /* TÍTULO GIGANTE */
-        #hero-title {
-            font-size: 8vw;
-            font-weight: 800;
+        /* Utility for the Protocol Diagram (No SVG) */
+        .arrow-down::after {
+            content: "↓";
+            display: block;
             text-align: center;
-            letter-spacing: -0.02em;
-            opacity: 0;
-            transform: scale(0.95);
-            transition: opacity 0.1s, transform 3s ease-out;
-            text-transform: uppercase;
-            mix-blend-mode: overlay; /* Fusión elegante con el canvas */
-        }
-
-        /* GRID DE CONTENIDO */
-        .content-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 2rem;
-            max-width: 1400px;
-            width: 90%;
-            margin: 0 auto;
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 1.5s ease, transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-            pointer-events: auto; /* Reactivar clicks */
-        }
-
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--glass-border);
-            padding: 3rem;
-            position: relative;
-            overflow: hidden;
-            transition: border-color 0.3s ease;
-        }
-
-        .glass-panel:hover {
-            border-color: var(--accent);
-        }
-
-        /* Decoración técnica en esquinas */
-        .glass-panel::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 10px; height: 10px;
-            border-top: 1px solid var(--text-main); border-left: 1px solid var(--text-main);
-            opacity: 0.3;
-        }
-
-        .col-12 { grid-column: span 12; }
-        .col-6 { grid-column: span 6; }
-
-        h2 {
-            font-size: 0.9rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: var(--accent);
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        h2::after {
-            content: ''; flex-grow: 1; height: 1px; background: rgba(255,255,255,0.1);
-        }
-
-        h3 {
             font-size: 2rem;
-            font-weight: 200;
-            margin-bottom: 1rem;
-            line-height: 1.2;
+            font-weight: bold;
+            color: #111827;
+            margin: 0.5rem 0;
         }
 
-        p {
-            font-size: 1rem;
-            line-height: 1.6;
-            color: #ccc;
-            font-weight: 300;
+        .btn-glitch {
+            transition: all 0.1s;
         }
-
-        a { color: var(--text-main); text-decoration: none; border-bottom: 1px solid var(--accent); padding-bottom: 2px; transition: color 0.3s; }
-        a:hover { color: var(--accent); }
-
-        /* ESTADOS DE ANIMACIÓN */
-        .ui-visible { opacity: 1 !important; transform: translateY(0) !important; }
-        .title-visible { opacity: 1 !important; transform: scale(1) !important; }
-        .fade-out { opacity: 0 !important; pointer-events: none; }
-        .hidden-video { display: none; } /* Ocultamos el elemento video del DOM */
-
-        /* RESPONSIVE */
-        @media (max-width: 900px) {
-            .col-6 { grid-column: span 12; }
-            #hero-title { font-size: 12vw; }
-            .glass-panel { padding: 2rem; }
+        .btn-glitch:active {
+            transform: translate(2px, 2px);
+        }
+        
+        .hazard-stripe {
+            background: repeating-linear-gradient(
+                45deg,
+                #f3f4f6,
+                #f3f4f6 10px,
+                #e5e7eb 10px,
+                #e5e7eb 20px
+            );
         }
     </style>
+    <!-- Chosen Palette: Sterile Lab (Light Gray #f3f4f6, Near Black #111827) with Toxic Accents (Neon Lime #84cc16, Hot Pink #db2777). Matches "Industrial" tone while keeping background light. -->
+    
+    <!-- Application Structure Plan:
+    1. Hero Section: "The Stare Down" - Sets the arrogant tone immediately.
+    2. Interactive Definition: Toggle between "Expectation" vs "Reality" of the acronym.
+    3. The Roast Simulator (Data View): Interactive buttons to select "Victim" subjects (IT, PE, Psych) and see comparative data/roasts.
+    4. Sensory & Financial Analytics: Charts showing Smell Profiles and Glassware Destruction trends.
+    5. Leadership Hierarchy: Horizontal bar chart for Valentín's dominance.
+    6. The Protocol: Interactive CSS-based flowchart for the "Peanut Bar" ritual.
+    Rationale: This structure moves from concept -> comparative data -> sensory proof -> behavioral protocol, guiding the user through the "Argument" logically.
+    -->
+
+    <!-- Visualization & Content Choices:
+    1. Acronym: Interactive DOM manipulation (Text Toggle) -> Goal: Inform/Shock.
+    2. Comparison: Radar Chart -> Goal: Compare TEFQ vs Others on multiple axes (Fun, Smell, Grades).
+    3. Grades: Bar Chart -> Goal: Compare Efficiency (Effort vs Grade).
+    4. Smells: Doughnut Charts -> Goal: Compare Composition.
+    5. Destruction: Line Chart -> Goal: Show Change over time (Budget drain).
+    6. Followers: Horizontal Bar (Logarithmic) -> Goal: Compare Magnitude.
+    7. Protocol: HTML/CSS Flowchart -> Goal: Organize Process.
+    -->
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 </head>
-<body>
+<body class="antialiased selection:bg-lime-400 selection:text-black">
 
-    <!-- RECURSO OCULTO (SOURCE) -->
-    <!-- Preload auto para intentar cargar metadatos rápido -->
-    <video id="source-video" class="hidden-video" playsinline muted loop preload="auto">
-        <source src="background.mp4" type="video/mp4">
-    </video>
-
-    <!-- CAPA 0: LIENZO DE RENDERIZADO -->
-    <canvas id="render-core"></canvas>
-
-    <!-- CAPA 1: CARGA -->
-    <div id="init-layer">
-        <div class="loader-bar">
-            <div class="loader-progress" id="progress-bar"></div>
+    <!-- Navigation / Header -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b-4 border-black px-6 py-4 flex justify-between items-center shadow-lg">
+        <div class="text-2xl font-black tracking-tighter">T.E.F.Q.<span class="text-lime-600 text-sm align-top">©</span></div>
+        <div class="hidden md:flex space-x-6 font-mono text-sm font-bold">
+            <a href="#definition" class="hover:text-pink-600 underline decoration-2 underline-offset-4">DEFINITION</a>
+            <a href="#analytics" class="hover:text-pink-600 underline decoration-2 underline-offset-4">ANALYTICS</a>
+            <a href="#protocol" class="hover:text-pink-600 underline decoration-2 underline-offset-4">PROTOCOL</a>
         </div>
-        <div id="loading-text" style="font-size: 10px; letter-spacing: 2px; color: #666; margin-bottom: 20px;">LOADING ASSETS...</div>
-        <button id="start-btn">INITIALIZE PROTOCOL</button>
-    </div>
+        <div class="bg-black text-white px-3 py-1 font-mono text-xs font-bold uppercase">Status: Judging You</div>
+    </nav>
 
-    <!-- CAPA 2: INTERFAZ -->
-    <div id="ui-layer">
-        <div id="hero-title">INVERSO PROJECT</div>
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
 
-        <div class="content-grid" id="main-content">
-            <div class="glass-panel col-12">
-                <h2>I. Context // Physics of Progress</h2>
-                <h3>La Infraestructura de la Luz</h3>
-                <p>El progreso humano son miles de haces de luz ascendentes. Ciencia de Materiales, Física Cuántica, IA. Para que suban, necesitamos infraestructura dura. Pero el componente más crítico del sistema sigue siendo el más frágil: <strong>La Mente Humana.</strong></p>
+        <!-- Hero Section -->
+        <section class="py-20 text-center">
+            <div class="inline-block bg-black text-white px-4 py-2 font-mono font-bold mb-6 -rotate-2">MANIFESTO V1.0</div>
+            <h1 class="text-6xl md:text-8xl font-black mb-6 tracking-tight leading-none">
+                WE ARE NOT<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-lime-500 to-lime-600">THE SAME.</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto font-mono leading-relaxed">
+                Most of you picked optional subjects to "do nothing." We picked T.E.F.Q. to do the <span class="font-bold text-black bg-lime-200 px-1">best things</span>.
+            </p>
+            <div class="mt-10 flex justify-center gap-4">
+                <button onclick="document.getElementById('definition').scrollIntoView({behavior: 'smooth'})" class="bg-black text-white px-8 py-4 font-bold hover:bg-gray-800 transition shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none border-2 border-black">
+                    VIEW THE DATA
+                </button>
+            </div>
+        </section>
+
+        <!-- Section 1: Definition (Interactive) -->
+        <section id="definition" class="py-16 border-t-2 border-gray-200">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-4xl font-black mb-6 flex items-center">
+                        <span class="bg-pink-600 text-white w-12 h-12 flex items-center justify-center rounded-full mr-4 text-2xl">1</span>
+                        THE MISCONCEPTION
+                    </h2>
+                    <p class="text-lg text-gray-700 mb-6">
+                        You read the brochure. You think you know what the acronym stands for. You are technically correct, which is the worst kind of correct.
+                    </p>
+                    <div class="bg-white p-6 rounded-lg shadow-md border-l-8 border-gray-300">
+                        <h3 class="font-mono text-sm text-gray-500 uppercase mb-2">Public Expectation</h3>
+                        <p class="text-2xl font-bold text-gray-400 line-through decoration-red-500 decoration-4">Trabajo Experimental de Física y Química</p>
+                    </div>
+                </div>
+                
+                <div class="relative group cursor-pointer" onclick="revealTruth()">
+                    <div id="truth-box" class="bg-black text-white p-10 rounded-xl shadow-2xl transform transition duration-300 hover:scale-[1.02] border-4 border-lime-400">
+                        <div class="absolute -top-6 -right-6 bg-lime-400 text-black font-black px-4 py-2 rotate-12 shadow-lg">CLICK TO REVEAL TRUTH</div>
+                        <h3 class="font-mono text-lime-400 mb-4 uppercase tracking-widest">CLASSIFIED REALITY</h3>
+                        <div id="truth-content" class="text-center">
+                            <p class="text-6xl font-black mb-2">T.E.F.Q.</p>
+                            <p class="text-gray-500 font-mono">(Tap to decrypt)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: The Roast Simulator (Analytics) -->
+        <section id="analytics" class="py-16">
+            <div class="mb-12">
+                <h2 class="text-4xl font-black mb-4 flex items-center">
+                    <span class="bg-lime-600 text-white w-12 h-12 flex items-center justify-center rounded-full mr-4 text-2xl">2</span>
+                    SUPERIORITY ANALYTICS
+                </h2>
+                <p class="text-gray-600 text-lg max-w-2xl">
+                    We have mathematically quantified why your subject choices (IT, PE, Psychology) are suboptimal. Select a dataset below to humiliate yourself.
+                </p>
             </div>
 
-            <div class="glass-panel col-6">
-                <h2>II. Error // Data Loss</h2>
-                <h3>La Paradoja de la Intuición</h3>
-                <p>El dato se guarda, la intuición muere. Cuando un físico de 80 años fallece, no perdemos libros, perdemos la capacidad de "ver" la solución. Es una quema de biblioteca cíclica.</p>
+            <!-- Tab Navigation for Data -->
+            <div class="flex flex-wrap gap-4 mb-8">
+                <button onclick="updateData('holistic')" class="tab-btn active bg-white px-6 py-3 font-bold border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-50 focus:outline-none">Holistic Comparison</button>
+                <button onclick="updateData('grades')" class="tab-btn bg-white px-6 py-3 font-bold border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-50 focus:outline-none">The "No 10" Zone</button>
+                <button onclick="updateData('smell')" class="tab-btn bg-white px-6 py-3 font-bold border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-50 focus:outline-none">Olfactory Profiles</button>
             </div>
 
-            <div class="glass-panel col-6">
-                <h2>III. Mission // Engineering</h2>
-                <h3>Hub de Resistencia</h3>
-                <p>No busco inmortalidad por vanidad. Busco ganar tiempo biológico para quienes resuelven la Fusión Nuclear. Mi trabajo es mantener el interruptor encendido.</p>
+            <!-- Dynamic Data Container -->
+            <div class="bg-white rounded-2xl p-8 shadow-xl border border-gray-200">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Text Context Column -->
+                    <div class="lg:col-span-1">
+                        <h3 id="chart-title" class="text-2xl font-black mb-4 uppercase text-pink-600">The Holistic Index</h3>
+                        <p id="chart-desc" class="text-gray-700 mb-6 leading-relaxed">
+                            Comparing T.E.F.Q. against the "Others" on critical life metrics. While you simulate code on paper, we optimize joy.
+                        </p>
+                        <div id="chart-stats" class="bg-gray-50 p-4 rounded border border-gray-200 font-mono text-sm">
+                            <p class="mb-2"><strong>Key Insight:</strong></p>
+                            <p>TEFQ leads in Edibility by <span class="bg-lime-200 px-1 font-bold">1000%</span>.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Chart Column -->
+                    <div class="lg:col-span-2 bg-gray-50 rounded-xl border border-gray-100 p-4 flex items-center justify-center">
+                        <div class="chart-container">
+                            <canvas id="mainChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Destruction & Clout -->
+        <section class="py-16 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Glassware Destruction -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg border-t-8 border-pink-500">
+                <h3 class="text-2xl font-black mb-2">HIGH-IMPACT LEARNING</h3>
+                <p class="text-gray-500 mb-6 font-mono text-sm">Cumulative value of broken laboratory glassware (€)</p>
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="destructionChart"></canvas>
+                </div>
+                <p class="mt-4 text-sm text-gray-600 italic">"If you aren't breaking beakers, you're just reading theory."</p>
             </div>
 
-            <div class="glass-panel col-12" style="text-align: center; border: none; background: transparent;">
-                <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; margin-bottom: 1rem; color: var(--accent);">Node Connection Available</p>
-                <a href="mailto:axel@inverso.bio" style="font-size: 2rem; font-weight: 200;">axel@inverso.bio</a>
+            <!-- Valentín's Clout -->
+            <div class="bg-black text-white p-8 rounded-2xl shadow-lg border-t-8 border-lime-400 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10 text-9xl">🐒</div>
+                <h3 class="text-2xl font-black mb-2 text-lime-400">LEADERSHIP HIERARCHY</h3>
+                <p class="text-gray-400 mb-6 font-mono text-sm">Instagram Follower Count (Logarithmic Scale)</p>
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="followerChart"></canvas>
+                </div>
+                <p class="mt-4 text-xs font-mono text-gray-500 text-right">*Simulated stats. Actual count: 11.</p>
             </div>
+        </section>
+
+        <!-- Section 4: The Protocol (Interactive Diagram) -->
+        <section id="protocol" class="py-20 border-t-2 border-gray-200">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-4xl font-black mb-4 flex items-center justify-center">
+                    <span class="bg-black text-white w-12 h-12 flex items-center justify-center rounded-full mr-4 text-2xl">3</span>
+                    THE PITY PROTOCOL
+                </h2>
+                <p class="text-lg text-gray-600">
+                    We possess the <span class="font-bold text-black">Holy Peanut & Chocolate Bar</span>. We are willing to share with you peasants. 
+                    However, strictly enforced laboratory protocols apply.
+                </p>
+            </div>
+
+            <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-2xl border-2 border-gray-100 relative">
+                <!-- Roberto Badge -->
+                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-2 rounded-full font-bold shadow-lg text-sm uppercase tracking-wide">
+                    Sanctioned by Roberto
+                </div>
+
+                <div class="flex flex-col items-center">
+                    <!-- Step 1 -->
+                    <div class="w-full md:w-2/3 bg-gray-900 text-white p-6 rounded-xl text-center shadow-lg relative group transition hover:-translate-y-1">
+                        <div class="absolute top-0 left-0 bg-lime-500 text-black font-bold px-3 py-1 rounded-tl-xl rounded-br-xl text-xs">STEP 01</div>
+                        <h4 class="text-xl font-bold mb-2">Approach the Subject</h4>
+                        <p class="text-gray-400 text-sm">Locate Pancho. Do not make eye contact. Stare at the chocolate.</p>
+                    </div>
+
+                    <div class="arrow-down"></div>
+
+                    <!-- Step 2 -->
+                    <div class="w-full md:w-2/3 bg-gray-900 text-white p-6 rounded-xl text-center shadow-lg relative group transition hover:-translate-y-1">
+                        <div class="absolute top-0 left-0 bg-lime-500 text-black font-bold px-3 py-1 rounded-tl-xl rounded-br-xl text-xs">STEP 02</div>
+                        <h4 class="text-xl font-bold mb-2">Assume "The Orphan" Stance</h4>
+                        <p class="text-gray-400 text-sm">Cup BOTH hands together. Look hungry.</p>
+                    </div>
+
+                    <div class="arrow-down"></div>
+
+                    <!-- Decision Node -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+                        <!-- Failure Path -->
+                        <div class="flex flex-col items-center">
+                            <div class="w-full p-4 border-2 border-red-200 bg-red-50 rounded-lg text-center">
+                                <span class="font-bold text-red-600 block mb-1">One Hand?</span>
+                                <span class="text-xs text-red-400">Sign of Pride/Laziness</span>
+                            </div>
+                            <div class="arrow-down text-red-500"></div>
+                            <div class="w-full bg-red-600 text-white p-4 rounded-lg text-center font-black uppercase tracking-widest shadow-md">
+                                ACCESS DENIED
+                            </div>
+                        </div>
+
+                        <!-- Success Path -->
+                        <div class="flex flex-col items-center">
+                            <div class="w-full p-4 border-2 border-lime-200 bg-lime-50 rounded-lg text-center">
+                                <span class="font-bold text-lime-700 block mb-1">Two Hands?</span>
+                                <span class="text-xs text-lime-600">Total Submission</span>
+                            </div>
+                            <div class="arrow-down text-lime-500"></div>
+                            <div class="w-full bg-lime-500 text-black p-4 rounded-lg text-center font-black uppercase tracking-widest shadow-md">
+                                Nutrient Block Granted
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12 p-4 bg-blue-50 border-l-4 border-blue-500 text-sm text-blue-900 rounded-r font-mono">
+                    <strong>NOTE:</strong> Distribution performed using stolen blue latex gloves. Hygiene is paramount when feeding the masses.
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 text-center font-mono text-sm">
+        <div class="max-w-7xl mx-auto px-4">
+            <p class="mb-2">T.E.F.Q. Supremacy Manifesto</p>
+            <p class="text-gray-500">© 2024 Pancho & Co. All breakage is calculated.</p>
         </div>
-    </div>
+    </footer>
 
+    <!-- JavaScript Logic -->
     <script>
-        /**
-         * SISTEMA DE RENDERIZADO HÍBRIDO
-         * Autor: Inverso Project
-         * Tecnología: Canvas 2D + Video Decoding + Particle System
-         */
-
-        const canvas = document.getElementById('render-core');
-        const ctx = canvas.getContext('2d');
-        const video = document.getElementById('source-video');
-        
-        // Elementos UI
-        const initLayer = document.getElementById('init-layer');
-        const progressBar = document.getElementById('progress-bar');
-        const startBtn = document.getElementById('start-btn');
-        const loadingText = document.getElementById('loading-text');
-        const heroTitle = document.getElementById('hero-title');
-        const mainContent = document.getElementById('main-content');
-
-        // Estado del Sistema
-        let systemState = {
-            width: window.innerWidth,
-            height: window.innerHeight,
-            playing: false,
-            videoReady: false,
-            time: 0,
-            phase: 0, // 0: Init, 1: Title, 2: Content
-            mouse: { x: 0, y: 0 }
+        // --- DATA STORE ---
+        const appData = {
+            holistic: {
+                type: 'radar',
+                title: "Holistic Superiority Matrix",
+                desc: "A multi-variable analysis of why our class is better. Note the 'Safety' score inverse correlation with 'Fun'.",
+                insight: "TEFQ leads in Edibility by <span class='bg-lime-200 px-1 font-bold'>1000%</span>.",
+                labels: ['Fun Factor', 'Smell Quality', 'Grade Ease', 'Edibility', 'Safety'],
+                datasets: [{
+                    label: 'TEFQ',
+                    data: [10, 10, 9, 10, 2],
+                    backgroundColor: 'rgba(132, 204, 22, 0.2)', // Lime
+                    borderColor: '#65a30d',
+                    pointBackgroundColor: '#65a30d'
+                }, {
+                    label: 'The Others (IT/PE)',
+                    data: [2, 1, 4, 0, 9],
+                    backgroundColor: 'rgba(219, 39, 119, 0.2)', // Pink
+                    borderColor: '#db2777',
+                    pointBackgroundColor: '#db2777'
+                }]
+            },
+            grades: {
+                type: 'bar',
+                title: "The Efficiency Gap",
+                desc: "Psychology teachers 'save 10s for the third term'. We burn cakes and get full marks. This is basic economics.",
+                insight: "TEFQ achieves max grades with <span class='bg-lime-200 px-1 font-bold'>80% Less Effort</span>.",
+                labels: ['Computer Science', 'Psychology', 'TEFQ'],
+                datasets: [{
+                    label: 'Effort Required (1-10)',
+                    data: [9, 8, 2],
+                    backgroundColor: '#1f2937', // Gray-800
+                }, {
+                    label: 'Max Grade Possible',
+                    data: [8, 8, 10], 
+                    backgroundColor: ['#db2777', '#db2777', '#84cc16'], // Pink, Pink, Lime
+                }]
+            },
+            smell: {
+                type: 'doughnut',
+                title: "Olfactory Profile Analysis",
+                desc: "While PE class smells like teenage regret and cheap deodorant, our lab smells like a Michelin star bakery.",
+                insight: "Dominant Note: <span class='bg-lime-200 px-1 font-bold'>Vanilla & Sugar</span>.",
+                labels: ['Sweat (PE)', 'Despair (IT)', 'Vanilla (TEFQ)', 'Burnt Sugar (TEFQ)'],
+                datasets: [{
+                    data: [40, 30, 25, 5],
+                    backgroundColor: ['#374151', '#6b7280', '#84cc16', '#bef264'],
+                    borderWidth: 0
+                }]
+            }
         };
 
-        // --- 1. CONFIGURACIÓN DEL CANVAS ---
-        function resize() {
-            systemState.width = window.innerWidth;
-            systemState.height = window.innerHeight;
-            canvas.width = systemState.width;
-            canvas.height = systemState.height;
-        }
-        window.addEventListener('resize', resize);
-        resize();
+        // --- GLOBAL VARIABLES ---
+        let mainChartInstance = null;
+        let destructionChartInstance = null;
+        let followerChartInstance = null;
 
-        // --- 2. SISTEMA DE PARTÍCULAS (METÁFORA DE NODOS) ---
-        class NodeParticle {
-            constructor() {
-                this.x = Math.random() * systemState.width;
-                this.y = Math.random() * systemState.height;
-                this.vx = (Math.random() - 0.5) * 0.5; // Velocidad lenta
-                this.vy = (Math.random() - 0.5) * 0.5;
-                this.size = Math.random() * 2;
-            }
-
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-
-                // Rebote en bordes
-                if (this.x < 0 || this.x > systemState.width) this.vx *= -1;
-                if (this.y < 0 || this.y > systemState.height) this.vy *= -1;
-
-                // Interacción ratón (Repulsión sutil)
-                const dx = this.x - systemState.mouse.x;
-                const dy = this.y - systemState.mouse.y;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist < 150) {
-                    this.x += dx * 0.02;
-                    this.y += dy * 0.02;
-                }
-            }
-
-            draw() {
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        const nodes = [];
-        for(let i=0; i<60; i++) nodes.push(new NodeParticle()); // 60 Nodos
-
-        window.addEventListener('mousemove', (e) => {
-            systemState.mouse.x = e.clientX;
-            systemState.mouse.y = e.clientY;
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Init Main Chart with Holistic data
+            renderMainChart('holistic');
+            // Init Secondary Charts
+            renderDestructionChart();
+            renderFollowerChart();
         });
 
-        // --- 3. BUCLE DE RENDERIZADO (MAIN LOOP) ---
-        function render() {
-            // A. Limpiar
-            ctx.fillStyle = '#050505';
-            ctx.fillRect(0, 0, systemState.width, systemState.height);
-
-            // B. Dibujar Vídeo (Si está listo)
-            if (systemState.playing && systemState.videoReady) {
-                // Algoritmo "Cover" para el vídeo en canvas (mantener ratio)
-                const vidRatio = video.videoWidth / video.videoHeight;
-                const screenRatio = systemState.width / systemState.height;
-                let drawW, drawH, startX, startY;
-
-                if (screenRatio > vidRatio) {
-                    drawW = systemState.width;
-                    drawH = drawW / vidRatio;
-                    startX = 0;
-                    startY = (systemState.height - drawH) / 2;
-                } else {
-                    drawH = systemState.height;
-                    drawW = drawH * vidRatio;
-                    startX = (systemState.width - drawW) / 2;
-                    startY = 0;
-                }
-
-                ctx.globalAlpha = 0.6; // Opacidad del vídeo para que sea oscuro
-                ctx.drawImage(video, startX, startY, drawW, drawH);
-                ctx.globalAlpha = 1.0;
-            } else if (systemState.playing && !systemState.videoReady) {
-                // FALLBACK: Si el vídeo falla, dibujar Grid Cibernética
-                drawGridFallback();
-            }
-
-            // C. Dibujar Nodos y Conexiones (La Red)
-            nodes.forEach(node => {
-                node.update();
-                node.draw();
-                
-                // Conectar nodos cercanos
-                nodes.forEach(other => {
-                    const dx = node.x - other.x;
-                    const dy = node.y - other.y;
-                    const dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < 100) {
-                        ctx.strokeStyle = `rgba(0, 243, 255, ${1 - dist/100})`;
-                        ctx.lineWidth = 0.5;
-                        ctx.beginPath();
-                        ctx.moveTo(node.x, node.y);
-                        ctx.lineTo(other.x, other.y);
-                        ctx.stroke();
+        // --- CHART RENDERING LOGIC ---
+        
+        // Helper: Wrap labels
+        function formatLabel(str, maxwidth = 15) {
+            const sections = [];
+            const words = str.split(" ");
+            let temp = "";
+            words.forEach((item, index) => {
+                if (temp.length > 0) {
+                    const concat = temp + ' ' + item;
+                    if (concat.length > maxwidth) {
+                        sections.push(temp);
+                        temp = "";
+                    } else {
+                        if (index === (words.length - 1)) {
+                            sections.push(concat); return;
+                        } else {
+                            temp = concat; return;
+                        }
                     }
-                });
+                }
+                if (index === (words.length - 1)) {
+                    sections.push(item); return;
+                }
+                if (item.length < maxwidth) {
+                    temp = item;
+                } else {
+                    sections.push(item);
+                }
+            });
+            return sections;
+        }
+
+        const tooltipPlugin = {
+            tooltip: {
+                callbacks: {
+                    title: function(tooltipItems) {
+                        const item = tooltipItems[0];
+                        const label = item.chart.data.labels[item.dataIndex];
+                        return Array.isArray(label) ? label.join(' ') : label;
+                    }
+                },
+                backgroundColor: '#111827',
+                titleFont: { family: 'Inter', size: 13 },
+                bodyFont: { family: 'Space Mono', size: 12 },
+                padding: 12,
+                cornerRadius: 4
+            }
+        };
+
+        function renderMainChart(key) {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            const data = appData[key];
+
+            // Destroy existing chart if present
+            if (mainChartInstance) {
+                mainChartInstance.destroy();
+            }
+
+            // Update Text Context
+            document.getElementById('chart-title').innerText = data.title;
+            document.getElementById('chart-desc').innerText = data.desc;
+            document.getElementById('chart-stats').innerHTML = `<p class="mb-2"><strong>Key Insight:</strong></p><p>${data.insight}</p>`;
+
+            // Update Active Tab State
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-black');
+                if(btn.getAttribute('onclick').includes(key)) {
+                    btn.classList.remove('bg-white', 'text-black');
+                    btn.classList.add('bg-black', 'text-white');
+                }
             });
 
-            // D. Scanlines (Efecto Monitor)
-            ctx.fillStyle = 'rgba(0,0,0,0.1)';
-            for(let i=0; i<systemState.height; i+=4) {
-                ctx.fillRect(0, i, systemState.width, 1);
-            }
+            // Config construction based on type
+            const config = {
+                type: data.type,
+                data: {
+                    labels: data.labels.map(l => formatLabel(l)),
+                    datasets: data.datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { ...tooltipPlugin },
+                    scales: data.type === 'radar' ? {
+                        r: {
+                            pointLabels: { font: { family: 'Space Mono', size: 11 } },
+                            ticks: { display: false, backdropColor: 'transparent' }
+                        }
+                    } : data.type === 'bar' ? {
+                        y: { beginAtZero: true },
+                        x: { grid: { display: false } }
+                    } : {} // No scales for doughnut
+                }
+            };
 
-            // E. Gestión de Tiempo y Eventos
-            if (systemState.playing) {
-                manageTimeline();
-            }
-
-            requestAnimationFrame(render);
+            mainChartInstance = new Chart(ctx, config);
         }
 
-        function drawGridFallback() {
-            ctx.strokeStyle = 'rgba(0, 243, 255, 0.1)';
-            ctx.lineWidth = 1;
-            const step = 50;
-            // Movimiento del grid
-            const offset = (Date.now() / 50) % step;
-            
-            for(let x=0; x<=systemState.width; x+=step) {
-                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, systemState.height); ctx.stroke();
-            }
-            for(let y=offset; y<=systemState.height; y+=step) {
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(systemState.width, y); ctx.stroke();
-            }
+        function updateData(key) {
+            renderMainChart(key);
         }
 
-        function manageTimeline() {
-            const t = video.currentTime || ((Date.now() - systemState.startTime) / 1000); // Fallback time
-
-            // EVENTO 1: TÍTULO (5s)
-            if (t > 5 && systemState.phase === 0) {
-                heroTitle.classList.add('title-visible');
-                systemState.phase = 1;
-            }
-
-            // EVENTO 2: CONTENIDO (7s)
-            if (t > 7 && systemState.phase === 1) {
-                // Título a modo marca de agua (desaparece visualmente para dejar leer)
-                heroTitle.style.opacity = '0.05'; 
-                heroTitle.style.transform = 'scale(1.1)';
-                
-                mainContent.classList.add('ui-visible');
-                systemState.phase = 2;
-            }
-        }
-
-        // --- 4. INICIALIZACIÓN Y CARGA ---
-        
-        // Simulación de carga de assets
-        let loadProgress = 0;
-        const loadInterval = setInterval(() => {
-            loadProgress += Math.random() * 10;
-            if (loadProgress > 100) loadProgress = 100;
-            progressBar.style.width = loadProgress + '%';
-
-            if (loadProgress === 100) {
-                clearInterval(loadInterval);
-                loadingText.innerText = "SYSTEM READY";
-                loadingText.style.color = "var(--accent)";
-                startBtn.style.opacity = 1;
-                startBtn.style.transform = "translateY(0)";
-            }
-        }, 200);
-
-        // Listeners del Video
-        video.addEventListener('canplay', () => {
-            systemState.videoReady = true;
-            console.log("Video Decoder: READY");
-        });
-        
-        video.addEventListener('error', (e) => {
-            console.log("Video Decoder: FAILED. Switching to Procedural Grid.");
-            systemState.videoReady = false; // Activará el fallback
-        });
-
-        // Click de Inicio
-        startBtn.addEventListener('click', () => {
-            initLayer.classList.add('fade-out');
-            systemState.playing = true;
-            systemState.startTime = Date.now(); // Por si el video falla, tenemos reloj interno
-            
-            // Intentar reproducir vídeo
-            video.play().catch(e => {
-                console.log("Autoplay failed or video missing. Running simulation.");
-                systemState.videoReady = false;
+        function renderDestructionChart() {
+            const ctx = document.getElementById('destructionChart').getContext('2d');
+            destructionChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+                    datasets: [{
+                        label: 'Broken Glass Value (€)',
+                        data: [20, 85, 150, 320, 450],
+                        borderColor: '#db2777', // Pink
+                        backgroundColor: 'rgba(219, 39, 119, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { ...tooltipPlugin, legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#e5e7eb' } },
+                        x: { grid: { display: false } }
+                    }
+                }
             });
-        });
+        }
 
-        // Arrancar Motor
-        render();
+        function renderFollowerChart() {
+            const ctx = document.getElementById('followerChart').getContext('2d');
+            followerChartInstance = new Chart(ctx, {
+                type: 'bar',
+                indexAxis: 'y',
+                data: {
+                    labels: [
+                        formatLabel('Average Student', 20),
+                        formatLabel('School Principal', 20),
+                        formatLabel('Valentín (Monkey)', 20)
+                    ],
+                    datasets: [{
+                        label: 'Followers',
+                        data: [145, 500, 14500000],
+                        backgroundColor: ['#4b5563', '#9ca3af', '#84cc16'], // Gray, Gray, Lime
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { ...tooltipPlugin, legend: { display: false } },
+                    scales: {
+                        x: {
+                            type: 'logarithmic',
+                            grid: { color: '#333' },
+                            ticks: { color: '#6b7280' }
+                        },
+                        y: {
+                            ticks: { color: '#fff', font: { family: 'Space Mono' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- INTERACTIVITY: Definition Reveal ---
+        function revealTruth() {
+            const container = document.getElementById('truth-content');
+            const box = document.getElementById('truth-box');
+            
+            // Glitch effect sequence
+            let count = 0;
+            const interval = setInterval(() => {
+                box.style.transform = `translate(${Math.random()*4 - 2}px, ${Math.random()*4 - 2}px)`;
+                count++;
+                if (count > 5) {
+                    clearInterval(interval);
+                    box.style.transform = 'none';
+                    container.innerHTML = `
+                        <ul class="text-left space-y-2 font-mono text-sm md:text-lg">
+                            <li><strong class="text-lime-400 text-2xl">T</strong>OTAL</li>
+                            <li><strong class="text-lime-400 text-2xl">E</strong>NTERTAINMENT &</li>
+                            <li><strong class="text-lime-400 text-2xl">F</strong>OOD</li>
+                            <li><strong class="text-lime-400 text-2xl">Q</strong>UALITY</li>
+                        </ul>
+                    `;
+                }
+            }, 50);
+        }
+
+        // --- GLOBAL EXPORT ---
+        window.updateData = updateData;
+        window.revealTruth = revealTruth;
 
     </script>
 </body>
