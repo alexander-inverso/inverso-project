@@ -1,10 +1,21 @@
-insectos
-enchufes
-anthouse 
-dbrand
-especializaciones 
-hablar con elodie, russell
-producción 
-poemas 
-e-mail 
-historia
+{
+  "basics": [
+    "Lectura Técnica / Paper",
+    "Entrenamiento (Fuerza/León)",
+    "Simulación Biológica (Dev)",
+    "Higiene de Sueño"
+  ],
+  "tactical": [
+    "Mantenimiento Insectos",
+    "Instalar Enchufes",
+    "Anthouse",
+    "dbrand",
+    "Revisar Especializaciones",
+    "Comms: Elodie",
+    "Comms: Russell",
+    "Producción",
+    "Escribir Poemas",
+    "E-mail (Carlos)",
+    "Repaso Historia (EBAU)"
+  ]
+}
