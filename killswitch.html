@@ -13,6 +13,7 @@
             --text-main: #e0e0e0;
             --accent-red: #ff3333;
             --accent-dim: #444444;
+            --border-dim: #222222;
         }
 
         body {
@@ -22,7 +23,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Evita scroll innecesario */
+            overflow: hidden;
         }
 
         .scanline {
@@ -30,7 +31,7 @@
             height: 2px;
             background: rgba(255, 51, 51, 0.1);
             position: absolute;
-            animation: scan 3s linear infinite;
+            animation: scan 4s linear infinite;
             pointer-events: none;
             z-index: 10;
         }
@@ -40,125 +41,119 @@
             100% { top: 100%; }
         }
 
-        .blink {
-            animation: blinker 1s linear infinite;
-        }
-
-        @keyframes blinker {
-            50% { opacity: 0; }
-        }
-
-        /* Ocultar scrollbar pero permitir scroll en lista */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="p-6 justify-between select-none">
+<body class="p-5 justify-between select-none">
 
-    <!-- Efecto visual -->
     <div class="scanline"></div>
 
-    <!-- HEADER: STATUS -->
-    <header class="mt-4">
-        <div class="flex justify-between items-center text-xs text-gray-500 mb-2">
+    <!-- HEADER -->
+    <header class="mt-2 border-b border-[#222] pb-4">
+        <div class="flex justify-between items-center text-[10px] text-gray-500 mb-1">
             <span>ID: USER_ALEXANDER</span>
-            <span id="dateDisplay">--/--/--</span>
+            <span id="dateDisplay">--/--</span>
         </div>
-        <h1 class="text-3xl font-bold text-white tracking-tighter uppercase leading-none">
-            System<br><span style="color: var(--accent-red);">Override</span>
+        <h1 class="text-2xl font-bold text-white tracking-tighter uppercase leading-none">
+            Void<span style="color: var(--accent-red);">Protocol</span>
         </h1>
-        <div class="mt-4 border-l-2 border-red-600 pl-3">
-            <p class="text-sm font-bold text-red-500 uppercase">Detección de inercia</p>
-            <p class="text-xs text-gray-400 mt-1">Has activado el protocolo de interrupción.</p>
+        <div class="flex items-center gap-2 mt-2">
+            <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+            <p class="text-[10px] text-red-500 uppercase tracking-widest font-bold">Interrupción Activa</p>
         </div>
     </header>
 
-    <!-- CORE: PREGUNTAS Y DATOS -->
-    <main class="flex-grow flex flex-col justify-center my-6 space-y-6">
+    <!-- CORE: PHILOSOPHY + GRID -->
+    <main class="flex-grow flex flex-col justify-start my-4 overflow-hidden gap-4">
         
-        <!-- El Cuestionamiento -->
-        <div class="text-center space-y-2">
-            <p class="text-lg">¿Es esto <span class="font-bold text-white">Alta Agencia</span>?</p>
-            <p class="text-xs text-gray-500 max-w-[80%] mx-auto">Tu hardware biológico busca dopamina barata. Retoma el control.</p>
+        <!-- El Manifiesto de Tiempo -->
+        <div class="bg-[#0f0f0f] border-l-2 border-white p-3">
+            <p class="text-[11px] leading-relaxed text-gray-300">
+                <span class="text-white font-bold block mb-1">RECORDATORIO DE SISTEMA:</span>
+                El "tiempo libre" no es vacío. Es la única ventana para configurar la comodidad del tiempo obligatorio.
+                <br><br>
+                <span class="text-gray-500 italic">> Si fallas ahora, la semana será fricción pura. Úsalo bien.</span>
+            </p>
         </div>
 
-        <!-- Lista de Tareas (Carga desde tasks.json) -->
-        <div class="w-full bg-[#111] border border-[#333] p-4 rounded-sm relative overflow-hidden">
-            <div class="absolute top-0 right-0 bg-[#333] px-2 py-0.5 text-[10px] text-white uppercase tracking-widest">
-                Pending_Operations
+        <!-- Grid Container -->
+        <div class="grid grid-cols-2 gap-3 h-full overflow-hidden pb-2">
+            
+            <!-- Columna 1: Mantenimiento (Sostener) -->
+            <div class="flex flex-col h-full bg-[#050505] border border-[#222] relative">
+                <div class="bg-[#1a1a1a] px-2 py-1.5 border-b border-[#222]">
+                    <h2 class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Base_Systems</h2>
+                </div>
+                <ul id="list-maintenance" class="p-2 space-y-2 overflow-y-auto no-scrollbar flex-grow text-[10px] leading-tight text-gray-400">
+                    <li class="animate-pulse">Cargando...</li>
+                </ul>
             </div>
-            <ul id="taskList" class="text-sm space-y-3 mt-2 h-40 overflow-y-auto no-scrollbar">
-                <li class="text-gray-500 animate-pulse">Cargando módulos de memoria...</li>
-            </ul>
-        </div>
 
+            <!-- Columna 2: Táctica (Avanzar) -->
+            <div class="flex flex-col h-full bg-[#050505] border border-[#222] relative">
+                <div class="bg-[#1a1a1a] px-2 py-1.5 border-b border-[#222]">
+                    <h2 class="text-[9px] text-red-500 uppercase tracking-widest font-bold">Tactical_Ops</h2>
+                </div>
+                <ul id="list-tactical" class="p-2 space-y-2 overflow-y-auto no-scrollbar flex-grow text-[10px] leading-tight text-white">
+                    <li class="animate-pulse">Cargando...</li>
+                </ul>
+            </div>
+
+        </div>
     </main>
 
-    <!-- FOOTER: ACCIONES -->
-    <footer class="mb-8 space-y-3">
-        <button onclick="window.close();" class="w-full bg-white text-black font-bold py-4 text-sm uppercase tracking-widest hover:bg-gray-200 transition-colors active:scale-95">
-            // EJECUTAR_SALIDA
+    <!-- FOOTER -->
+    <footer class="mb-2">
+        <button onclick="window.close();" class="w-full bg-[#e0e0e0] text-black font-bold py-3 text-xs uppercase tracking-widest hover:bg-white active:scale-[0.98] transition-all mb-3">
+            // Ejecutar y Salir
         </button>
-        
-        <div class="flex justify-center">
-            <button class="text-[10px] text-gray-600 uppercase hover:text-red-500 transition-colors" onclick="alert('Registro de fallo de voluntad guardado.')">
-                Ignorar y continuar (Baja Agencia)
-            </button>
-        </div>
+        <p class="text-center text-[9px] text-[#333] font-mono">
+            v2.4_REFLEX
+        </p>
     </footer>
 
     <script>
-        // 1. Fecha estilo militar/técnico
-        const now = new Date();
-        document.getElementById('dateDisplay').innerText = now.toISOString().split('T')[0];
+        // Fecha
+        document.getElementById('dateDisplay').innerText = new Date().toISOString().split('T')[0];
 
-        // 2. Cargar tareas desde JSON (Simulación de OneNote)
+        // Cargar JSON
         async function loadTasks() {
-            const listContainer = document.getElementById('taskList');
+            const listMaint = document.getElementById('list-maintenance');
+            const listTact = document.getElementById('list-tactical');
+            
             try {
-                // Busca el archivo tasks.json en la misma carpeta
                 const response = await fetch('tasks.json');
-                if (!response.ok) throw new Error("Error de conexión");
-                
+                if (!response.ok) throw new Error("Error DB");
                 const data = await response.json();
                 
-                listContainer.innerHTML = ''; // Limpiar loader
+                const renderList = (container, items, colorClass = "text-gray-400") => {
+                    container.innerHTML = '';
+                    if(!items || items.length === 0) {
+                        container.innerHTML = '<li class="text-gray-600 italic">Vacío</li>';
+                        return;
+                    }
+                    items.forEach(task => {
+                        const li = document.createElement('li');
+                        li.className = "flex items-start gap-2 group cursor-default";
+                        li.innerHTML = `
+                            <span class="text-[#333] group-hover:text-red-500 transition-colors text-[8px] mt-[3px]">►</span>
+                            <span class="${colorClass} group-hover:text-white transition-colors">${task}</span>
+                        `;
+                        container.appendChild(li);
+                    });
+                };
 
-                if(data.tasks.length === 0) {
-                     listContainer.innerHTML = '<li class="text-gray-500 text-center py-4">Sin operaciones pendientes.</li>';
-                     return;
-                }
-
-                data.tasks.forEach(task => {
-                    const li = document.createElement('li');
-                    li.className = "flex items-start space-x-3 group";
-                    li.innerHTML = `
-                        <span class="text-red-500 mt-0.5">►</span>
-                        <span class="text-gray-300 group-hover:text-white transition-colors">${task}</span>
-                    `;
-                    listContainer.appendChild(li);
-                });
+                renderList(listMaint, data.basics, "text-gray-400");
+                renderList(listTact, data.tactical, "text-gray-200");
 
             } catch (error) {
-                listContainer.innerHTML = `
-                    <li class="text-red-500 text-xs">
-                        Error accediendo a base de datos local.<br>
-                        Verifica 'tasks.json'.
-                    </li>`;
+                console.error(error);
+                listMaint.innerHTML = '<li class="text-red-900">Offline</li>';
+                listTact.innerHTML = '<li class="text-red-900">Offline</li>';
             }
         }
-
-        // Ejecutar carga
         loadTasks();
-
-        // Script para intentar cerrar ventana (funciona mejor si la ventana fue abierta por script, 
-        // pero en móviles suele funcionar como "atrás" o requiere permisos).
-        // Si no cierra, redirige a google o una página en blanco.
     </script>
 </body>
 </html>
