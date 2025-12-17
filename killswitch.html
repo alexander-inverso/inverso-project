@@ -3,143 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SYSTEM HALT</title>
+    <title>INTERRUPCIÓN LÓGICA</title>
     <style>
-        /* RESET & BASE */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
+        /* CONFIGURACIÓN BASE & ESTÉTICA */
+        :root {
+            --bg: #050505;
+            --term-green: #00ff41;
+            --err-red: #ff003c;
+            --cyber-yel: #fcee0a;
+            --samsung-blue: #1428a0;
+            --white: #f0f0f0;
+        }
+
         body {
-            background-color: #000000; /* OLED Pure Black */
+            background-color: var(--bg);
+            color: var(--white);
+            font-family: 'Courier New', Courier, monospace; /* Fallback geométrico */
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Sin scroll */
             height: 100vh;
             width: 100vw;
-            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Courier New', Courier, monospace; /* Estética Terminal/Raw */
-            color: #FF0000; /* Rojo Alerta */
-            user-select: none;
         }
 
-        /* CONTENEDOR CENTRAL */
-        .container {
-            position: relative;
+        /* CAPA DE ARTE GENERATIVO (FONDO) */
+        #canvas-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            z-index: 1;
+            pointer-events: none; /* Para poder clicar en el test */
         }
 
-        /* PALABRA GIGANTE VERTICAL */
-        .trigger-word {
-            font-size: 28vh; /* Escala con la altura de la pantalla */
+        .floating-word {
+            position: absolute;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: -10px;
-            white-space: nowrap;
-            /* Rotación para ocupar todo el vertical del móvil */
-            transform: rotate(-90deg); 
-            
-            /* Efecto Glitch sutil */
-            text-shadow: 2px 2px 0px #FFFFFF;
-            animation: pulse 2s infinite;
+            user-select: none;
+            line-height: 0.8;
+            /* Sin transiciones suaves = movimiento robótico/raw */
+            transition: none; 
         }
 
-        /* DATOS TÉCNICOS (Decoración Cyberpunk) */
-        .metadata {
-            position: absolute;
-            font-size: 10px;
-            color: #555;
+        /* LA CAJA DEL TEST (UI) */
+        .modal-container {
+            position: relative;
             z-index: 10;
-        }
-        .top-left { top: 20px; left: 20px; }
-        .bottom-right { bottom: 20px; right: 20px; text-align: right; }
-
-        /* ANIMACIÓN DE RESPIRACIÓN/ALERTA */
-        @keyframes pulse {
-            0% { opacity: 1; text-shadow: 2px 2px 0px #FFFFFF; }
-            50% { opacity: 0.8; text-shadow: 4px 4px 0px #FFFFFF; }
-            100% { opacity: 1; text-shadow: 2px 2px 0px #FFFFFF; }
+            width: 85vw;
+            max-width: 400px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--white);
+            padding: 2rem;
+            box-shadow: 10px 10px 0px var(--white); /* Sombra dura brutalista */
+            text-align: center;
         }
 
-        /* LÍNEA DE ESCANEO (Estilo CRT/Monitor Viejo) */
-        .scanline {
-            width: 100%;
-            height: 10px;
-            z-index: 99;
-            background: rgba(255, 0, 0, 0.1);
-            opacity: 0.4;
-            position: absolute;
-            left: 0;
-            top: 0;
-            animation: scan 3s linear infinite;
-            pointer-events: none;
-        }
-        @keyframes scan {
-            0% { top: 0%; }
-            100% { top: 100%; }
+        .question-text {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            font-weight: bold;
+            min-height: 80px; /* Evita saltos de tamaño */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* BOTÓN DE SALIDA OCULTO (Solo visible tras 5 segundos) */
-        #unlock-btn {
-            position: absolute;
-            bottom: 50px;
-            left: 50%;
-            transform: translateX(-50%);
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
             background: transparent;
-            border: 1px solid #333;
-            color: #333;
-            padding: 10px 20px;
-            font-family: monospace;
-            text-transform: uppercase;
-            font-size: 12px;
-            opacity: 0;
-            transition: opacity 1s ease;
+            border: 1px solid var(--white);
+            color: var(--white);
+            padding: 15px 30px;
+            font-family: inherit;
+            font-size: 1rem;
             cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
         }
+
+        button:active {
+            background: var(--white);
+            color: var(--bg);
+            transform: translate(2px, 2px);
+        }
+
+        .result-text {
+            font-size: 1.8rem;
+            color: var(--term-green);
+            line-height: 1.2;
+            border: 1px dashed var(--term-green);
+            padding: 20px;
+            margin-top: 10px;
+        }
+
+        /* CLASES UTILITARIAS PARA EL JS */
+        .rotate-vertical {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+        }
+
+        .glitch-color-1 { color: var(--term-green); opacity: 0.4; }
+        .glitch-color-2 { color: var(--err-red); opacity: 0.4; }
+        .glitch-color-3 { color: var(--cyber-yel); opacity: 0.3; }
+        .glitch-color-4 { color: #333; opacity: 0.8; font-size: 4rem; z-index: -1;}
+
     </style>
 </head>
 <body>
 
-    <div class="scanline"></div>
+    <div id="canvas-layer"></div>
 
-    <div class="metadata top-left">
-        SYSTEM_ALERT: DOPAMINE_OVERLOAD<br>
-        ID: ARCHITECT_01
+    <div class="modal-container" id="ui-box">
+        <div id="quiz-area">
+            <div class="question-text" id="q-text">INICIANDO DIAGNÓSTICO...</div>
+            <div class="btn-group">
+                <button onclick="handleAnswer(true)">SÍ</button>
+                <button onclick="handleAnswer(false)">NO</button>
+            </div>
+        </div>
     </div>
-
-    <div class="container">
-        <div class="trigger-word">PARA</div>
-    </div>
-
-    <div class="metadata bottom-right">
-        STATUS: DRAINING<br>
-        BATTERY: <span id="batt">--</span>%
-    </div>
-    
-    <button id="unlock-btn" onclick="window.close()">JUSTIFICAR CONTINUACIÓN</button>
 
     <script>
-        // Script para obtener batería real del dispositivo (funciona en Chrome/Android)
-        navigator.getBattery().then(function(battery) {
-            updateBattery(battery);
-            battery.addEventListener('levelchange', function() {
-                updateBattery(battery);
-            });
-        });
+        // --- 1. CONFIGURACIÓN DEL ARTE GENERATIVO ---
+        const bgWords = [
+            "LATENCIA", "DOPAMINA", "BUCLE", "ERROR", "TIEMPO", 
+            "LAG", "NULL", "VOID", "NOISE", "SYSTEM", "DATA", 
+            "PIXEL", "FRAME", "CACHE", "BIOS", "INPUT"
+        ];
+        
+        const canvas = document.getElementById('canvas-layer');
 
-        function updateBattery(battery) {
-            document.getElementById('batt').innerHTML = (battery.level * 100).toFixed(0);
+        // Función para generar una palabra en posición aleatoria
+        function spawnWord() {
+            const el = document.createElement('div');
+            el.innerText = bgWords[Math.floor(Math.random() * bgWords.length)];
+            el.className = 'floating-word';
+            
+            // Estilos aleatorios
+            const size = Math.floor(Math.random() * 5) + 1; // 1 a 6 rem
+            el.style.fontSize = size + 'rem';
+            
+            // Posición (X, Y)
+            el.style.left = Math.floor(Math.random() * 90) + '%';
+            el.style.top = Math.floor(Math.random() * 90) + '%';
+
+            // Rotación (0 o 90 grados estricto, para ser muy recto/geométrico)
+            if (Math.random() > 0.5) {
+                el.style.transform = 'rotate(-90deg)';
+            }
+
+            // Color Class
+            const colorRoll = Math.random();
+            if (colorRoll < 0.25) el.classList.add('glitch-color-1');
+            else if (colorRoll < 0.5) el.classList.add('glitch-color-2');
+            else if (colorRoll < 0.75) el.classList.add('glitch-color-3');
+            else el.classList.add('glitch-color-4');
+
+            canvas.appendChild(el);
+
+            // "Vida" del elemento: aparece y desaparece bruscamente
+            setTimeout(() => {
+                el.remove();
+            }, 800 + Math.random() * 1000); // Entre 0.8 y 1.8 segundos
         }
 
-        // Retardo para mostrar el botón de salida (Fricción cognitiva)
-        setTimeout(() => {
-            const btn = document.getElementById('unlock-btn');
-            btn.style.opacity = '1';
-            btn.style.borderColor = '#FF0000';
-            btn.style.color = '#FF0000';
-        }, 5000); // 5 segundos de espera obligatoria
+        // Bucle de renderizado "Staccato"
+        setInterval(spawnWord, 150); // Genera una palabra nueva cada 150ms
+        setInterval(spawnWord, 150); // Doble llamada para más densidad
+
+
+        // --- 2. LÓGICA DEL TEST (QUIZ) ---
+        
+        // El "Diccionario" de sentencias finales (20 frases)
+        const outputBank = [
+            "La entropía gana si dudas.",
+            "Tu competencia está estudiando ahora mismo.",
+            "El scroll es la morfina del siglo XXI.",
+            "No eres un consumidor, eres un arquitecto.",
+            "Vuelve a la Simulación, Neo.",
+            "Error 404: Propósito no encontrado.",
+            "Tu 'Yo del futuro' te está juzgando.",
+            "¿96% en la EBAU o 100% en TikTok?",
+            "El código no se compila solo.",
+            "Has perdido 5 minutos. No pierdas 6.",
+            "Biología > Algoritmo.",
+            "Cierra. Crea. Construye.",
+            "La mediocridad es adictiva. Desintoxícate.",
+            "Tu hardware es premium. Tu software está fallando.",
+            "High Agency requiere High Focus.",
+            "Esto no te acerca a Zúrich.",
+            "Reinicia el sistema cognitivo.",
+            "Input basura = Output basura.",
+            "Transparencia Radical: Estás perdiendo el tiempo.",
+            "Hazlo o no lo hagas. El intento es irrelevante."
+        ];
+
+        const questions = [
+            "¿Esta acción aporta valor a tu 'Digital Twin'?",
+            "¿Estás aprendiendo algo nuevo ahora mismo?",
+            "¿Tienes el control total de este impulso?"
+        ];
+
+        let currentQ = 0;
+
+        // Iniciar
+        window.onload = () => {
+            document.getElementById('q-text').innerText = questions[0];
+        };
+
+        function handleAnswer(answer) {
+            currentQ++;
+
+            // Pequeño efecto visual en la caja al responder
+            const box = document.getElementById('ui-box');
+            box.style.borderColor = answer ? 'var(--term-green)' : 'var(--err-red)';
+            setTimeout(() => box.style.borderColor = 'var(--white)', 200);
+
+            if (currentQ < questions.length) {
+                document.getElementById('q-text').innerText = questions[currentQ];
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            // Seleccionar frase aleatoria
+            const phrase = outputBank[Math.floor(Math.random() * outputBank.length)];
+            
+            // Reemplazar HTML del test con el resultado
+            const quizArea = document.getElementById('quiz-area');
+            quizArea.innerHTML = `
+                <div style="font-size: 1rem; margin-bottom: 10px; color: #888;">RESULTADO DEL ANÁLISIS:</div>
+                <div class="result-text">${phrase}</div>
+                <button onclick="location.reload()" style="margin-top:20px; border-color: var(--term-green); color: var(--term-green);">REINICIAR PROTOCOLO</button>
+            `;
+        }
     </script>
 </body>
 </html>
