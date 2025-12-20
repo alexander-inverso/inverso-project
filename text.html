@@ -1,0 +1,15 @@
+document.addEventListener('keydown', e => {
+  console.log('KEYDOWN:', e.key, e.code);
+});
+
+document.addEventListener('keyup', e => {
+  console.log('KEYUP:', e.key, e.code);
+});
+
+document.addEventListener('mousedown', e => {
+  console.log('MOUSEDOWN:', e.button);
+});
+
+document.addEventListener('wheel', e => {
+  console.log('WHEEL:', e.deltaY);
+});
