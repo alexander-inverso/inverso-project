@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEFQ: Jealousy Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=JetBrains+Mono:wght@400;800&display=swap');
+
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            font-family: 'Space Grotesk', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Glitchy Button Style */
+        .btn-core {
+            position: relative;
+            background: #facc15; /* Yellow-400 */
+            color: black;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.2s;
+            clip-path: polygon(10% 0, 100% 0, 100% 80%, 90% 100%, 0 100%, 0 20%);
+        }
+        .btn-core:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0px #ffffff;
+        }
+        .btn-core:active {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+
+        /* Chart Container Strict Sizing */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            height: 300px;
+        }
+
+        /* Video Card Simulator */
+        .video-card {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .video-card:hover {
+            border-color: #facc15;
+        }
+        .play-icon {
+            width: 0; 
+            height: 0; 
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 15px solid #facc15;
+        }
+
+        /* CRT Scanline Effect (Subtle) */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1)
+            );
+            background-size: 100% 4px;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #facc15; 
+        }
+    </style>
+    <!-- Chosen Palette: "Hazard Industrial" -> #050505 (Void Black), #facc15 (Warning Yellow), #ffffff (White). High contrast, technical, slightly aggressive. -->
+    
+    <!-- Application Structure Plan:
+         1. Hero: "Just To Make You Jealous" - Big, bold, arrogant title.
+         2. The Evidence (Video Gallery): The core "Fun" section. Interactive cards representing the Valentín videos. Clicking them simulates playback (using CSS/JS) with witty descriptions.
+         3. The Data (Charts): Comparative charts that mock the other subjects disguised as "academic analysis." 
+         4. The Jealousy Meter: A sticky header element that rises as the user scrolls/interacts.
+         Rationale: This structure supports Pancho (he can just point and say "Here is the evidence") while Alexander (the app) does the heavy lifting of humor via the visuals.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. Jealousy Gauge: CSS Width Bar -> Goal: Inform (Status).
+         2. Comparison: Bar Chart -> Goal: Compare "Fun vs Boredom".
+         3. Video Simulator: HTML/CSS/JS Grid -> Goal: Inform (Show Valentín).
+         4. Mug Cake Process: CSS Timeline -> Goal: Change (Process flow).
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased">
+
+    <!-- The Scanlines -->
+    <div class="scanlines"></div>
+
+    <!-- Sticky Jealousy Meter -->
+    <div class="fixed top-0 w-full z-50 bg-black border-b border-gray-800 pb-2 pt-2 px-4">
+        <div class="flex justify-between items-end mb-1 font-mono text-xs text-yellow-500">
+            <span>AUDIENCE STATUS:</span>
+            <span id="jealousy-text">0% JEALOUS</span>
+        </div>
+        <div class="w-full bg-gray-900 h-2">
+            <div id="jealousy-bar" class="h-full bg-yellow-400 w-0 transition-all duration-500 ease-out"></div>
+        </div>
+    </div>
+
+    <main class="max-w-6xl mx-auto px-4 pt-16 pb-24">
+
+        <!-- Section 1: The Hook -->
+        <section class="min-h-[80vh] flex flex-col justify-center items-start border-l-4 border-yellow-400 pl-8 ml-4 md:ml-0">
+            <div class="bg-yellow-400 text-black font-bold px-2 py-1 text-sm mb-4 inline-block transform -rotate-1 font-mono">OPTIONAL SUBJECT ANALYSIS</div>
+            <h1 class="text-7xl md:text-9xl font-black leading-none mb-2 tracking-tighter">TEFQ</h1>
+            <h2 class="text-3xl md:text-5xl font-thin text-gray-400 mb-8">JUST TO MAKE YOU <span class="text-white border-b-4 border-yellow-400">JEALOUS</span>.</h2>
+            
+            <p class="max-w-xl text-xl text-gray-300 mb-8 font-mono">
+                While you analyze databases on paper or sweat in a gym, we are engaged in high-level operational fun.
+            </p>
+
+            <button onclick="scrollToSection('evidence')" class="btn-core px-8 py-4 text-xl">
+                START THE ROAST
+            </button>
+        </section>
+
+        <!-- Section 2: The Evidence (Valentín Gallery) -->
+        <section id="evidence" class="py-24">
+            <div class="flex items-center mb-12">
+                <div class="h-px bg-gray-700 flex-grow"></div>
+                <h3 class="text-3xl font-bold px-6 text-yellow-400 uppercase tracking-widest">Exhibit A: The Lifestyle</h3>
+                <div class="h-px bg-gray-700 flex-grow"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Video 1: Stirring -->
+                <div class="video-card group p-4 relative" onclick="playSim('v1')">
+                    <div class="aspect-video bg-gray-800 mb-4 flex items-center justify-center relative overflow-hidden">
+                        <!-- Simulated Thumbnail Text -->
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🥣</div>
+                            <div class="font-mono text-xs text-gray-500">MUG_CAKE_PROTOCOL.mp4</div>
+                        </div>
+                        <!-- Play Overlay -->
+                        <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                            <div class="play-icon"></div>
+                        </div>
+                        <!-- Simulated Progress Bar -->
+                        <div id="bar-v1" class="absolute bottom-0 left-0 h-1 bg-yellow-400 w-0"></div>
+                    </div>
+                    <h4 class="font-bold text-lg mb-1">Stoichiometric Mixing</h4>
+                    <p class="text-sm text-gray-400 font-mono">Valentín ensures the batter viscosity is optimal. (He is making a mug cake).</p>
+                </div>
+
+                <!-- Video 2: Christmas Tree -->
+                <div class="video-card group p-4 relative" onclick="playSim('v2')">
+                    <div class="aspect-video bg-gray-800 mb-4 flex items-center justify-center relative overflow-hidden">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🎄</div>
+                            <div class="font-mono text-xs text-gray-500">XMAS_OPS_LEADER.mov</div>
+                        </div>
+                        <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                            <div class="play-icon"></div>
+                        </div>
+                        <div id="bar-v2" class="absolute bottom-0 left-0 h-1 bg-yellow-400 w-0"></div>
+                    </div>
+                    <h4 class="font-bold text-lg mb-1">Dept. Head Oversight</h4>
+                    <p class="text-sm text-gray-400 font-mono">Valentín supervising holiday morale from the highest strategic point (The Tree).</p>
+                </div>
+
+                <!-- Video 3: Screen Watcher -->
+                <div class="video-card group p-4 relative" onclick="playSim('v3')">
+                    <div class="aspect-video bg-gray-800 mb-4 flex items-center justify-center relative overflow-hidden">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">👁️</div>
+                            <div class="font-mono text-xs text-gray-500">SURVEILLANCE.avi</div>
+                        </div>
+                        <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                            <div class="play-icon"></div>
+                        </div>
+                        <div id="bar-v3" class="absolute bottom-0 left-0 h-1 bg-yellow-400 w-0"></div>
+                    </div>
+                    <h4 class="font-bold text-lg mb-1">Big Brother Mode</h4>
+                    <p class="text-sm text-gray-400 font-mono">Watching us from the top of the projector screen. He sees your bad grades.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: The Data (Comparison) -->
+        <section class="py-24 bg-gray-900 -mx-4 px-4 border-y border-gray-800">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex flex-col md:flex-row gap-12 items-center">
+                    <div class="w-full md:w-1/3">
+                        <h3 class="text-4xl font-black mb-4 text-white">THE <span class="text-yellow-400">FUN</span> DELTA.</h3>
+                        <p class="text-gray-400 mb-6 font-mono text-sm leading-relaxed">
+                            We ran a simulation comparing "Fun Levels" across all optional subjects. The results are statistically significant and personally hurtful to you.
+                        </p>
+                        <div class="bg-black p-4 border-l-4 border-yellow-400">
+                            <div class="text-xs text-gray-500 font-mono uppercase mb-1">Current Status</div>
+                            <div class="text-xl font-bold text-white">TEFQ: <span class="text-yellow-400">PEAK</span></div>
+                            <div class="text-xl font-bold text-gray-600">YOU: <span class="text-gray-500">MID</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full md:w-2/3">
+                        <div class="bg-black p-6 border border-gray-700 shadow-2xl relative">
+                            <!-- Chart Title -->
+                            <div class="absolute top-4 right-4 text-xs font-mono text-gray-500">FIG 1.0: REGRET LEVELS</div>
+                            <div class="chart-container">
+                                <canvas id="funChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: The Process (Mug Cake) -->
+        <section class="py-24">
+            <h3 class="text-3xl font-bold mb-12 text-center">THE CURRICULUM</h3>
+            
+            <div class="flex flex-col md:flex-row justify-center items-center gap-4">
+                <!-- Step 1 -->
+                <div class="w-64 h-64 border border-gray-700 bg-gray-900 p-6 flex flex-col items-center text-center group hover:border-yellow-400 transition">
+                    <div class="text-5xl mb-4 grayscale group-hover:grayscale-0 transition">🧪</div>
+                    <h4 class="font-bold text-yellow-400 mb-2">CHEMISTRY</h4>
+                    <p class="text-sm text-gray-400 font-mono">We mix powders. Sometimes they explode. Sometimes they rise.</p>
+                </div>
+
+                <!-- Arrow -->
+                <div class="text-2xl text-gray-600 font-black">→</div>
+
+                <!-- Step 2 -->
+                <div class="w-64 h-64 border border-gray-700 bg-gray-900 p-6 flex flex-col items-center text-center group hover:border-yellow-400 transition">
+                    <div class="text-5xl mb-4 grayscale group-hover:grayscale-0 transition">🔥</div>
+                    <h4 class="font-bold text-yellow-400 mb-2">PHYSICS</h4>
+                    <p class="text-sm text-gray-400 font-mono">We apply thermal energy (The Microwave) to the substrate.</p>
+                </div>
+
+                <!-- Arrow -->
+                <div class="text-2xl text-gray-600 font-black">→</div>
+
+                <!-- Step 3 -->
+                <div class="w-64 h-64 border border-yellow-400 bg-black p-6 flex flex-col items-center text-center shadow-[0_0_30px_rgba(250,204,21,0.2)]">
+                    <div class="text-5xl mb-4">🧁</div>
+                    <h4 class="font-bold text-yellow-400 mb-2">CONSUMPTION</h4>
+                    <p class="text-sm text-gray-400 font-mono">We eat the result. You eat your envy.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-black border-t border-gray-900 py-8 text-center">
+        <p class="font-mono text-xs text-gray-600">TEFQ DATA TERMINAL // v2.0.4</p>
+    </footer>
+
+    <!-- Logic -->
+    <script>
+        // --- SCROLL / JEALOUSY METER LOGIC ---
+        window.onscroll = function() {
+            let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            let scrolled = (winScroll / height) * 100;
+            
+            document.getElementById("jealousy-bar").style.width = scrolled + "%";
+            document.getElementById("jealousy-text").innerText = Math.round(scrolled) + "% JEALOUS";
+        };
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({behavior: 'smooth'});
+        }
+
+        // --- VIDEO SIMULATOR ---
+        function playSim(id) {
+            const bar = document.getElementById('bar-' + id);
+            // Reset
+            bar.style.width = '0%';
+            bar.style.transition = 'none';
+            
+            // Play animation
+            setTimeout(() => {
+                bar.style.transition = 'width 2s linear';
+                bar.style.width = '100%';
+            }, 50);
+        }
+
+        // --- CHART JS ---
+        // Fun vs Boredom Chart
+        const ctxFun = document.getElementById('funChart').getContext('2d');
+        
+        // Helper for wrapping text (standard requirement)
+        function formatLabel(str, maxwidth) {
+            var sections = [];
+            var words = str.split(" ");
+            var temp = "";
+            words.forEach(function(item, index) {
+                if (temp.length > 0) {
+                    var concat = temp + ' ' + item;
+                    if (concat.length > maxwidth) {
+                        sections.push(temp);
+                        temp = "";
+                    } else {
+                        if (index == (words.length - 1)) {
+                            sections.push(concat); return;
+                        } else {
+                            temp = concat; return;
+                        }
+                    }
+                }
+                if (index == (words.length - 1)) {
+                    sections.push(item); return;
+                }
+                if (item.length < maxwidth) {
+                    temp = item;
+                } else {
+                    sections.push(item);
+                }
+            });
+            return sections;
+        }
+
+        const gradient = ctxFun.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, '#facc15');
+        gradient.addColorStop(1, 'rgba(250, 204, 21, 0)');
+
+        new Chart(ctxFun, {
+            type: 'bar',
+            data: {
+                labels: ['TEFQ (Us)', 'IT (Paperwork)', 'PE (Sweat)', 'Psych (Therapy)'],
+                datasets: [{
+                    label: 'Endorphin Levels',
+                    data: [100, 15, 40, 25],
+                    backgroundColor: [
+                        '#facc15',
+                        '#333',
+                        '#333',
+                        '#333'
+                    ],
+                    borderColor: 'transparent',
+                    borderWidth: 0,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#000',
+                        titleColor: '#facc15',
+                        bodyFont: { family: 'JetBrains Mono' },
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                let label = item.chart.data.labels[item.dataIndex];
+                                return Array.isArray(label) ? label.join(' ') : label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#333' },
+                        ticks: { color: '#666', font: { family: 'JetBrains Mono' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#fff', font: { family: 'Space Grotesk', weight: 'bold' } }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
