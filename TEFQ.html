@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEFQ: Jealousy Engine v15.0</title>
+    <title>TEFQ: Jealousy Engine v18.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -18,41 +18,50 @@
             --critical-color: #ef4444;
         }
 
+        /* --- GLOBAL SCROLL HIDING (UNIVERSAL) --- */
+        * {
+            scrollbar-width: none !important; /* Firefox */
+            -ms-overflow-style: none !important; /* IE/Edge */
+        }
+        *::-webkit-scrollbar {
+            display: none !important; /* Chrome/Safari */
+            width: 0 !important;
+            height: 0 !important;
+        }
+
         body {
-            background-color: #000; /* Black background for CRT effect */
+            background-color: #000;
             color: var(--text-color);
             font-family: 'Space Grotesk', sans-serif;
             overflow: hidden;
-            height: 100vh;
-            width: 100vw;
+            height: 100vh; width: 100vw;
+            margin: 0; padding: 0;
         }
 
         .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-        /* --- CRT ANIMATIONS (Applied to Viewport) --- */
+        /* --- CRT ANIMATIONS --- */
         #viewport {
             position: relative; width: 100%; height: 100%;
             perspective: 1000px;
             background-color: var(--bg-color);
             transform-origin: center;
+            /* Initial state handled by JS to avoid flicker */
         }
 
-        /* Turn ON */
-        .crt-on { animation: turnOn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+        .crt-on { animation: turnOn 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
         @keyframes turnOn {
-            0% { transform: scale(0, 0); filter: brightness(0); }
-            30% { transform: scale(1, 0.005); filter: brightness(5); }
-            60% { transform: scale(1, 0.005); filter: brightness(2); }
-            100% { transform: scale(1, 1); filter: brightness(1); }
+            0% { transform: scale(0.001, 0.001); filter: brightness(3); opacity: 1; }
+            40% { transform: scale(1, 0.002); filter: brightness(2); opacity: 1; }
+            100% { transform: scale(1, 1); filter: brightness(1); opacity: 1; }
         }
 
-        /* Turn OFF */
-        .crt-off { animation: turnOff 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+        .crt-off { animation: turnOff 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
         @keyframes turnOff {
-            0% { transform: scale(1, 1); filter: brightness(1); }
-            40% { transform: scale(1, 0.005); filter: brightness(3); }
-            70% { transform: scale(1, 0.005); filter: brightness(5); }
-            100% { transform: scale(0, 0); filter: brightness(0); }
+            0% { transform: scale(1, 1); filter: brightness(1); opacity: 1; }
+            40% { transform: scale(1, 0.002); filter: brightness(2); opacity: 1; }
+            80% { transform: scale(0.001, 0.001); filter: brightness(3); opacity: 1; }
+            100% { transform: scale(0, 0); filter: brightness(0); opacity: 0; }
         }
 
         /* --- SLIDE --- */
@@ -68,34 +77,33 @@
         .slide.active { transform: translateY(0); z-index: 10; }
         .slide.future { transform: translateY(100%); z-index: 20; }
 
-        /* --- UI ELEMENTS --- */
+        /* --- GLOBAL UI (FIXED) --- */
         .scanlines {
             position: fixed; inset: 0; pointer-events: none; z-index: 900;
             background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0.05));
             background-size: 100% 4px;
         }
-        .scanlines::before {
-            content: " "; display: block; position: absolute; inset: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.02) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 2px, 3px 100%;
-        }
 
-        .narrative-box {
-            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+        /* Narrative Bar */
+        .narrative-container {
+            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
             width: 80%; max-width: 800px;
             background: black; color: white; padding: 10px 20px;
             font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
             border-left: 4px solid var(--accent-color);
             display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 50;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            z-index: 20000;
+            transition: opacity 0.3s;
         }
         .narrative-label { color: var(--accent-color); font-weight: bold; text-transform: uppercase; margin-right: 10px; }
 
+        /* Progress HUD */
         .hud-container {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             width: 95%; max-width: 1400px; height: 40px;
             display: flex; align-items: center; gap: 0;
-            z-index: 100; font-family: 'JetBrains Mono', monospace;
+            z-index: 20000;
             border: 2px solid black; background: white;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
@@ -111,6 +119,57 @@
         @keyframes moveStripes { from { background-position: 0 0; } to { background-position: 56px 0; } }
         .hud-value { background: black; color: var(--accent-color); height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; min-width: 160px; justify-content: flex-end; }
 
+        /* --- ZOOM OVERLAY --- */
+        .zoom-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.98);
+            z-index: 15000; display: none; 
+            flex-direction: row; align-items: center; justify-content: center;
+            gap: 2rem; padding: 2rem;
+        }
+        .zoom-overlay.active { display: flex; }
+        
+        #zoom-thumbs {
+            display: flex; flex-direction: column; gap: 1rem;
+            max-height: 80vh; overflow-y: auto; width: 80px; flex-shrink: 0;
+        }
+        .zoom-thumb {
+            width: 80px; height: 80px; border: 2px solid #333; background: #111;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; color: #666; cursor: pointer; transition: all 0.2s;
+        }
+        .zoom-thumb:hover { border-color: #666; }
+        .zoom-thumb.active {
+            border-color: var(--accent-color); color: white; 
+            background: #222; transform: scale(1.05);
+            box-shadow: 4px 4px 0px var(--accent-color);
+        }
+
+        .zoom-content {
+            flex-grow: 1; max-width: 1200px; aspect-ratio: 16/9;
+            background: #111; border: 4px solid var(--accent-color);
+            position: relative; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 100px rgba(250, 204, 21, 0.1);
+        }
+        .play-indicator { font-size: 8rem; color: var(--accent-color); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
+
+        /* --- VFX --- */
+        .screen-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
+        @keyframes shake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-3px, -3px) rotate(-1deg); }
+            20% { transform: translate(3px, 3px) rotate(1deg); }
+            30% { transform: translate(-3px, 3px) rotate(0deg); }
+            40% { transform: translate(3px, -3px) rotate(1deg); }
+            50% { transform: translate(-2px, -2px) rotate(-1deg); }
+            60% { transform: translate(2px, 2px) rotate(0deg); }
+            70% { transform: translate(-2px, 2px) rotate(1deg); }
+            80% { transform: translate(2px, -2px) rotate(-1deg); }
+            90% { transform: translate(-1px, -1px) rotate(0deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        /* Cards & Buttons */
         .brutalist-card {
             border: 3px solid black; background: white;
             box-shadow: 6px 6px 0px black; transition: transform 0.1s;
@@ -128,7 +187,6 @@
             text-align: left; font-weight: bold; cursor: pointer;
             transition: all 0.2s; margin-bottom: 0.5rem;
         }
-        .victim-btn:hover { background: #f3f4f6; }
         .victim-btn.active {
             background: black; color: var(--accent-color);
             border-color: black; transform: translate(4px, 0);
@@ -142,46 +200,18 @@
             height: 8px; width: 100%; border-bottom: 3px solid black;
         }
 
-        .zoom-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            z-index: 999; display: none; flex-direction: column;
-            align-items: center; justify-content: center;
-        }
-        .zoom-overlay.active { display: flex; }
-        .zoom-content {
-            width: 85vw; max-width: 1200px; aspect-ratio: 16/9;
-            background: #111; border: 4px solid var(--accent-color);
-            position: relative; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 100px rgba(250, 204, 21, 0.3);
-        }
-        .play-indicator { font-size: 8rem; color: var(--accent-color); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
-        
-        .zoom-thumb {
-            width: 60px; height: 60px; border: 2px solid #444; background: #111;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; color: #666; cursor: pointer; transition: all 0.2s;
-        }
-        .zoom-thumb.active { border-color: var(--accent-color); color: white; transform: scale(1.1); box-shadow: 0 0 15px rgba(250, 204, 21, 0.5); }
-
-        .screen-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-2px, 0, 0); }
-            40%, 60% { transform: translate3d(2px, 0, 0); }
-        }
-        
+        /* WINNER UI (UPDATED) */
         .winner-banner {
-            display: none; position: fixed; inset: 0; background: rgba(250, 204, 21, 0.95);
+            display: none; position: fixed; inset: 0; 
+            background: rgba(0, 0, 0, 0.85); /* Dark dim, NOT yellow */
             z-index: 5000; align-items: center; justify-content: center;
         }
         .winner-frame {
             font-size: 10vw; font-weight: 900; 
-            border: 20px solid black; padding: 20px 40px;
-            background: transparent;
+            border: 20px solid black; padding: 20px 60px;
+            background: var(--accent-color); /* Yellow is ONLY here */
             transform: rotate(-3deg);
-            box-shadow: 0 0 0 10px #facc15, 0 0 0 20px black;
+            box-shadow: 10px 10px 0px black;
             width: fit-content;
         }
         
@@ -198,7 +228,7 @@
             position: fixed; bottom: 80px; right: 20px;
             background: black; color: white; padding: 8px 12px;
             font-family: 'JetBrains Mono', monospace; font-size: 12px;
-            opacity: 0; transition: opacity 0.3s; pointer-events: none;
+            opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 20001;
         }
     </style>
 </head>
@@ -212,8 +242,13 @@
         <div class="winner-frame">TEFQ WINS</div>
     </div>
 
-    <!-- ZOOM MODAL -->
+    <!-- ZOOM MODAL (LEFT THUMBNAILS) -->
     <div id="zoom-modal" class="zoom-overlay">
+        <!-- Sidebar -->
+        <div id="zoom-thumbs">
+            <!-- Thumbs injected here -->
+        </div>
+        <!-- Viewer -->
         <div class="zoom-content" id="zoom-frame">
             <div id="zoom-video-ui" class="flex flex-col items-center w-full h-full justify-center">
                 <div id="zoom-icon" class="play-indicator">▶</div>
@@ -222,11 +257,15 @@
             </div>
             <img id="zoom-img" src="" class="w-full h-full object-contain hidden" onerror="this.style.display='none'; document.getElementById('zoom-video-ui').style.display='flex';">
         </div>
-        <div id="zoom-thumbs" class="flex gap-4 mt-6"></div>
-        <div class="text-white font-mono mt-4 text-sm">[USE ARROWS TO SWITCH | TAB TO CLOSE]</div>
     </div>
 
-    <!-- HUD -->
+    <!-- FIXED NARRATIVE BAR -->
+    <div class="narrative-container" id="narrative-ui">
+        <div><span class="narrative-label">THREAD:</span> <span id="narrative-thread">LOADING...</span></div>
+        <div class="text-gray-400" id="narrative-text">...</div>
+    </div>
+
+    <!-- FIXED HUD -->
     <div class="hud-container">
         <div class="hud-label">AUDIENCE STATUS</div>
         <div class="hud-track">
@@ -235,21 +274,17 @@
         <div id="jealousy-val" class="hud-value">0% JEALOUS</div>
     </div>
 
-    <div id="viewport" class="crt-on">
+    <div id="viewport">
         <!-- 00. HERO -->
-        <section id="slide-0" class="slide active" data-base="0" data-cap="10">
-            <div class="hero-badge">ELECTIVES ANALYSIS v15.0</div>
+        <section id="slide-0" class="slide active" data-base="0" data-cap="10" data-thread="The Hook" data-narrative="You chose boring. We chose chaos.">
+            <div class="hero-badge">ELECTIVES ANALYSIS v18.0</div>
             <h1 class="text-9xl font-black mb-2 tracking-tighter">TEFQ</h1>
             <h2 class="text-4xl font-thin text-gray-500">JUST TO MAKE YOU <span class="bg-yellow-400 text-black px-2 font-bold">JEALOUS</span>.</h2>
             <div class="mt-16 font-mono text-sm text-gray-400 animate-bounce">[PRESS DOWN TO BEGIN]</div>
-            <div class="narrative-box">
-                <div><span class="narrative-label">THREAD:</span> The Hook</div>
-                <div class="text-gray-400">"You chose boring. We chose chaos."</div>
-            </div>
         </section>
 
         <!-- 01. AGENDA -->
-        <section id="slide-1" class="slide future" data-base="10" data-cap="20">
+        <section id="slide-1" class="slide future" data-base="10" data-cap="20" data-thread="The Roadmap" data-narrative="We have categorized our superiority into 6 modules.">
             <div class="w-full max-w-5xl">
                 <h3 class="text-6xl font-black mb-12 border-b-4 border-black pb-4">EVIDENCE LOCKER</h3>
                 <div class="grid grid-cols-2 gap-8 font-mono text-sm">
@@ -261,14 +296,10 @@
                     <div class="p-4 border-l-8 border-black bg-gray-50"><strong>06. VERDICT</strong><br>Submission.</div>
                 </div>
             </div>
-            <div class="narrative-box">
-                <div><span class="narrative-label">THREAD:</span> The Roadmap</div>
-                <div class="text-gray-400">"We have categorized our superiority into 6 modules."</div>
-            </div>
         </section>
 
         <!-- 02. DANGER -->
-        <section id="slide-2" class="slide future" data-base="20" data-cap="35">
+        <section id="slide-2" class="slide future" data-base="20" data-cap="35" data-thread="Spectacle" data-narrative="PE students run. We create controlled disasters.">
             <div class="w-full max-w-7xl">
                 <div class="flex items-center mb-6 border-b-4 border-black pb-2">
                     <h3 class="text-4xl font-bold uppercase">01. Danger Protocol</h3>
@@ -289,40 +320,32 @@
                     </div>
                 </div>
             </div>
-            <div class="narrative-box">
-                <div><span class="narrative-label">THREAD:</span> Spectacle</div>
-                <div class="text-gray-400">"PE students run. We create controlled disasters."</div>
-            </div>
         </section>
 
-        <!-- 03. HARD DATA -->
-        <section id="slide-3" class="slide future" data-base="35" data-cap="50">
+        <!-- 03. HARD DATA (RESTORED VICTIM SWAP) -->
+        <section id="slide-3" class="slide future" data-base="35" data-cap="50" data-thread="The Receipts" data-narrative="We break €450/month. We still get 10s. Do the math.">
             <div class="w-full max-w-6xl">
                 <div class="flex items-center mb-4 border-b-4 border-black pb-2">
                     <h3 class="text-4xl font-bold uppercase">02. Hard Data</h3>
-                    <span class="ml-auto font-mono text-xs bg-yellow-400 px-2 py-1 border border-black">SELECT VICTIM</span>
+                    <span class="ml-auto font-mono text-xs bg-yellow-400 px-2 py-1 border border-black">TAB TO SWAP VICTIM</span>
                 </div>
                 <div class="flex gap-8 items-start h-[500px]">
                     <div class="w-1/4 flex flex-col interactive-group">
                         <h4 class="font-mono font-bold text-sm mb-4">COMPARE TEFQ VS:</h4>
-                        <button class="victim-btn interactive-item active" id="btn-it" onclick="updateVictimChart('it')">IT STUDENT</button>
-                        <button class="victim-btn interactive-item" id="btn-pe" onclick="updateVictimChart('pe')">PE STUDENT</button>
-                        <button class="victim-btn interactive-item" id="btn-psych" onclick="updateVictimChart('psych')">PSYCH STUDENT</button>
-                        <button class="victim-btn interactive-item" id="btn-french" onclick="updateVictimChart('french')">FRENCH STUDENT</button>
+                        <div class="victim-btn active" id="btn-it">IT STUDENT</div>
+                        <div class="victim-btn" id="btn-pe">PE STUDENT</div>
+                        <div class="victim-btn" id="btn-psych">PSYCH STUDENT</div>
+                        <div class="victim-btn" id="btn-french">FRENCH STUDENT</div>
                     </div>
                     <div class="w-3/4 h-full border-4 border-black bg-white p-4 shadow-[12px_12px_0px_#e5e7eb]">
                         <canvas id="dataChart"></canvas>
                     </div>
                 </div>
             </div>
-            <div class="narrative-box">
-                <div><span class="narrative-label">THREAD:</span> The Receipts</div>
-                <div class="text-gray-400">"We break €450/month. We still get 10s. Do the math."</div>
-            </div>
         </section>
 
         <!-- 04. BIO-HACKING -->
-        <section id="slide-4" class="slide future" data-base="50" data-cap="70">
+        <section id="slide-4" class="slide future" data-base="50" data-cap="70" data-thread="Lifestyle" data-narrative="We eat cake in cushioned chairs. Psych students cry on wood.">
             <div class="w-full max-w-7xl">
                 <div class="flex items-center mb-6 border-b-4 border-black pb-2">
                     <h3 class="text-4xl font-bold uppercase">03. Bio-Hacking</h3>
@@ -345,14 +368,10 @@
                     </div>
                 </div>
             </div>
-            <div class="narrative-box">
-                <div><span class="narrative-label">THREAD:</span> Lifestyle</div>
-                <div class="text-gray-400">"We eat cake in cushioned chairs. Psych students cry on wood."</div>
-            </div>
         </section>
 
         <!-- 05. JOY -->
-        <section id="slide-5" class="slide future" data-base="70" data-cap="85">
+        <section id="slide-5" class="slide future" data-base="70" data-cap="85" data-thread="The Ultimate Flex" data-narrative="Even our chores are fun. Your whole life is boring.">
             <div class="w-full max-w-4xl text-center">
                 <h3 class="text-4xl font-bold uppercase mb-8">04. Joy Optimization</h3>
                 <div class="brutalist-card p-12 interactive-item mx-auto max-w-2xl bg-yellow-400" onclick="triggerZoom('image', null, 'SCISSOR BUBBLES', 'missing_evidence.png')">
@@ -362,14 +381,10 @@
                     <div class="mt-4 bg-black text-white inline-block px-4 py-2 font-mono text-sm border-2 border-white">EVIDENCE REDACTED (ZOOM)</div>
                 </div>
             </div>
-            <div class="narrative-box">
-                <div><span class="narrative-label">THREAD:</span> The Ultimate Flex</div>
-                <div class="text-gray-400">"Even our chores are fun. Your whole life is boring."</div>
-            </div>
         </section>
 
         <!-- 06. THE OTHERS -->
-        <section id="slide-6" class="slide future" data-base="85" data-cap="96">
+        <section id="slide-6" class="slide future" data-base="85" data-cap="96" data-thread="Contrast" data-narrative="A moment of silence for those who chose wrong.">
             <div class="w-full max-w-6xl">
                 <h3 class="text-4xl font-bold uppercase mb-12 border-b-4 border-black pb-4">05. The Ghost Town</h3>
                 <div class="grid grid-cols-3 gap-8 text-center font-mono">
@@ -387,24 +402,16 @@
                     </div>
                 </div>
             </div>
-            <div class="narrative-box">
-                <div><span class="narrative-label">THREAD:</span> Contrast</div>
-                <div class="text-gray-400">"A moment of silence for those who chose wrong."</div>
-            </div>
         </section>
 
         <!-- 07. END -->
-        <section id="slide-7" class="slide future" data-base="96" data-cap="100">
+        <section id="slide-7" class="slide future" data-base="96" data-cap="100" data-thread="Victory" data-narrative="Press Alt for Verdict. Press Tab to Admit Defeat.">
             <h1 class="text-8xl font-black mb-6 blink-text">FATAL ERROR</h1>
-            <div class="p-8 border-8 border-red-600 bg-black text-white shadow-[12px_12px_0px_red] max-w-2xl text-center interactive-item active-focus">
+            <div class="p-8 border-8 border-red-600 bg-black text-white shadow-[12px_12px_0px_red] max-w-2xl text-center interactive-item active-focus" onclick="triggerConfetti()">
                 <p class="text-2xl font-bold text-red-500 mb-4">JEALOUSY OVERLOAD</p>
-                <div class="bg-white text-black font-black text-4xl p-4 border-4 border-yellow-400 cursor-pointer hover:scale-105 transition" onclick="triggerConfetti()">
+                <div class="bg-white text-black font-black text-4xl p-4 border-4 border-yellow-400 cursor-pointer hover:scale-105 transition">
                     [ ADMIT DEFEAT ]
                 </div>
-            </div>
-            <div class="narrative-box">
-                <div><span class="narrative-label">THREAD:</span> Victory</div>
-                <div class="text-gray-400">"Press Alt for Verdict. Click to accept."</div>
             </div>
         </section>
     </div>
@@ -418,16 +425,24 @@
             psych: { name: 'PSYCH STUDENT', label: 'PSYCH', effort: 7, joy: 3 },
             french: { name: 'FRENCH STUDENT', label: 'FRENCH', effort: 6, joy: 0 }
         };
+        const victimKeys = ['it', 'pe', 'psych', 'french'];
         const tefqStats = { effort: 2, joy: 10 };
 
         // --- STATE ---
         let currentSlideIndex = 0;
         const totalSlides = 8;
         let chartInstance = null;
-        let currentVictim = 'it';
+        let currentVictimIndex = 0; // Index in victimKeys
         let interactionIndex = 0;
         let blackoutState = false;
-        let zoomIndex = 0; // Track item in zoom mode
+        let zoomIndex = 0; 
+
+        // --- INIT ---
+        window.onload = function() {
+            // Add startup animation strictly on load
+            document.getElementById('viewport').classList.add('crt-on');
+            updateNarrative(0);
+        };
 
         // --- SLIDE NAVIGATION ---
         function goToSlide(index) {
@@ -445,6 +460,7 @@
             currentSlideIndex = index;
             interactionIndex = 0;
             updateInteractionFocus();
+            updateNarrative(index);
 
             const activeSlide = document.getElementById(`slide-${index}`);
             const base = parseFloat(activeSlide.getAttribute('data-base'));
@@ -455,13 +471,24 @@
             if (index === 3) setTimeout(() => initChart(), 500);
         }
 
-        // --- JEALOUSY METER ---
+        function updateNarrative(index) {
+            const slide = document.getElementById(`slide-${index}`);
+            const thread = slide.getAttribute('data-thread');
+            const text = slide.getAttribute('data-narrative');
+            document.getElementById('narrative-thread').innerText = thread;
+            document.getElementById('narrative-text').innerText = text;
+        }
+
+        // --- JEALOUSY METER & SHAKE ---
         function updateJealousy(base, cap) {
             const bar = document.getElementById('jealousy-bar');
             const num = document.getElementById('jealousy-val');
+            const viewport = document.getElementById('viewport');
             
             bar.className = 'hud-bar hazard-bg'; 
-            document.body.classList.remove('screen-shake');
+            
+            if (cap < 95) { viewport.classList.remove('screen-shake'); }
+            
             bar.style.backgroundColor = 'var(--accent-color)';
             
             setTimeout(() => {
@@ -479,7 +506,7 @@
                 if (cap >= 95) {
                     setTimeout(() => {
                         bar.style.backgroundColor = 'var(--critical-color)';
-                        document.body.classList.add('screen-shake');
+                        viewport.classList.add('screen-shake');
                     }, 3000);
                 }
             }, 550);
@@ -515,7 +542,7 @@
                     labels: ['EFFORT (Lower is Better)', 'JOY (Higher is Better)'],
                     datasets: [
                         { label: 'TEFQ', data: [tefqStats.effort, tefqStats.joy], backgroundColor: '#facc15', borderWidth: 3, borderColor: 'black' },
-                        { label: studentProfiles[currentVictim].name, data: [studentProfiles[currentVictim].effort, studentProfiles[currentVictim].joy], backgroundColor: '#000000', borderWidth: 0 }
+                        { label: studentProfiles['it'].name, data: [studentProfiles['it'].effort, studentProfiles['it'].joy], backgroundColor: '#000000', borderWidth: 0 }
                     ]
                 },
                 options: {
@@ -530,7 +557,7 @@
         function updateVictimChart(victimId) {
             document.querySelectorAll('.victim-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`btn-${victimId}`).classList.add('active');
-            currentVictim = victimId;
+            
             if (!chartInstance) initChart();
             else {
                 const victim = studentProfiles[victimId];
@@ -543,12 +570,22 @@
         // --- TAB INTERACTION ---
         function triggerAction() {
             const currentSlideEl = document.getElementById(`slide-${currentSlideIndex}`);
+            
+            // Special Case: Slide 3 (Hard Data) - Tab cycles victims
+            if (currentSlideIndex === 3) {
+                currentVictimIndex = (currentVictimIndex + 1) % victimKeys.length;
+                updateVictimChart(victimKeys[currentVictimIndex]);
+                return;
+            }
+
+            // Special Case: Last Slide (Victory) - Tab triggers Confetti ONLY
+            if (currentSlideIndex === 7) { 
+                triggerConfetti(); 
+                return; 
+            }
+
             const items = currentSlideEl.querySelectorAll('.interactive-item');
-
-            if (currentSlideIndex === 7) { triggerConfetti(); return; }
-
             if (items.length > 0) {
-                // Determine item index in list
                 if (interactionIndex >= items.length) interactionIndex = 0;
                 items[interactionIndex].click();
             }
@@ -592,8 +629,9 @@
                     const itemTitle = item.querySelector('h4, h2')?.innerText?.toUpperCase() || '';
                     if (itemTitle.includes(title) || itemIcon === icon) {
                         thumb.classList.add('active');
-                        zoomIndex = idx; // Update zoom index to current item
+                        zoomIndex = idx;
                     }
+                    thumb.onclick = () => { slideItems[idx].click(); };
                     thumbsContainer.appendChild(thumb);
                 }
             });
@@ -633,12 +671,10 @@
             if (direction === 'next') zoomIndex = (zoomIndex + 1) % slideItems.length;
             else zoomIndex = (zoomIndex - 1 + slideItems.length) % slideItems.length;
 
-            // Trigger click on new item to update zoom
             slideItems[zoomIndex].click();
         }
 
         function triggerConfetti() {
-            document.getElementById('winner-ui').style.display = 'flex';
             var end = Date.now() + 3000;
             (function frame() {
                 confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#000', '#facc15'], zIndex: 9999 });
@@ -651,7 +687,7 @@
         document.addEventListener('keydown', (e) => {
             const isZoom = document.getElementById('zoom-modal').classList.contains('active');
             
-            // Alt Key Logic
+            // Alt Key Logic (Banner Toggle)
             if (e.key === 'Alt') {
                 e.preventDefault();
                 if (currentSlideIndex === 7) {
