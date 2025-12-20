@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEFQ: Jealousy Engine v13.0</title>
+    <title>TEFQ: Jealousy Engine v15.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -19,20 +19,56 @@
         }
 
         body {
-            background-color: var(--bg-color);
+            background-color: #000; /* Black background for CRT effect */
             color: var(--text-color);
             font-family: 'Space Grotesk', sans-serif;
-            overflow: hidden; /* CRITICAL: NO SCROLL */
+            overflow: hidden;
             height: 100vh;
             width: 100vw;
         }
 
-        body.blackout { background-color: #000 !important; }
-        body.blackout * { opacity: 0 !important; pointer-events: none; }
-
         .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-        /* --- PLASMA SCANLINES --- */
+        /* --- CRT ANIMATIONS (Applied to Viewport) --- */
+        #viewport {
+            position: relative; width: 100%; height: 100%;
+            perspective: 1000px;
+            background-color: var(--bg-color);
+            transform-origin: center;
+        }
+
+        /* Turn ON */
+        .crt-on { animation: turnOn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+        @keyframes turnOn {
+            0% { transform: scale(0, 0); filter: brightness(0); }
+            30% { transform: scale(1, 0.005); filter: brightness(5); }
+            60% { transform: scale(1, 0.005); filter: brightness(2); }
+            100% { transform: scale(1, 1); filter: brightness(1); }
+        }
+
+        /* Turn OFF */
+        .crt-off { animation: turnOff 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+        @keyframes turnOff {
+            0% { transform: scale(1, 1); filter: brightness(1); }
+            40% { transform: scale(1, 0.005); filter: brightness(3); }
+            70% { transform: scale(1, 0.005); filter: brightness(5); }
+            100% { transform: scale(0, 0); filter: brightness(0); }
+        }
+
+        /* --- SLIDE --- */
+        section.slide {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 4rem 2rem; background: white;
+            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1.000);
+            will-change: transform;
+        }
+        .slide.past { transform: translateY(-100%); z-index: 0; }
+        .slide.active { transform: translateY(0); z-index: 10; }
+        .slide.future { transform: translateY(100%); z-index: 20; }
+
+        /* --- UI ELEMENTS --- */
         .scanlines {
             position: fixed; inset: 0; pointer-events: none; z-index: 900;
             background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0.05));
@@ -44,32 +80,6 @@
             background-size: 100% 2px, 3px 100%;
         }
 
-        /* --- SLIDER CONTAINER --- */
-        #viewport {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            perspective: 1000px;
-        }
-
-        /* --- SLIDE --- */
-        section.slide {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            padding: 4rem 2rem;
-            background: white;
-            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1.000); /* Premium Ease */
-            will-change: transform;
-        }
-
-        /* Slide Positions */
-        .slide.past { transform: translateY(-100%); z-index: 0; }
-        .slide.active { transform: translateY(0); z-index: 10; }
-        .slide.future { transform: translateY(100%); z-index: 20; }
-
-        /* --- NARRATIVE CUE --- */
         .narrative-box {
             position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
             width: 80%; max-width: 800px;
@@ -77,12 +87,10 @@
             font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
             border-left: 4px solid var(--accent-color);
             display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            z-index: 50;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 50;
         }
         .narrative-label { color: var(--accent-color); font-weight: bold; text-transform: uppercase; margin-right: 10px; }
 
-        /* --- HUD --- */
         .hud-container {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             width: 95%; max-width: 1400px; height: 40px;
@@ -93,23 +101,16 @@
         }
         .hud-label { background: black; color: white; height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; }
         .hud-track { flex-grow: 1; height: 100%; background: #e5e5e5; position: relative; overflow: hidden; }
-        
-        .hud-bar {
-            height: 100%; width: 0%; background: var(--accent-color);
-            position: relative;
-        }
+        .hud-bar { height: 100%; width: 0%; background: var(--accent-color); position: relative; }
         .hud-bar.leap { transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
         .hud-bar.creep { transition: width 4s linear; }
-
         .hud-bar.hazard-bg {
             background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 10px, transparent 10px, transparent 20px);
-            background-size: 28px 28px;
-            animation: moveStripes 1s linear infinite;
+            background-size: 28px 28px; animation: moveStripes 1s linear infinite;
         }
         @keyframes moveStripes { from { background-position: 0 0; } to { background-position: 56px 0; } }
         .hud-value { background: black; color: var(--accent-color); height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; min-width: 160px; justify-content: flex-end; }
 
-        /* --- CARDS & INTERACTIVES --- */
         .brutalist-card {
             border: 3px solid black; background: white;
             box-shadow: 6px 6px 0px black; transition: transform 0.1s;
@@ -141,7 +142,6 @@
             height: 8px; width: 100%; border-bottom: 3px solid black;
         }
 
-        /* --- ZOOM OVERLAY --- */
         .zoom-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.95);
             z-index: 999; display: none; flex-direction: column;
@@ -157,7 +157,13 @@
         .play-indicator { font-size: 8rem; color: var(--accent-color); animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
         
-        /* VFX */
+        .zoom-thumb {
+            width: 60px; height: 60px; border: 2px solid #444; background: #111;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: #666; cursor: pointer; transition: all 0.2s;
+        }
+        .zoom-thumb.active { border-color: var(--accent-color); color: white; transform: scale(1.1); box-shadow: 0 0 15px rgba(250, 204, 21, 0.5); }
+
         .screen-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
         @keyframes shake {
             10%, 90% { transform: translate3d(-1px, 0, 0); }
@@ -165,11 +171,20 @@
             30%, 50%, 70% { transform: translate3d(-2px, 0, 0); }
             40%, 60% { transform: translate3d(2px, 0, 0); }
         }
+        
         .winner-banner {
             display: none; position: fixed; inset: 0; background: rgba(250, 204, 21, 0.95);
-            z-index: 9999; align-items: center; justify-content: center;
-            font-size: 15vw; font-weight: 900; border: 30px solid black;
+            z-index: 5000; align-items: center; justify-content: center;
         }
+        .winner-frame {
+            font-size: 10vw; font-weight: 900; 
+            border: 20px solid black; padding: 20px 40px;
+            background: transparent;
+            transform: rotate(-3deg);
+            box-shadow: 0 0 0 10px #facc15, 0 0 0 20px black;
+            width: fit-content;
+        }
+        
         .blink-text { animation: blinker 0.2s linear infinite; color: red; }
         @keyframes blinker { 50% { opacity: 0; } }
 
@@ -191,7 +206,11 @@
 
     <div class="scanlines"></div>
     <div id="toast" class="instruction-toast">ACTION TRIGGERED</div>
-    <div id="winner-ui" class="winner-banner">TEFQ WINS</div>
+    
+    <!-- WINNER UI -->
+    <div id="winner-ui" class="winner-banner">
+        <div class="winner-frame">TEFQ WINS</div>
+    </div>
 
     <!-- ZOOM MODAL -->
     <div id="zoom-modal" class="zoom-overlay">
@@ -203,7 +222,8 @@
             </div>
             <img id="zoom-img" src="" class="w-full h-full object-contain hidden" onerror="this.style.display='none'; document.getElementById('zoom-video-ui').style.display='flex';">
         </div>
-        <div class="text-white font-mono mt-4 text-sm">[PRESS UP/DOWN TO CLOSE]</div>
+        <div id="zoom-thumbs" class="flex gap-4 mt-6"></div>
+        <div class="text-white font-mono mt-4 text-sm">[USE ARROWS TO SWITCH | TAB TO CLOSE]</div>
     </div>
 
     <!-- HUD -->
@@ -215,10 +235,10 @@
         <div id="jealousy-val" class="hud-value">0% JEALOUS</div>
     </div>
 
-    <div id="viewport">
+    <div id="viewport" class="crt-on">
         <!-- 00. HERO -->
         <section id="slide-0" class="slide active" data-base="0" data-cap="10">
-            <div class="hero-badge">ELECTIVES ANALYSIS v11.0</div>
+            <div class="hero-badge">ELECTIVES ANALYSIS v15.0</div>
             <h1 class="text-9xl font-black mb-2 tracking-tighter">TEFQ</h1>
             <h2 class="text-4xl font-thin text-gray-500">JUST TO MAKE YOU <span class="bg-yellow-400 text-black px-2 font-bold">JEALOUS</span>.</h2>
             <div class="mt-16 font-mono text-sm text-gray-400 animate-bounce">[PRESS DOWN TO BEGIN]</div>
@@ -384,7 +404,7 @@
             </div>
             <div class="narrative-box">
                 <div><span class="narrative-label">THREAD:</span> Victory</div>
-                <div class="text-gray-400">"Click to accept TEFQ Supremacy."</div>
+                <div class="text-gray-400">"Press Alt for Verdict. Click to accept."</div>
             </div>
         </section>
     </div>
@@ -406,13 +426,14 @@
         let chartInstance = null;
         let currentVictim = 'it';
         let interactionIndex = 0;
+        let blackoutState = false;
+        let zoomIndex = 0; // Track item in zoom mode
 
         // --- SLIDE NAVIGATION ---
         function goToSlide(index) {
             if (index < 0 || index >= totalSlides) return;
             if (document.getElementById('zoom-modal').classList.contains('active')) return;
 
-            // Update Class States for Transitions
             const slides = document.querySelectorAll('section.slide');
             slides.forEach((slide, i) => {
                 slide.classList.remove('active', 'past', 'future');
@@ -425,7 +446,6 @@
             interactionIndex = 0;
             updateInteractionFocus();
 
-            // Logic Triggers
             const activeSlide = document.getElementById(`slide-${index}`);
             const base = parseFloat(activeSlide.getAttribute('data-base'));
             const cap = parseFloat(activeSlide.getAttribute('data-cap'));
@@ -440,19 +460,16 @@
             const bar = document.getElementById('jealousy-bar');
             const num = document.getElementById('jealousy-val');
             
-            // Reset
-            bar.className = 'hud-bar hazard-bg'; // remove leap/creep classes
+            bar.className = 'hud-bar hazard-bg'; 
             document.body.classList.remove('screen-shake');
             bar.style.backgroundColor = 'var(--accent-color)';
             
-            // Phase 1: Leap (Fast)
             setTimeout(() => {
                 bar.classList.add('leap');
                 bar.style.width = base + '%';
                 num.innerText = Math.round(base) + '% JEALOUS';
             }, 10);
 
-            // Phase 2: Creep (Slow)
             setTimeout(() => {
                 bar.classList.remove('leap');
                 bar.classList.add('creep');
@@ -526,34 +543,28 @@
         // --- TAB INTERACTION ---
         function triggerAction() {
             const currentSlideEl = document.getElementById(`slide-${currentSlideIndex}`);
-            // Select both interactive items (cards) and buttons inside interactive groups (for Slide 3)
             const items = currentSlideEl.querySelectorAll('.interactive-item');
 
             if (currentSlideIndex === 7) { triggerConfetti(); return; }
 
             if (items.length > 0) {
-                // Trigger click on focused item
+                // Determine item index in list
+                if (interactionIndex >= items.length) interactionIndex = 0;
                 items[interactionIndex].click();
-                
-                // Move focus
-                interactionIndex = (interactionIndex + 1) % items.length;
-                updateInteractionFocus();
             }
         }
 
         function updateInteractionFocus() {
-            // Clear all focus
             document.querySelectorAll('.active-focus').forEach(el => el.classList.remove('active-focus'));
-            
             const currentSlideEl = document.getElementById(`slide-${currentSlideIndex}`);
             const items = currentSlideEl.querySelectorAll('.interactive-item');
-            
             if (items.length > 0) {
+                if (interactionIndex >= items.length) interactionIndex = 0;
                 items[interactionIndex].classList.add('active-focus');
             }
         }
 
-        // --- ZOOM & LOGIC ---
+        // --- ZOOM & NAVIGATION ---
         function triggerZoom(type, icon, title, src) {
             const modal = document.getElementById('zoom-modal');
             const videoUI = document.getElementById('zoom-video-ui');
@@ -561,6 +572,31 @@
             const iconEl = document.getElementById('zoom-icon');
             const textEl = document.getElementById('zoom-text');
             const bar = document.getElementById('zoom-bar');
+            
+            // Build Thumbnails
+            const thumbsContainer = document.getElementById('zoom-thumbs');
+            thumbsContainer.innerHTML = '';
+            const slideItems = document.querySelectorAll(`#slide-${currentSlideIndex} .interactive-item`);
+            
+            slideItems.forEach((item, idx) => {
+                let itemIcon = item.querySelector('.card-icon')?.innerText;
+                if (!itemIcon) {
+                    const bigText = item.querySelector('.text-8xl, .text-9xl, .text-7xl');
+                    if (bigText) itemIcon = bigText.innerText;
+                }
+                
+                if (itemIcon) {
+                    const thumb = document.createElement('div');
+                    thumb.className = 'zoom-thumb';
+                    thumb.innerText = itemIcon;
+                    const itemTitle = item.querySelector('h4, h2')?.innerText?.toUpperCase() || '';
+                    if (itemTitle.includes(title) || itemIcon === icon) {
+                        thumb.classList.add('active');
+                        zoomIndex = idx; // Update zoom index to current item
+                    }
+                    thumbsContainer.appendChild(thumb);
+                }
+            });
 
             modal.classList.add('active');
 
@@ -590,6 +626,17 @@
 
         function closeZoom() { document.getElementById('zoom-modal').classList.remove('active'); }
 
+        function cycleZoom(direction) {
+            const slideItems = document.querySelectorAll(`#slide-${currentSlideIndex} .interactive-item`);
+            if (slideItems.length === 0) return;
+
+            if (direction === 'next') zoomIndex = (zoomIndex + 1) % slideItems.length;
+            else zoomIndex = (zoomIndex - 1 + slideItems.length) % slideItems.length;
+
+            // Trigger click on new item to update zoom
+            slideItems[zoomIndex].click();
+        }
+
         function triggerConfetti() {
             document.getElementById('winner-ui').style.display = 'flex';
             var end = Date.now() + 3000;
@@ -603,21 +650,42 @@
         // --- INPUTS ---
         document.addEventListener('keydown', (e) => {
             const isZoom = document.getElementById('zoom-modal').classList.contains('active');
+            
+            // Alt Key Logic
+            if (e.key === 'Alt') {
+                e.preventDefault();
+                if (currentSlideIndex === 7) {
+                    const banner = document.getElementById('winner-ui');
+                    banner.style.display = (banner.style.display === 'flex') ? 'none' : 'flex';
+                }
+                return;
+            }
+
             switch(e.key) {
                 case 'PageDown': case 'ArrowDown': case 'Right':
                     e.preventDefault(); 
-                    if(isZoom) closeZoom(); else goToSlide(currentSlideIndex + 1); 
+                    if(isZoom) cycleZoom('next'); 
+                    else goToSlide(currentSlideIndex + 1); 
                     break;
                 case 'PageUp': case 'ArrowUp': case 'Left':
                     e.preventDefault(); 
-                    if(isZoom) closeZoom(); else goToSlide(currentSlideIndex - 1); 
+                    if(isZoom) cycleZoom('prev'); 
+                    else goToSlide(currentSlideIndex - 1); 
                     break;
                 case 'Tab': 
-                    e.preventDefault(); // CRITICAL FIX
-                    triggerAction(); 
+                    e.preventDefault(); 
+                    if (isZoom) closeZoom(); else triggerAction(); 
                     break;
-                case 'Escape': if(isZoom) closeZoom(); break;
-                case 'b': case 'B': document.body.classList.toggle('blackout'); break;
+                case 'b': case 'B': 
+                    const vp = document.getElementById('viewport');
+                    if (blackoutState) {
+                        location.reload(); 
+                    } else {
+                        vp.classList.remove('crt-on');
+                        vp.classList.add('crt-off');
+                        blackoutState = true;
+                    }
+                    break;
             }
         });
     </script>
