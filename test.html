@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Clicker Input Detector</title>
+<style>
+  body {
+    font-family: sans-serif;
+    background: #f5f5f5;
+    padding: 20px;
+  }
+  #log {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    font-family: monospace;
+    white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+
+<h2>Clicker Input Detector</h2>
+<p>Press buttons on your clicker. Events will appear below:</p>
+
+<div id="log"></div>
+
+<script>
+  const log = document.getElementById('log');
+
+  function add(msg) {
+    const time = new Date().toLocaleTimeString();
+    log.textContent += `[${time}] ${msg}\n`;
+    log.scrollTop = log.scrollHeight;
+  }
+
+  document.addEventListener('keydown', e => {
+    add(`KEYDOWN  key="${e.key}"  code="${e.code}"`);
+  });
+
+  document.addEventListener('keyup', e => {
+    add(`KEYUP    key="${e.key}"  code="${e.code}"`);
+  });
+
+  document.addEventListener('mousedown', e => {
+    add(`MOUSEDOWN  button=${e.button}`);
+  });
+
+  document.addEventListener('mouseup', e => {
+    add(`MOUSEUP    button=${e.button}`);
+  });
+
+  document.addEventListener('wheel', e => {
+    add(`WHEEL  deltaY=${e.deltaY}`);
+  });
+</script>
+
+</body>
+</html>
