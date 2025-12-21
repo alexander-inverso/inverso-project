@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEFQ: Jealousy Engine v18.0</title>
+    <title>TEFQ: Jealousy Engine v19.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -18,16 +18,9 @@
             --critical-color: #ef4444;
         }
 
-        /* --- GLOBAL SCROLL HIDING (UNIVERSAL) --- */
-        * {
-            scrollbar-width: none !important; /* Firefox */
-            -ms-overflow-style: none !important; /* IE/Edge */
-        }
-        *::-webkit-scrollbar {
-            display: none !important; /* Chrome/Safari */
-            width: 0 !important;
-            height: 0 !important;
-        }
+        /* --- GLOBAL SCROLL HIDING --- */
+        * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+        *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
 
         body {
             background-color: #000;
@@ -46,7 +39,6 @@
             perspective: 1000px;
             background-color: var(--bg-color);
             transform-origin: center;
-            /* Initial state handled by JS to avoid flicker */
         }
 
         .crt-on { animation: turnOn 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
@@ -77,14 +69,13 @@
         .slide.active { transform: translateY(0); z-index: 10; }
         .slide.future { transform: translateY(100%); z-index: 20; }
 
-        /* --- GLOBAL UI (FIXED) --- */
+        /* --- UI ELEMENTS --- */
         .scanlines {
             position: fixed; inset: 0; pointer-events: none; z-index: 900;
             background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0.05));
             background-size: 100% 4px;
         }
 
-        /* Narrative Bar */
         .narrative-container {
             position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
             width: 80%; max-width: 800px;
@@ -93,18 +84,15 @@
             border-left: 4px solid var(--accent-color);
             display: flex; justify-content: space-between; align-items: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            z-index: 20000;
-            transition: opacity 0.3s;
+            z-index: 20000; transition: opacity 0.3s;
         }
         .narrative-label { color: var(--accent-color); font-weight: bold; text-transform: uppercase; margin-right: 10px; }
 
-        /* Progress HUD */
         .hud-container {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             width: 95%; max-width: 1400px; height: 40px;
             display: flex; align-items: center; gap: 0;
-            z-index: 20000;
-            border: 2px solid black; background: white;
+            z-index: 20000; border: 2px solid black; background: white;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         .hud-label { background: black; color: white; height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; }
@@ -119,57 +107,6 @@
         @keyframes moveStripes { from { background-position: 0 0; } to { background-position: 56px 0; } }
         .hud-value { background: black; color: var(--accent-color); height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; min-width: 160px; justify-content: flex-end; }
 
-        /* --- ZOOM OVERLAY --- */
-        .zoom-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.98);
-            z-index: 15000; display: none; 
-            flex-direction: row; align-items: center; justify-content: center;
-            gap: 2rem; padding: 2rem;
-        }
-        .zoom-overlay.active { display: flex; }
-        
-        #zoom-thumbs {
-            display: flex; flex-direction: column; gap: 1rem;
-            max-height: 80vh; overflow-y: auto; width: 80px; flex-shrink: 0;
-        }
-        .zoom-thumb {
-            width: 80px; height: 80px; border: 2px solid #333; background: #111;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 2rem; color: #666; cursor: pointer; transition: all 0.2s;
-        }
-        .zoom-thumb:hover { border-color: #666; }
-        .zoom-thumb.active {
-            border-color: var(--accent-color); color: white; 
-            background: #222; transform: scale(1.05);
-            box-shadow: 4px 4px 0px var(--accent-color);
-        }
-
-        .zoom-content {
-            flex-grow: 1; max-width: 1200px; aspect-ratio: 16/9;
-            background: #111; border: 4px solid var(--accent-color);
-            position: relative; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 100px rgba(250, 204, 21, 0.1);
-        }
-        .play-indicator { font-size: 8rem; color: var(--accent-color); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
-
-        /* --- VFX --- */
-        .screen-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
-        @keyframes shake {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            10% { transform: translate(-3px, -3px) rotate(-1deg); }
-            20% { transform: translate(3px, 3px) rotate(1deg); }
-            30% { transform: translate(-3px, 3px) rotate(0deg); }
-            40% { transform: translate(3px, -3px) rotate(1deg); }
-            50% { transform: translate(-2px, -2px) rotate(-1deg); }
-            60% { transform: translate(2px, 2px) rotate(0deg); }
-            70% { transform: translate(-2px, 2px) rotate(1deg); }
-            80% { transform: translate(2px, -2px) rotate(-1deg); }
-            90% { transform: translate(-1px, -1px) rotate(0deg); }
-            100% { transform: translate(0, 0) rotate(0deg); }
-        }
-
-        /* Cards & Buttons */
         .brutalist-card {
             border: 3px solid black; background: white;
             box-shadow: 6px 6px 0px black; transition: transform 0.1s;
@@ -200,21 +137,51 @@
             height: 8px; width: 100%; border-bottom: 3px solid black;
         }
 
-        /* WINNER UI (UPDATED) */
+        /* ZOOM & THUMBS */
+        .zoom-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.98);
+            z-index: 15000; display: none; flex-direction: row; align-items: center; justify-content: center; gap: 2rem; padding: 2rem;
+        }
+        .zoom-overlay.active { display: flex; }
+        
+        #zoom-thumbs {
+            display: flex; flex-direction: column; gap: 1rem;
+            max-height: 80vh; overflow-y: auto; width: 80px; flex-shrink: 0;
+        }
+        .zoom-thumb {
+            width: 80px; height: 80px; border: 2px solid #333; background: #111;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; color: #666; cursor: pointer; transition: all 0.2s;
+        }
+        .zoom-thumb:hover { border-color: #666; }
+        .zoom-thumb.active {
+            border-color: var(--accent-color); color: white; background: #222; transform: scale(1.05);
+            box-shadow: 4px 4px 0px var(--accent-color);
+        }
+
+        .zoom-content {
+            flex-grow: 1; max-width: 1200px; aspect-ratio: 16/9;
+            background: #111; border: 4px solid var(--accent-color);
+            position: relative; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 100px rgba(250, 204, 21, 0.1);
+        }
+        .play-indicator { font-size: 8rem; color: var(--accent-color); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
+
+        /* VFX */
+        .screen-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
+        @keyframes shake {
+            0% { transform: translate(0, 0) rotate(0deg); } 20% { transform: translate(3px, 3px) rotate(1deg); } 40% { transform: translate(3px, -3px) rotate(1deg); } 60% { transform: translate(2px, 2px) rotate(0deg); } 80% { transform: translate(2px, -2px) rotate(-1deg); } 100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
         .winner-banner {
-            display: none; position: fixed; inset: 0; 
-            background: rgba(0, 0, 0, 0.85); /* Dark dim, NOT yellow */
+            display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
             z-index: 5000; align-items: center; justify-content: center;
         }
         .winner-frame {
-            font-size: 10vw; font-weight: 900; 
-            border: 20px solid black; padding: 20px 60px;
-            background: var(--accent-color); /* Yellow is ONLY here */
-            transform: rotate(-3deg);
-            box-shadow: 10px 10px 0px black;
-            width: fit-content;
+            font-size: 10vw; font-weight: 900; border: 20px solid black; padding: 20px 60px;
+            background: var(--accent-color); transform: rotate(-3deg); box-shadow: 10px 10px 0px black; width: fit-content;
         }
-        
         .blink-text { animation: blinker 0.2s linear infinite; color: red; }
         @keyframes blinker { 50% { opacity: 0; } }
 
@@ -244,11 +211,7 @@
 
     <!-- ZOOM MODAL (LEFT THUMBNAILS) -->
     <div id="zoom-modal" class="zoom-overlay">
-        <!-- Sidebar -->
-        <div id="zoom-thumbs">
-            <!-- Thumbs injected here -->
-        </div>
-        <!-- Viewer -->
+        <div id="zoom-thumbs"></div>
         <div class="zoom-content" id="zoom-frame">
             <div id="zoom-video-ui" class="flex flex-col items-center w-full h-full justify-center">
                 <div id="zoom-icon" class="play-indicator">▶</div>
@@ -274,10 +237,10 @@
         <div id="jealousy-val" class="hud-value">0% JEALOUS</div>
     </div>
 
-    <div id="viewport">
+    <div id="viewport" class="crt-on">
         <!-- 00. HERO -->
         <section id="slide-0" class="slide active" data-base="0" data-cap="10" data-thread="The Hook" data-narrative="You chose boring. We chose chaos.">
-            <div class="hero-badge">ELECTIVES ANALYSIS v18.0</div>
+            <div class="hero-badge">ELECTIVES ANALYSIS v19.0</div>
             <h1 class="text-9xl font-black mb-2 tracking-tighter">TEFQ</h1>
             <h2 class="text-4xl font-thin text-gray-500">JUST TO MAKE YOU <span class="bg-yellow-400 text-black px-2 font-bold">JEALOUS</span>.</h2>
             <div class="mt-16 font-mono text-sm text-gray-400 animate-bounce">[PRESS DOWN TO BEGIN]</div>
@@ -289,7 +252,7 @@
                 <h3 class="text-6xl font-black mb-12 border-b-4 border-black pb-4">EVIDENCE LOCKER</h3>
                 <div class="grid grid-cols-2 gap-8 font-mono text-sm">
                     <div class="p-4 border-l-8 border-black bg-gray-50"><strong>01. DANGER</strong><br>Fire & Explosions.</div>
-                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>02. HARD DATA</strong><br>Graphs proving superiority.</div>
+                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>02. THE SUFFERING ROI</strong><br>Graphs proving superiority.</div>
                     <div class="p-4 border-l-8 border-black bg-gray-50"><strong>03. BIO-HACKING</strong><br>Food & Comfort.</div>
                     <div class="p-4 border-l-8 border-black bg-gray-50"><strong>04. JOY</strong><br>Bubbles & Pranks.</div>
                     <div class="p-4 border-l-8 border-black bg-gray-50"><strong>05. THE OTHERS</strong><br>Why your life is sad.</div>
@@ -322,11 +285,11 @@
             </div>
         </section>
 
-        <!-- 03. HARD DATA (RESTORED VICTIM SWAP) -->
-        <section id="slide-3" class="slide future" data-base="35" data-cap="50" data-thread="The Receipts" data-narrative="We break €450/month. We still get 10s. Do the math.">
+        <!-- 03. THE SUFFERING ROI -->
+        <section id="slide-3" class="slide future" data-base="35" data-cap="50" data-thread="The Math" data-narrative="We calculate molarity while eating cake. They run in the rain for a B+.">
             <div class="w-full max-w-6xl">
                 <div class="flex items-center mb-4 border-b-4 border-black pb-2">
-                    <h3 class="text-4xl font-bold uppercase">02. Hard Data</h3>
+                    <h3 class="text-4xl font-bold uppercase">02. THE SUFFERING ROI</h3>
                     <span class="ml-auto font-mono text-xs bg-yellow-400 px-2 py-1 border border-black">TAB TO SWAP VICTIM</span>
                 </div>
                 <div class="flex gap-8 items-start h-[500px]">
@@ -420,26 +383,25 @@
     <script>
         // --- DATA ---
         const studentProfiles = {
-            it: { name: 'IT STUDENT', label: 'IT', effort: 9, joy: 1 },
-            pe: { name: 'PE STUDENT', label: 'PE', effort: 8, joy: 2 },
-            psych: { name: 'PSYCH STUDENT', label: 'PSYCH', effort: 7, joy: 3 },
-            french: { name: 'FRENCH STUDENT', label: 'FRENCH', effort: 6, joy: 0 }
+            it: { name: 'IT STUDENT', label: 'IT', suffering: 9, output: 2 },
+            pe: { name: 'PE STUDENT', label: 'PE', suffering: 10, output: 4 },
+            psych: { name: 'PSYCH STUDENT', label: 'PSYCH', suffering: 7, output: 5 },
+            french: { name: 'FRENCH STUDENT', label: 'FRENCH', suffering: 8, output: 0 }
         };
         const victimKeys = ['it', 'pe', 'psych', 'french'];
-        const tefqStats = { effort: 2, joy: 10 };
+        const tefqStats = { suffering: 1, output: 10 };
 
         // --- STATE ---
         let currentSlideIndex = 0;
         const totalSlides = 8;
         let chartInstance = null;
-        let currentVictimIndex = 0; // Index in victimKeys
+        let currentVictimIndex = 0; 
         let interactionIndex = 0;
         let blackoutState = false;
         let zoomIndex = 0; 
 
         // --- INIT ---
         window.onload = function() {
-            // Add startup animation strictly on load
             document.getElementById('viewport').classList.add('crt-on');
             updateNarrative(0);
         };
@@ -479,16 +441,14 @@
             document.getElementById('narrative-text').innerText = text;
         }
 
-        // --- JEALOUSY METER & SHAKE ---
+        // --- JEALOUSY METER ---
         function updateJealousy(base, cap) {
             const bar = document.getElementById('jealousy-bar');
             const num = document.getElementById('jealousy-val');
             const viewport = document.getElementById('viewport');
             
             bar.className = 'hud-bar hazard-bg'; 
-            
-            if (cap < 95) { viewport.classList.remove('screen-shake'); }
-            
+            if (cap < 95) viewport.classList.remove('screen-shake');
             bar.style.backgroundColor = 'var(--accent-color)';
             
             setTimeout(() => {
@@ -527,6 +487,21 @@
             requestAnimationFrame(update);
         }
 
+        // --- FIREWORKS ---
+        function triggerFireworks() {
+            var duration = 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9000 };
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: 0.2, y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: 0.8, y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
         // --- CHART ---
         function initChart() {
             const ctx = document.getElementById('dataChart');
@@ -539,17 +514,17 @@
             chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['EFFORT (Lower is Better)', 'JOY (Higher is Better)'],
+                    labels: ['SUFFERING INPUT (Lower is Better)', 'GRADE/JOY OUTPUT (Higher is Better)'],
                     datasets: [
-                        { label: 'TEFQ', data: [tefqStats.effort, tefqStats.joy], backgroundColor: '#facc15', borderWidth: 3, borderColor: 'black' },
-                        { label: studentProfiles['it'].name, data: [studentProfiles['it'].effort, studentProfiles['it'].joy], backgroundColor: '#000000', borderWidth: 0 }
+                        { label: 'TEFQ', data: [tefqStats.suffering, tefqStats.output], backgroundColor: '#facc15', borderWidth: 3, borderColor: 'black' },
+                        { label: studentProfiles['it'].name, data: [studentProfiles['it'].suffering, studentProfiles['it'].output], backgroundColor: '#000000', borderWidth: 0 }
                     ]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { position: 'top', labels: { font: { weight: 'bold' } } } },
                     scales: { y: { beginAtZero: true, max: 10, grid: { color: '#f3f4f6' } }, x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } } },
-                    animation: { duration: 500 }
+                    animation: { duration: 1500, easing: 'easeOutElastic' }
                 }
             });
         }
@@ -558,11 +533,13 @@
             document.querySelectorAll('.victim-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`btn-${victimId}`).classList.add('active');
             
+            triggerFireworks(); // SKYROCKET EFFECT
+
             if (!chartInstance) initChart();
             else {
                 const victim = studentProfiles[victimId];
                 chartInstance.data.datasets[1].label = victim.name;
-                chartInstance.data.datasets[1].data = [victim.effort, victim.joy];
+                chartInstance.data.datasets[1].data = [victim.suffering, victim.output];
                 chartInstance.update();
             }
         }
@@ -571,14 +548,12 @@
         function triggerAction() {
             const currentSlideEl = document.getElementById(`slide-${currentSlideIndex}`);
             
-            // Special Case: Slide 3 (Hard Data) - Tab cycles victims
             if (currentSlideIndex === 3) {
                 currentVictimIndex = (currentVictimIndex + 1) % victimKeys.length;
                 updateVictimChart(victimKeys[currentVictimIndex]);
                 return;
             }
 
-            // Special Case: Last Slide (Victory) - Tab triggers Confetti ONLY
             if (currentSlideIndex === 7) { 
                 triggerConfetti(); 
                 return; 
@@ -601,7 +576,7 @@
             }
         }
 
-        // --- ZOOM & NAVIGATION ---
+        // --- ZOOM ---
         function triggerZoom(type, icon, title, src) {
             const modal = document.getElementById('zoom-modal');
             const videoUI = document.getElementById('zoom-video-ui');
@@ -610,7 +585,6 @@
             const textEl = document.getElementById('zoom-text');
             const bar = document.getElementById('zoom-bar');
             
-            // Build Thumbnails
             const thumbsContainer = document.getElementById('zoom-thumbs');
             thumbsContainer.innerHTML = '';
             const slideItems = document.querySelectorAll(`#slide-${currentSlideIndex} .interactive-item`);
@@ -667,10 +641,8 @@
         function cycleZoom(direction) {
             const slideItems = document.querySelectorAll(`#slide-${currentSlideIndex} .interactive-item`);
             if (slideItems.length === 0) return;
-
             if (direction === 'next') zoomIndex = (zoomIndex + 1) % slideItems.length;
             else zoomIndex = (zoomIndex - 1 + slideItems.length) % slideItems.length;
-
             slideItems[zoomIndex].click();
         }
 
@@ -687,7 +659,6 @@
         document.addEventListener('keydown', (e) => {
             const isZoom = document.getElementById('zoom-modal').classList.contains('active');
             
-            // Alt Key Logic (Banner Toggle)
             if (e.key === 'Alt') {
                 e.preventDefault();
                 if (currentSlideIndex === 7) {
@@ -714,12 +685,8 @@
                     break;
                 case 'b': case 'B': 
                     const vp = document.getElementById('viewport');
-                    if (blackoutState) {
-                        location.reload(); 
-                    } else {
-                        vp.classList.remove('crt-on');
-                        vp.classList.add('crt-off');
-                        blackoutState = true;
+                    if (blackoutState) { location.reload(); } else {
+                        vp.classList.remove('crt-on'); vp.classList.add('crt-off'); blackoutState = true;
                     }
                     break;
             }
