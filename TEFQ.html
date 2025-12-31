@@ -3,14 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEFQ: Jealousy Engine v30.0 (Stable)</title>
-    
-    <!-- DEPENDENCIES -->
+    <title>TEFQ: Jealousy Engine v28.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
-    <!-- FONTS -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=JetBrains+Mono:wght@400;800&display=swap');
 
@@ -22,16 +18,9 @@
             --critical-color: #ef4444;
         }
 
-        /* --- 0. CORE RESET (NO SCROLLBARS EVER) --- */
-        html, body, * {
-            scrollbar-width: none !important;
-            -ms-overflow-style: none !important;
-        }
-        *::-webkit-scrollbar {
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
-        }
+        /* --- GLOBAL RESET --- */
+        * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+        *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
 
         body {
             background-color: #000;
@@ -40,95 +29,65 @@
             overflow: hidden;
             height: 100vh; width: 100vw;
             margin: 0; padding: 0;
-            cursor: none; /* Hide cursor for presentation mode */
         }
 
         .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-        /* --- 1. VISUAL LAYERS (Z-INDEX HIERARCHY) --- */
-        /* 0: Viewport/Slides
-           100: Scanlines
-           500: Narrative Bar
-           600: HUD
-           1000: Winner Banner
-           5000: Zoom Overlay
-           9000: Smoke Particles
-           9999: Blackout Curtain
-        */
-
-        /* Scanlines */
-        .scanlines {
-            position: fixed; inset: 0; pointer-events: none; z-index: 100;
-            background: linear-gradient(
-                to bottom,
-                rgba(255,255,255,0),
-                rgba(255,255,255,0) 50%,
-                rgba(0,0,0,0.15) 50%,
-                rgba(0,0,0,0.15)
-            );
-            background-size: 100% 6px;
-            animation: scan-drift 4s ease-in-out infinite alternate;
-        }
-        @keyframes scan-drift { 0% { background-position-y: 0px; } 100% { background-position-y: 20px; } }
-
-        /* Blackout Curtain (TV Effect) */
-        #blackout-curtain {
-            position: fixed; inset: 0; background: black; z-index: 9999;
-            pointer-events: none; opacity: 0; transform: scale(1, 0); /* Start collapsed */
-        }
-        
-        .anim-tv-off { animation: tvOff 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards; pointer-events: all !important; }
-        .anim-tv-on { animation: tvOn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; pointer-events: none !important; }
-
-        @keyframes tvOff {
-            0% { transform: scale(1, 1); opacity: 1; filter: brightness(1); }
-            50% { transform: scale(1, 0.02); opacity: 1; filter: brightness(20); background: white; } /* Flash line */
-            100% { transform: scale(0, 0); opacity: 1; background: black; }
-        }
-        @keyframes tvOn {
-            0% { transform: scale(0.001, 0.001); opacity: 1; background: white; }
-            60% { transform: scale(1, 0.01); opacity: 1; background: white; }
-            100% { transform: scale(1, 1); opacity: 0; background: transparent; }
-        }
-
-        /* --- 2. LAYOUT & SLIDES --- */
+        /* --- CRT ANIMATIONS (Viewport Wrapper) --- */
         #viewport {
             position: relative; width: 100%; height: 100%;
             perspective: 1000px;
             background-color: var(--bg-color);
             transform-origin: center;
+            will-change: transform, filter;
         }
 
+        .crt-on { animation: turnOn 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+        @keyframes turnOn {
+            0% { transform: scale(0.001, 0.001); filter: brightness(3); opacity: 1; }
+            40% { transform: scale(1, 0.002); filter: brightness(2); opacity: 1; }
+            100% { transform: scale(1, 1); filter: brightness(1); opacity: 1; }
+        }
+
+        .crt-off { animation: turnOff 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+        @keyframes turnOff {
+            0% { transform: scale(1, 1); filter: brightness(1); opacity: 1; }
+            40% { transform: scale(1, 0.002); filter: brightness(2); opacity: 1; }
+            80% { transform: scale(0.001, 0.001); filter: brightness(3); opacity: 1; }
+            100% { transform: scale(0, 0); filter: brightness(0); opacity: 0; }
+        }
+
+        /* --- SLIDE --- */
         section.slide {
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             padding: 4rem 2rem; background: white;
-            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); /* Snappy transition */
+            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1.000);
             will-change: transform;
         }
-        .slide.past { transform: translateY(-100%); opacity: 0; }
-        .slide.active { transform: translateY(0); opacity: 1; z-index: 10; }
-        .slide.future { transform: translateY(100%); opacity: 0; }
+        .slide.past { transform: translateY(-100%); z-index: 0; }
+        .slide.active { transform: translateY(0); z-index: 10; }
+        .slide.future { transform: translateY(100%); z-index: 20; }
 
-        /* --- 3. HUD ELEMENTS --- */
-        .hud-container {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            width: 95%; max-width: 1400px; height: 40px;
-            display: flex; align-items: center; gap: 0;
-            z-index: 600; border: 2px solid black; background: white;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        /* --- UI ELEMENTS --- */
+        .scanlines {
+            position: fixed; inset: 0; pointer-events: none; z-index: 900;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1) 
+            );
+            background-size: 100% 6px;
+            animation: scan-drift 8s ease-in-out infinite alternate;
         }
-        .hud-label { background: black; color: white; height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; }
-        .hud-track { flex-grow: 1; height: 100%; background: #e5e5e5; position: relative; overflow: hidden; }
-        .hud-bar { 
-            height: 100%; width: 0%; 
-            background: var(--accent-color); 
-            position: relative; 
-            transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); /* Continuous movement */
+        
+        @keyframes scan-drift {
+            0% { background-position-y: 0px; }
+            100% { background-position-y: 100px; }
         }
-        .hud-value { background: black; color: var(--accent-color); height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; min-width: 160px; justify-content: flex-end; }
-        .page-counter { background: var(--accent-color); color: black; height: 100%; display: flex; align-items: center; padding: 0 12px; font-weight: 900; border-left: 2px solid black; }
 
         .narrative-container {
             position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
@@ -138,44 +97,73 @@
             border-left: 4px solid var(--accent-color);
             display: flex; justify-content: space-between; align-items: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            z-index: 500;
+            z-index: 20000; transition: opacity 0.3s;
         }
         .narrative-label { color: var(--accent-color); font-weight: bold; text-transform: uppercase; margin-right: 10px; }
 
-        /* --- 4. CARDS & CONTENT --- */
+        .hud-container {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            width: 95%; max-width: 1400px; height: 40px;
+            display: flex; align-items: center; gap: 0;
+            z-index: 20000; border: 2px solid black; background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .hud-label { background: black; color: white; height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; }
+        .hud-track { flex-grow: 1; height: 100%; background: #e5e5e5; position: relative; overflow: hidden; }
+        
+        .hud-bar { 
+            height: 100%; width: 0%; 
+            background: var(--accent-color); 
+            position: relative; 
+            transition: width 6s ease-out;
+        }
+        .hud-bar.hazard-bg {
+            background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 10px, transparent 10px, transparent 20px);
+            background-size: 28px 28px; animation: moveStripes 1s linear infinite;
+        }
+        @keyframes moveStripes { from { background-position: 0 0; } to { background-position: 56px 0; } }
+        
+        .hud-value { background: black; color: var(--accent-color); height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; min-width: 160px; justify-content: flex-end; }
+        .page-counter {
+            background: var(--accent-color); color: black; height: 100%;
+            display: flex; align-items: center; padding: 0 12px;
+            font-weight: 900; border-left: 2px solid black;
+        }
+
+        /* --- CARDS & LISTS --- */
         .brutalist-card {
             border: 3px solid black; background: white;
             box-shadow: 6px 6px 0px black; transition: transform 0.1s;
             cursor: pointer; overflow: hidden; position: relative;
             display: flex; flex-direction: column;
         }
-        .brutalist-card.active-focus {
+        .brutalist-card:hover, .brutalist-card.active-focus {
             transform: translate(-3px, -3px); box-shadow: 9px 9px 0px var(--accent-color); border-color: black; z-index: 20;
         }
+        .brutalist-card:active, .brutalist-card.action-pressed {
+            transform: translate(2px, 2px); box-shadow: 2px 2px 0px var(--accent-color);
+        }
+
         .card-icon { font-size: 4rem; background: #f3f4f6; flex-grow: 1; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid black; }
         .card-content { padding: 1rem; background: white; }
         
+        .bullet-list { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: #333; }
         .bullet-list li { margin-bottom: 0.5rem; display: flex; align-items: flex-start; }
         .bullet-list li::before { content: ">>"; color: var(--accent-color); background: black; margin-right: 8px; padding: 0 4px; font-weight: bold; font-size: 0.8rem; }
 
-        /* --- 5. CHART & SMOKE --- */
-        .victim-btn { border: 3px solid black; background: white; padding: 1rem; text-align: left; font-weight: bold; cursor: pointer; transition: all 0.2s; margin-bottom: 0.5rem; position: relative; }
+        /* Chart */
+        .roi-panel { background: #111; border: 2px solid var(--accent-color); color: var(--accent-color); padding: 0.5rem 1rem; font-family: 'JetBrains Mono', monospace; display: flex; flex-direction: column; justify-content: center; height: 80px; }
+        .roi-panel.victim { border-color: #444; color: #666; }
+        .roi-value { font-size: 2rem; font-weight: 800; line-height: 1; }
+        .roi-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        
+        .victim-btn { border: 3px solid black; background: white; padding: 1rem; text-align: left; font-weight: bold; cursor: pointer; transition: all 0.1s; margin-bottom: 0.5rem; position: relative; }
         .victim-btn.active { background: black; color: var(--accent-color); border-color: black; transform: translate(4px, 0); box-shadow: -4px 0 0 var(--accent-color); }
+        .victim-btn.active-press { transform: scale(0.98); background: var(--accent-color); color: black; }
 
-        .smoke-particle {
-            position: fixed;
-            width: 20px; height: 20px; background: #333;
-            border-radius: 50%; pointer-events: none; z-index: 9000;
-            animation: smokeRise 2s forwards; filter: blur(5px); opacity: 0;
-        }
-        @keyframes smokeRise {
-            0% { transform: scale(0.5) translate(0, 0); opacity: 0.8; }
-            100% { transform: scale(3) translate(50px, -150px); opacity: 0; }
-        }
-
-        /* --- 6. ZOOM OVERLAY --- */
+        /* --- ZOOM OVERLAY --- */
         .zoom-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 5000;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 15000;
             display: none; flex-direction: row; align-items: center; justify-content: center; gap: 2rem; padding: 2rem;
         }
         .zoom-overlay.active { display: flex; }
@@ -184,32 +172,48 @@
         .zoom-thumb { width: 80px; height: 80px; border: 2px solid #333; background: #111; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #666; cursor: pointer; transition: all 0.2s; }
         .zoom-thumb.active { border-color: var(--accent-color); color: white; background: #222; transform: scale(1.05); box-shadow: 4px 4px 0px var(--accent-color); }
 
-        .zoom-content { flex-grow: 1; max-width: 1200px; aspect-ratio: 16/9; background: #111; border: 4px solid var(--accent-color); position: relative; display: flex; align-items: center; justify-content: center; }
+        .zoom-content { flex-grow: 1; max-width: 1200px; aspect-ratio: 16/9; background: #111; border: 4px solid var(--accent-color); position: relative; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 100px rgba(250, 204, 21, 0.1); }
         .play-indicator { font-size: 8rem; color: var(--accent-color); animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
-        .multi-indicator { position: absolute; top: 10px; right: 10px; background: black; color: white; font-family: 'JetBrains Mono'; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; }
 
-        /* --- 7. CLOCK (GHOST TOWN) --- */
-        #clock-wrapper { 
-            position: relative; width: 400px; height: 400px; 
-            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        #clock-wrapper.broken { transform: rotate(15deg) translateY(100px); opacity: 0.7; }
+        /* Winner UI */
+        .winner-banner { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 5000; align-items: center; justify-content: center; }
+        .winner-frame { font-size: 10vw; font-weight: 900; border: 20px solid black; padding: 20px 60px; background: var(--accent-color); transform: rotate(-3deg); box-shadow: 10px 10px 0px black; width: fit-content; }
         
-        .clock-face {
-            width: 100%; height: 100%; border: 8px solid #000; border-radius: 50%;
-            position: relative; background: white; box-shadow: 15px 15px 0px rgba(0,0,0,0.1);
-        }
-        .crack-overlay {
-            position: absolute; inset: 0; 
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 50 L20 10 M50 50 L80 20 M50 50 L50 90' stroke='black' stroke-width='3'/%3E%3C/svg%3E");
-            opacity: 0; pointer-events: none; z-index: 60;
-        }
-        #clock-wrapper.broken .crack-overlay { opacity: 1; }
+        /* VFX */
+        .screen-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
+        @keyframes shake { 0% { transform: translate(0, 0) rotate(0deg); } 20% { transform: translate(3px, 3px) rotate(1deg); } 40% { transform: translate(3px, -3px) rotate(1deg); } 60% { transform: translate(2px, 2px) rotate(0deg); } 80% { transform: translate(2px, -2px) rotate(-1deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
+        .hero-badge { border: 4px solid black; background: white; padding: 8px 16px; font-weight: 800; font-family: 'JetBrains Mono', monospace; transform: rotate(-3deg); box-shadow: 4px 4px 0px rgba(0,0,0,0.2); margin-bottom: 2rem; }
+        .instruction-toast { position: fixed; bottom: 80px; right: 20px; background: black; color: white; padding: 8px 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 20001; }
+        
+        /* Smoke */
+        .smoke-particle { position: fixed; background: radial-gradient(circle, rgba(50,50,50,0.9) 0%, rgba(0,0,0,0) 70%); border-radius: 50%; pointer-events: none; z-index: 16000; animation: smokeRise 2s forwards; filter: blur(4px); }
+        @keyframes smokeRise { 0% { transform: scale(0.5) translate(0, 0); opacity: 0.8; } 100% { transform: scale(3) translate(var(--drift), -100px); opacity: 0; } }
 
-        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; background: black; }
-        #hand-thin { width: 4px; height: 45%; margin-left: -2px; background: red; z-index: 10; }
-        #hand-large { width: 8px; height: 35%; margin-left: -4px; z-index: 5; }
+        /* --- CLOCK & GHOST TOWN --- */
+        .clock-face {
+            width: 300px; height: 300px;
+            border: 6px solid #000; border-radius: 50%;
+            position: relative; background: white;
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.2);
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        /* Broken State */
+        .clock-face.broken {
+            transform: translateY(150px) rotate(25deg);
+        }
+
+        .crack-overlay {
+            position: absolute; inset: 0; pointer-events: none; opacity: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 200px; color: rgba(0,0,0,0.8); z-index: 100;
+            text-shadow: 2px 2px 0px white;
+        }
+        .clock-face.broken .crack-overlay { opacity: 1; }
+
+        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; background: black; transition: transform 0.1s linear; }
+        #hand-thin { width: 4px; height: 45%; margin-left: -2px; background: #ef4444; }
+        #hand-large { width: 8px; height: 40%; margin-left: -4px; }
         
         .pov-sticker {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg) scale(0);
@@ -220,36 +224,34 @@
             z-index: 60;
         }
         .pov-sticker.visible { transform: translate(-50%, -50%) rotate(-10deg) scale(1); }
-
-        .warp-msg {
-            position: absolute; inset: 0; background: rgba(0,0,0,0.9);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 70;
-        }
-        .warp-msg.visible { opacity: 1; }
-        .warp-text { color: #facc15; font-size: 5rem; font-weight: 900; text-align: center; border: 10px solid #facc15; padding: 40px; transform: rotate(5deg); }
-
-        /* --- 8. WINNER UI --- */
-        .winner-banner { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 1000; align-items: center; justify-content: center; }
-        .winner-frame { font-size: 10vw; font-weight: 900; border: 20px solid black; padding: 20px 60px; background: var(--accent-color); transform: rotate(-3deg); box-shadow: 10px 10px 0px black; width: fit-content; }
         
-        /* VFX */
-        .screen-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
-        @keyframes shake { 0% { transform: translate(0, 0) rotate(0deg); } 20% { transform: translate(3px, 3px) rotate(1deg); } 40% { transform: translate(3px, -3px) rotate(1deg); } 60% { transform: translate(2px, 2px) rotate(0deg); } 80% { transform: translate(2px, -2px) rotate(-1deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
-        .blink-text { animation: blinker 0.2s linear infinite; color: red; }
-        @keyframes blinker { 50% { opacity: 0; } }
-        .hero-badge { border: 4px solid black; background: white; padding: 8px 16px; font-weight: 800; font-family: 'JetBrains Mono', monospace; transform: rotate(-3deg); box-shadow: 4px 4px 0px rgba(0,0,0,0.2); margin-bottom: 2rem; }
+        /* Multiple files indicator */
+        .multi-indicator {
+            position: absolute; top: 10px; right: 10px;
+            background: black; color: white; font-family: 'JetBrains Mono';
+            font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;
+        }
+        
+        .list-item-active {
+            background: black !important; color: white !important; border-color: var(--accent-color) !important;
+            transform: scale(0.98);
+        }
+
+        .defeat-btn {
+            transition: transform 0.1s;
+        }
+        .defeat-btn:active, .defeat-btn.active-press {
+            transform: scale(0.95) !important;
+            background-color: #facc15 !important;
+        }
     </style>
 </head>
 <body>
 
     <div class="scanlines"></div>
-    <div id="blackout-curtain"></div> <!-- TV CURTAIN -->
-    
-    <!-- WINNER UI -->
+    <div id="toast" class="instruction-toast">ACTION TRIGGERED</div>
     <div id="winner-ui" class="winner-banner"><div class="winner-frame">TEFQ WINS</div></div>
 
-    <!-- ZOOM MODAL -->
     <div id="zoom-modal" class="zoom-overlay">
         <div id="zoom-thumbs"></div>
         <div class="zoom-content" id="zoom-frame">
@@ -260,15 +262,16 @@
             </div>
             <img id="zoom-img" src="" class="w-full h-full object-contain hidden" onerror="this.style.display='none'; document.getElementById('zoom-video-ui').style.display='flex';">
         </div>
+        <div class="fixed bottom-10 text-white font-mono text-sm bg-black px-4 py-2 border border-white">
+            [↑/↓] NEXT FILE &nbsp;|&nbsp; [TAB] CLOSE
+        </div>
     </div>
 
-    <!-- NARRATIVE BAR -->
     <div class="narrative-container" id="narrative-ui">
         <div><span class="narrative-label">THREAD:</span> <span id="narrative-thread">LOADING...</span></div>
         <div class="text-gray-400" id="narrative-text">...</div>
     </div>
 
-    <!-- HUD -->
     <div class="hud-container">
         <div class="hud-label">AUDIENCE STATUS</div>
         <div class="hud-track">
@@ -278,16 +281,14 @@
         <div class="page-counter" id="page-counter">01 / 07</div>
     </div>
 
-    <div id="viewport">
-        <!-- 00. HERO -->
+    <div id="viewport" class="crt-on">
         <section id="slide-0" class="slide active" data-progress="10" data-thread="The Hook" data-narrative="You chose boring. We chose chaos.">
-            <div class="hero-badge">ELECTIVES ANALYSIS v30.0</div>
+            <div class="hero-badge">ELECTIVES ANALYSIS v28.1</div>
             <h1 class="text-9xl font-black mb-2 tracking-tighter">TEFQ</h1>
             <h2 class="text-4xl font-thin text-gray-500">JUST TO MAKE YOU <span class="bg-yellow-400 text-black px-2 font-bold">JEALOUS</span>.</h2>
             <div class="mt-16 font-mono text-sm text-gray-400 animate-bounce">[PRESS DOWN TO BEGIN]</div>
         </section>
 
-        <!-- 01. AGENDA -->
         <section id="slide-1" class="slide future" data-progress="20" data-thread="The Roadmap" data-narrative="We have categorized our superiority into 6 modules.">
             <div class="w-full max-w-5xl">
                 <h3 class="text-6xl font-black mb-12 border-b-4 border-black pb-4">EVIDENCE LOCKER</h3>
@@ -302,7 +303,6 @@
             </div>
         </section>
 
-        <!-- 02. HIGH ENERGY -->
         <section id="slide-2" class="slide future" data-progress="35" data-thread="Module 01" data-narrative="PE students run. We create controlled disasters.">
             <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                 <div class="col-span-4 flex flex-col justify-center h-full">
@@ -315,20 +315,20 @@
                     </ul>
                 </div>
                 <div class="col-span-8 grid grid-cols-2 gap-4 h-[60vh]">
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['rainbow_flame.mp4'], 'FIRE')">
+                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['rainbow_flame.mp4'], 'FIRE')">
                         <div class="card-icon text-6xl">🔥🌈</div>
                         <div class="card-content font-bold">Rainbow Flames</div>
                     </div>
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['magnesium.mp4'], 'FLARE')">
+                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['magnesium.mp4'], 'FLARE')">
                         <div class="card-icon text-6xl">💥</div>
                         <div class="card-content font-bold">Magnesium Flare</div>
                     </div>
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['spill.mp4', 'leidenfrost.mp4'], 'CHAOS')">
+                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['spill.mp4', 'leidenfrost.mp4'], 'CHAOS')">
                         <div class="multi-indicator">2 FILES</div>
                         <div class="card-icon text-6xl">⚠️</div>
                         <div class="card-content font-bold">The Spill / Leidenfrost</div>
                     </div>
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['foam_bomb.mp4'], 'BOOM')">
+                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['foam_bomb.mp4'], 'BOOM')">
                         <div class="card-icon text-6xl">🐘🫧</div>
                         <div class="card-content font-bold">Foam Bomb</div>
                     </div>
@@ -336,7 +336,6 @@
             </div>
         </section>
 
-        <!-- 03. EFFICIENCY (ROI) -->
         <section id="slide-3" class="slide future" data-progress="50" data-thread="Module 02" data-narrative="Cake > Cardio. Efficiency is absolute.">
             <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                 <div class="col-span-4">
@@ -347,10 +346,10 @@
                         <li><strong>The "No 10" Rule:</strong> We eat grades.</li>
                     </ul>
                     <div class="interactive-group flex flex-col gap-2">
-                        <div class="victim-btn active" id="btn-it">IT STUDENT</div>
-                        <div class="victim-btn" id="btn-pe">PE STUDENT</div>
-                        <div class="victim-btn" id="btn-psych">PSYCH STUDENT</div>
-                        <div class="victim-btn" id="btn-french">FRENCH STUDENT</div>
+                        <div class="victim-btn active interactive-item" id="btn-it">IT STUDENT</div>
+                        <div class="victim-btn interactive-item" id="btn-pe">PE STUDENT</div>
+                        <div class="victim-btn interactive-item" id="btn-psych">PSYCH STUDENT</div>
+                        <div class="victim-btn interactive-item" id="btn-french">FRENCH STUDENT</div>
                     </div>
                 </div>
                 <div class="col-span-8 flex flex-col gap-4">
@@ -365,7 +364,6 @@
             </div>
         </section>
 
-        <!-- 04. COMFORT OPS -->
         <section id="slide-4" class="slide future" data-progress="65" data-thread="Module 03" data-narrative="We eat cake in cushioned chairs. Psych students cry on wood.">
             <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                 <div class="col-span-4">
@@ -377,12 +375,12 @@
                     </ul>
                 </div>
                 <div class="col-span-8 grid grid-cols-2 gap-8 h-[50vh]">
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['mug_cake.mp4', 'gum.png'], 'FOOD')">
+                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['mug_cake.mp4', 'gum.png'], 'FOOD')">
                         <div class="multi-indicator">2 FILES</div>
                         <div class="card-icon text-8xl">🧁</div>
                         <div class="card-content font-bold">Consumables Protocol<br><span class="text-green-600">Grade: A+</span></div>
                     </div>
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['chair_good.png', 'chair_bad.png'], 'CHAIRS')">
+                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['chair_good.png', 'chair_bad.png'], 'CHAIRS')">
                         <div class="multi-indicator">2 FILES</div>
                         <div class="card-icon text-8xl">🛋️</div>
                         <div class="card-content font-bold">The Throne vs The Wood<br><span class="text-yellow-500">Status: VIP</span></div>
@@ -391,7 +389,6 @@
             </div>
         </section>
 
-        <!-- 05. MEDIA & JOY -->
         <section id="slide-5" class="slide future" data-progress="80" data-thread="Module 04" data-narrative="We are the main characters. You are NPCs.">
             <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                 <div class="col-span-4">
@@ -403,12 +400,12 @@
                     </ul>
                 </div>
                 <div class="col-span-8 grid grid-cols-2 gap-8 h-[50vh]">
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['instagram.png', 'valentin_tree.png', 'valentin_screen.png'], 'CLOUT')">
+                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['instagram.png', 'valentin_tree.png', 'valentin_screen.png'], 'CLOUT')">
                         <div class="multi-indicator">3 FILES</div>
                         <div class="card-icon text-8xl">📸</div>
                         <div class="card-content font-bold">Media Dominance</div>
                     </div>
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['missing_evidence.png'], 'REDACTED')">
+                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['missing_evidence.png'], 'REDACTED')">
                         <div class="card-icon text-8xl">✂️🫧</div>
                         <div class="card-content font-bold">Scissor Bubbles<br><span class="text-red-500">EVIDENCE MISSING</span></div>
                     </div>
@@ -416,11 +413,13 @@
             </div>
         </section>
 
-        <!-- 06. GHOST TOWN (TEMPORAL) -->
         <section id="slide-6" class="slide future" data-progress="95" data-thread="Module 05" data-narrative="A moment of silence for those who chose wrong.">
             
+            <div id="pov-sticker" class="pov-sticker">
+                POV:<br>YOU ARE IN<br>TEFQ CLASS
+            </div>
+
             <div class="w-full max-w-7xl grid grid-cols-2 gap-12 items-center">
-                <!-- Left: List -->
                 <div class="flex flex-col gap-6">
                     <h3 class="text-5xl font-black border-b-4 border-black pb-4">THE GHOST TOWN</h3>
                     <div class="interactive-group flex flex-col gap-4 font-mono">
@@ -428,448 +427,423 @@
                         <div class="p-6 border-4 border-gray-200 grayscale opacity-50"><h4 class="text-xl font-bold">PE: Thermal Shock</h4></div>
                         <div class="p-6 border-4 border-gray-200 grayscale opacity-50"><h4 class="text-xl font-bold">FRENCH: 404 Error</h4></div>
                     </div>
-                    <div class="mt-4 bg-black text-white p-4 font-bold text-center blink-text interactive-item start-btn" id="silence-btn">
-                        [ PRESS TAB FOR SILENCE ]
+                    <div class="mt-4 bg-black text-white p-4 font-bold text-center blink-text interactive-item" id="ghost-trigger">
+                        [ HOLD TAB TO ACCELERATE ]
                     </div>
                 </div>
                 
-                <!-- Right: Clock -->
-                <div class="flex justify-center relative">
-                    <div id="clock-wrapper">
-                        <div class="clock-face">
-                            <div class="crack-overlay"></div>
-                            <div id="hand-thin" class="hand"></div>
-                            <div id="hand-large" class="hand"></div>
-                        </div>
-                        <div id="pov-sticker" class="pov-sticker">
-                            POV:<br>ESTÁS EN CLASE<br>DE TEFQ
-                        </div>
-                        <div id="warp-msg" class="warp-msg">
-                            <div class="warp-text">TEFQ<br>WARPS<br>TIME</div>
-                        </div>
+                <div class="flex justify-center">
+                    <div class="clock-face" id="main-clock">
+                        <div class="crack-overlay">⚡</div>
+                        <div id="hand-thin" class="hand"></div>
+                        <div id="hand-large" class="hand"></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 07. VERDICT -->
         <section id="slide-7" class="slide future" data-progress="100" data-thread="Victory" data-narrative="Press Alt for Verdict. Press Tab to Admit Defeat.">
             <h1 class="text-9xl font-black mb-8 animate-pulse text-red-600">FATAL ERROR</h1>
-            <div class="p-12 border-8 border-red-600 bg-black text-white shadow-[12px_12px_0px_red] max-w-3xl text-center interactive-item active-focus" onclick="appState.triggerConfetti()">
+            <div class="p-12 border-8 border-red-600 bg-black text-white shadow-[12px_12px_0px_red] max-w-3xl text-center interactive-item active-focus" onclick="triggerConfetti()">
                 <p class="text-4xl font-bold text-red-500 mb-6">JEALOUSY OVERLOAD</p>
-                <div class="bg-white text-black font-black text-6xl p-6 border-4 border-yellow-400 cursor-pointer hover:scale-105 transition">
+                <div class="defeat-btn bg-white text-black font-black text-6xl p-6 border-4 border-yellow-400 cursor-pointer hover:scale-105 transition" id="defeat-btn">
                     [ ADMIT DEFEAT ]
                 </div>
             </div>
         </section>
     </div>
 
-    <!-- LOGIC -->
     <script>
-        // --- DATA DICTIONARY ---
-        const dataConfig = {
-            students: {
-                it: { name: 'IT STUDENT', label: 'IT EFFICIENCY', suffering: 9, dignity: 2, grade: 5 },
-                pe: { name: 'PE STUDENT', label: 'PE EFFICIENCY', suffering: 10, dignity: 4, grade: 8 },
-                psych: { name: 'PSYCH STUDENT', label: 'PSYCH EFFICIENCY', suffering: 7, dignity: 5, grade: 6 },
-                french: { name: 'FRENCH STUDENT', label: 'FRENCH EFFICIENCY', suffering: 8, dignity: 0, grade: 4 }
-            },
-            victimOrder: ['it', 'pe', 'psych', 'french'],
-            tefq: { suffering: 1, dignity: 10, grade: 10 }
+        // --- DATA ---
+        const studentProfiles = {
+            it: { name: 'IT STUDENT', label: 'IT EFFICIENCY', suffering: 9, dignity: 2, grade: 5 },
+            pe: { name: 'PE STUDENT', label: 'PE EFFICIENCY', suffering: 10, dignity: 4, grade: 8 },
+            psych: { name: 'PSYCH STUDENT', label: 'PSYCH EFFICIENCY', suffering: 7, dignity: 5, grade: 6 },
+            french: { name: 'FRENCH STUDENT', label: 'FRENCH EFFICIENCY', suffering: 8, dignity: 0, grade: 4 }
         };
+        const victimKeys = ['it', 'pe', 'psych', 'french'];
+        const tefqStats = { suffering: 1, dignity: 10, grade: 10 };
 
-        // --- APP STATE MANAGER ---
-        const appState = {
-            currentSlide: 0,
-            totalSlides: 8,
-            interactionIndex: 0,
-            chartInstance: null,
-            currentVictimIndex: 0,
-            isZoomActive: false,
-            blackoutActive: false,
-            
-            // Zoom Gallery
-            gallery: [],
-            galleryIndex: 0,
-            
-            // Ghost Town
-            ghostState: 'IDLE', // IDLE, NORMAL, WARP, DONE
-            startTime: 0,
-            simulatedTime: 0, // seconds
-            
-            // Smoke
-            smokeInterval: null,
-
-            // Core Methods
-            init: function() {
-                // TV On
-                document.getElementById('blackout-curtain').classList.add('anim-tv-on');
-                
-                // Clock Generation
-                const face = document.querySelector('.clock-face');
-                for(let i=0; i<60; i++) {
-                    const tick = document.createElement('div');
-                    tick.style.position = 'absolute';
-                    tick.style.width = i % 5 === 0 ? '4px' : '2px';
-                    tick.style.height = i % 5 === 0 ? '15px' : '8px';
-                    tick.style.background = 'black';
-                    tick.style.top = '10px';
-                    tick.style.left = '50%';
-                    tick.style.transformOrigin = '0 142px'; 
-                    tick.style.transform = `rotate(${i * 6}deg)`;
-                    face.appendChild(tick);
-                }
-
-                this.updateUI(0);
-                this.updateJealousy(10);
-            },
-
-            // --- INPUT ROUTER ---
-            handleInput: function(key) {
-                // Global Blackout Override
-                if (key === 'b' || key === 'B') {
-                    if (this.blackoutActive) {
-                        location.reload(); // REBOOT
-                    } else {
-                        document.getElementById('blackout-curtain').classList.remove('anim-tv-on');
-                        document.getElementById('blackout-curtain').classList.add('anim-tv-off');
-                        this.blackoutActive = true;
-                    }
-                    return;
-                }
-
-                if (this.blackoutActive) return; // Input lock
-
-                // Navigation Logic
-                if (this.isZoomActive) {
-                    // ZOOM MODE CONTROLS
-                    if (key === 'Tab') { this.closeZoom(); }
-                    else if (key === 'ArrowDown' || key === 'ArrowRight' || key === 'PageDown') { this.cycleGallery('next'); }
-                    else if (key === 'ArrowUp' || key === 'ArrowLeft' || key === 'PageUp') { this.cycleGallery('prev'); }
-                } else {
-                    // NORMAL MODE CONTROLS
-                    if (key === 'Tab') { this.triggerAction(); }
-                    else if (key === 'ArrowDown' || key === 'ArrowRight' || key === 'PageDown') { this.changeSlide(1); }
-                    else if (key === 'ArrowUp' || key === 'ArrowLeft' || key === 'PageUp') { this.changeSlide(-1); }
-                    else if (key === 'Alt') { 
-                        if (this.currentSlide === 7) document.getElementById('winner-ui').style.display = (document.getElementById('winner-ui').style.display === 'flex') ? 'none' : 'flex';
-                    }
-                }
-            },
-
-            changeSlide: function(direction) {
-                const newIndex = this.currentSlide + direction;
-                if (newIndex < 0 || newIndex >= this.totalSlides) return;
-
-                // Cleanup previous slide state
-                if (this.currentSlide === 3) this.stopSmoke();
-                if (this.currentSlide === 6) this.resetGhostTown();
-
-                this.currentSlide = newIndex;
-                this.interactionIndex = 0;
-
-                // DOM Updates
-                const slides = document.querySelectorAll('section.slide');
-                slides.forEach((slide, i) => {
-                    slide.classList.remove('active', 'past', 'future');
-                    if (i < newIndex) slide.classList.add('past');
-                    else if (i === newIndex) slide.classList.add('active');
-                    else slide.classList.add('future');
-                });
-
-                this.updateUI(newIndex);
-                this.updateInteractionFocus();
-
-                // Slide Specific Triggers
-                if (newIndex === 3) {
-                    setTimeout(() => this.initChart(), 500);
-                    this.startSmoke();
-                }
-            },
-
-            updateUI: function(index) {
-                const slide = document.getElementById(`slide-${index}`);
-                const progress = parseFloat(slide.getAttribute('data-progress'));
-                
-                document.getElementById('narrative-thread').innerText = slide.getAttribute('data-thread');
-                document.getElementById('narrative-text').innerText = slide.getAttribute('data-narrative');
-                document.getElementById('page-counter').innerText = `0${index} / 07`;
-                
-                this.updateJealousy(progress);
-            },
-
-            updateJealousy: function(target) {
-                const bar = document.getElementById('jealousy-bar');
-                const num = document.getElementById('jealousy-val');
-                const viewport = document.getElementById('viewport');
-                
-                bar.style.width = target + '%';
-                
-                // State monitoring for colors/shake is done in the CSS transition loop, 
-                // but we set target classes here for instant feedback if needed.
-                let color = 'var(--accent-color)';
-                if (target > 60) color = 'var(--danger-color)';
-                if (target >= 95) {
-                    color = 'var(--critical-color)';
-                    viewport.classList.add('screen-shake');
-                } else {
-                    viewport.classList.remove('screen-shake');
-                }
-                
-                bar.style.backgroundColor = color;
-                num.innerText = target + '% JEALOUS';
-                if (target >= 95) num.style.color = 'var(--critical-color)';
-                else num.style.color = 'var(--accent-color)';
-            },
-
-            // --- ACTION ROUTER ---
-            triggerAction: function() {
-                if (this.currentSlide === 3) { // Chart Slide
-                    this.currentVictimIndex = (this.currentVictimIndex + 1) % dataConfig.victimOrder.length;
-                    this.updateVictimChart(dataConfig.victimOrder[this.currentVictimIndex]);
-                    return;
-                }
-                if (this.currentSlide === 6) { // Ghost Town
-                    this.startGhostSequence();
-                    return;
-                }
-                if (this.currentSlide === 7) { // Final
-                    this.triggerConfetti();
-                    return;
-                }
-
-                // Standard Click
-                const items = document.querySelectorAll(`#slide-${this.currentSlide} .interactive-item`);
-                if (items.length > 0) {
-                    items[this.interactionIndex].click();
-                    this.interactionIndex = (this.interactionIndex + 1) % items.length;
-                    this.updateInteractionFocus();
-                }
-            },
-
-            updateInteractionFocus: function() {
-                document.querySelectorAll('.active-focus').forEach(el => el.classList.remove('active-focus'));
-                const items = document.querySelectorAll(`#slide-${this.currentSlide} .interactive-item`);
-                if (items.length > 0) {
-                    if (this.interactionIndex >= items.length) this.interactionIndex = 0;
-                    items[this.interactionIndex].classList.add('active-focus');
-                }
-            },
-
-            // --- CHART & SMOKE ---
-            initChart: function() {
-                const ctx = document.getElementById('dataChart');
-                if (!ctx || this.chartInstance) return;
-                
-                Chart.defaults.font.family = 'JetBrains Mono';
-                Chart.defaults.color = '#000';
-                
-                this.chartInstance = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['SUFFERING', 'DIGNITY', 'GRADE'],
-                        datasets: [
-                            { label: 'TEFQ', data: [1, 10, 10], backgroundColor: '#facc15', borderWidth: 3, borderColor: 'black' },
-                            { label: 'IT STUDENT', data: [9, 2, 5], backgroundColor: '#000000', borderWidth: 0 }
-                        ]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        animation: { duration: 1000, easing: 'easeOutElastic' }
-                    }
-                });
-            },
-
-            updateVictimChart: function(key) {
-                document.querySelectorAll('.victim-btn').forEach(btn => btn.classList.remove('active'));
-                document.getElementById(`btn-${key}`).classList.add('active');
-                
-                // Emit smoke from new source
-                this.spawnSmoke();
-
-                const data = dataConfig.students[key];
-                if (this.chartInstance) {
-                    this.chartInstance.data.datasets[1].label = data.name;
-                    this.chartInstance.data.datasets[1].data = [data.suffering, data.dignity, data.grade];
-                    this.chartInstance.update();
-                }
-                
-                // Update ROI Panel
-                const roi = ((data.grade + data.dignity) / data.suffering).toFixed(1);
-                document.getElementById('victim-label').innerText = data.label;
-                document.getElementById('victim-roi').innerText = roi + "x";
-            },
-
-            spawnSmoke: function() {
-                const activeBtn = document.querySelector('.victim-btn.active');
-                if (!activeBtn) return;
-                const rect = activeBtn.getBoundingClientRect();
-                
-                const p = document.createElement('div');
-                p.classList.add('smoke-particle');
-                
-                // Right side center
-                const size = Math.random() * 20 + 15;
-                p.style.width = `${size}px`; p.style.height = `${size}px`;
-                p.style.left = `${rect.right - 10}px`;
-                p.style.top = `${rect.top + (rect.height/2) - 10}px`;
-                p.style.setProperty('--drift', (Math.random() - 0.5) * 50 + 'px');
-                
-                document.body.appendChild(p);
-                setTimeout(() => p.remove(), 2500);
-            },
-
-            startSmoke: function() {
-                if (this.smokeInterval) clearInterval(this.smokeInterval);
-                this.smokeInterval = setInterval(() => this.spawnSmoke(), 200);
-            },
-            stopSmoke: function() { if (this.smokeInterval) clearInterval(this.smokeInterval); },
-
-            // --- GHOST TOWN ---
-            startGhostSequence: function() {
-                if (this.ghostState !== 'IDLE') return;
-                this.ghostState = 'NORMAL';
-                
-                const btn = document.getElementById('silence-btn');
-                btn.innerText = "[ TIME ACCELERATING... ]";
-                
-                let lastTime = performance.now();
-                this.simulatedTime = 0;
-                
-                const loop = (time) => {
-                    if (this.currentSlide !== 6 || this.ghostState === 'IDLE') return; // Break loop
-                    
-                    const delta = (time - lastTime) / 1000;
-                    lastTime = time;
-                    
-                    // Logic
-                    let speed = 1;
-                    if (this.ghostState === 'NORMAL') {
-                        speed = 1;
-                        if (this.simulatedTime > 5) {
-                            this.ghostState = 'WARP';
-                            document.getElementById('pov-sticker').classList.add('visible');
-                        }
-                    } else if (this.ghostState === 'WARP') {
-                        speed = 30; // Very fast
-                    }
-                    
-                    if (this.ghostState !== 'CRASH') {
-                        this.simulatedTime += delta * speed;
-                        
-                        const thin = document.getElementById('hand-thin');
-                        const large = document.getElementById('hand-large');
-                        
-                        thin.style.transform = `rotate(${this.simulatedTime * 360}deg)`; // 1 rot per sec
-                        large.style.transform = `rotate(${this.simulatedTime * 6}deg)`; // 1 rot per min
-                        
-                        if (this.simulatedTime >= 60) {
-                            this.ghostState = 'CRASH';
-                            document.getElementById('clock-wrapper').classList.add('broken');
-                            document.getElementById('warp-msg').classList.add('visible');
-                        }
-                    }
-                    
-                    requestAnimationFrame(loop);
-                };
-                requestAnimationFrame(loop);
-            },
-
-            resetGhostTown: function() {
-                this.ghostState = 'IDLE';
-                document.getElementById('hand-thin').style.transform = 'rotate(0deg)';
-                document.getElementById('hand-large').style.transform = 'rotate(0deg)';
-                document.getElementById('pov-sticker').classList.remove('visible');
-                document.getElementById('warp-msg').classList.remove('visible');
-                document.getElementById('clock-wrapper').classList.remove('broken');
-                document.getElementById('silence-btn').innerText = "[ PRESS TAB FOR SILENCE ]";
-            },
-
-            // --- ZOOM GALLERY ---
-            triggerZoom: function(mediaArray, title) {
-                this.gallery = mediaArray;
-                this.galleryIndex = 0;
-                this.isZoomActive = true;
-                this.updateZoomDisplay(title);
-                document.getElementById('zoom-modal').classList.add('active');
-            },
-
-            closeZoom: function() {
-                this.isZoomActive = false;
-                document.getElementById('zoom-modal').classList.remove('active');
-            },
-
-            cycleGallery: function(direction) {
-                if (this.gallery.length <= 1) return;
-                if (direction === 'next') this.galleryIndex = (this.galleryIndex + 1) % this.gallery.length;
-                else this.galleryIndex = (this.galleryIndex - 1 + this.gallery.length) % this.gallery.length;
-                this.updateZoomDisplay();
-            },
-
-            updateZoomDisplay: function(title) {
-                const file = this.gallery[this.galleryIndex];
-                const videoUI = document.getElementById('zoom-video-ui');
-                const imgUI = document.getElementById('zoom-img');
-                const text = document.getElementById('zoom-text');
-                const thumbs = document.getElementById('zoom-thumbs');
-
-                // Render Thumbs
-                thumbs.innerHTML = '';
-                this.gallery.forEach((f, i) => {
-                    const t = document.createElement('div');
-                    t.className = `zoom-thumb ${i === this.galleryIndex ? 'active' : ''}`;
-                    t.innerText = i + 1;
-                    thumbs.appendChild(t);
-                });
-
-                // Render Content
-                if (title === 'REDACTED') {
-                    videoUI.style.display = 'flex'; imgUI.style.display = 'none';
-                    document.getElementById('zoom-icon').innerText = '🚫';
-                    text.innerText = "ERROR: EVIDENCE REDACTED";
-                    text.className = "absolute top-4 left-4 font-mono text-red-500 text-xl bg-black px-2 blink-text";
-                    return;
-                }
-
-                text.className = "absolute top-4 left-4 font-mono text-white text-xl bg-black px-2";
-                
-                if (file.endsWith('.mp4')) {
-                    videoUI.style.display = 'flex'; imgUI.style.display = 'none';
-                    document.getElementById('zoom-icon').innerText = '▶';
-                    text.innerText = "PLAYING MEDIA " + (this.galleryIndex + 1) + "/" + this.gallery.length;
-                    
-                    // Bar Anim
-                    const bar = document.getElementById('zoom-bar');
-                    bar.style.width = '0%'; bar.style.transition = 'none';
-                    setTimeout(() => { bar.style.transition = 'width 5s linear'; bar.style.width = '100%'; }, 50);
-                } else {
-                    videoUI.style.display = 'none'; imgUI.style.display = 'block';
-                    imgUI.src = file;
-                    imgUI.onerror = function() {
-                        this.style.display='none'; videoUI.style.display='flex';
-                        document.getElementById('zoom-icon').innerText = '🖼️';
-                    };
-                }
-            },
-
-            triggerConfetti: function() {
-                var end = Date.now() + 3000;
-                (function frame() {
-                    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#000', '#facc15'], zIndex: 9999 });
-                    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#000', '#facc15'], zIndex: 9999 });
-                    if (Date.now() < end) requestAnimationFrame(frame);
-                }());
+        // --- STATE ---
+        let currentSlideIndex = 0;
+        const totalSlides = 8;
+        let chartInstance = null;
+        let currentVictimIndex = 0; 
+        let interactionIndex = 0;
+        
+        let currentGallery = [];
+        let currentMediaIndex = 0;
+        
+        // Ghost Town State
+        let ghostState = 0; // 0:Idle, 1:Normal, 2:Warp, 3:Done
+        let ghostInterval = null;
+        let clockSeconds = 0; 
+        
+        // --- INIT ---
+        window.onload = function() {
+            // Clock Ticks
+            const face = document.querySelector('.clock-face');
+            for(let i=0; i<60; i++) {
+                const tick = document.createElement('div');
+                tick.style.position = 'absolute';
+                tick.style.width = i % 5 === 0 ? '4px' : '2px';
+                tick.style.height = i % 5 === 0 ? '15px' : '8px';
+                tick.style.background = 'black';
+                tick.style.top = '10px';
+                tick.style.left = '50%';
+                tick.style.transformOrigin = '0 140px'; 
+                tick.style.transform = `rotate(${i * 6}deg)`;
+                face.appendChild(tick);
             }
+            document.getElementById('viewport').classList.add('crt-on');
+            updateNarrative(0);
+            updatePageCounter(0);
+            
+            // Start Jealousy Monitor
+            setInterval(monitorJealousyColor, 100);
         };
 
-        // --- GLOBAL INPUT LISTENER ---
+        // --- NAVIGATION ---
+        function goToSlide(index) {
+            if (index < 0 || index >= totalSlides) return;
+            if (document.getElementById('zoom-modal').classList.contains('active')) return;
+
+            // Reset Ghost Town if leaving
+            if (currentSlideIndex === 6 && index !== 6) resetGhostTown();
+
+            const slides = document.querySelectorAll('section.slide');
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active', 'past', 'future');
+                if (i < index) slide.classList.add('past');
+                else if (i === index) slide.classList.add('active');
+                else slide.classList.add('future');
+            });
+
+            currentSlideIndex = index;
+            interactionIndex = 0;
+            updateInteractionFocus();
+            updateNarrative(index);
+            updatePageCounter(index);
+
+            const activeSlide = document.getElementById(`slide-${index}`);
+            const progress = parseFloat(activeSlide.getAttribute('data-progress'));
+            updateJealousy(progress);
+
+            if (index === 3) setTimeout(() => initChart(), 500);
+        }
+
+        function updateNarrative(index) {
+            const slide = document.getElementById(`slide-${index}`);
+            document.getElementById('narrative-thread').innerText = slide.getAttribute('data-thread');
+            document.getElementById('narrative-text').innerText = slide.getAttribute('data-narrative');
+        }
+
+        function updatePageCounter(index) {
+            document.getElementById('page-counter').innerText = `0${index} / 0${totalSlides-1}`;
+        }
+
+        // --- JEALOUSY MONITOR ---
+        function updateJealousy(target) {
+            const bar = document.getElementById('jealousy-bar');
+            const num = document.getElementById('jealousy-val');
+            bar.style.transition = 'width 6s ease-out';
+            bar.style.width = target + '%';
+            num.innerText = target + '% JEALOUS';
+        }
+
+        function monitorJealousyColor() {
+            const bar = document.getElementById('jealousy-bar');
+            const num = document.getElementById('jealousy-val');
+            const viewport = document.getElementById('viewport');
+            const parentWidth = bar.parentElement.clientWidth;
+            const width = bar.clientWidth;
+            const percent = (width / parentWidth) * 100;
+
+            let color = 'var(--accent-color)';
+            let shake = false;
+
+            if (percent > 60) color = 'var(--danger-color)';
+            if (percent >= 95) {
+                color = 'var(--critical-color)';
+                shake = true;
+            }
+
+            bar.style.backgroundColor = color;
+            if (percent >= 99) num.style.color = 'var(--critical-color)';
+            else num.style.color = 'var(--accent-color)';
+
+            if (shake) viewport.classList.add('screen-shake');
+            else viewport.classList.remove('screen-shake');
+        }
+
+        // --- GHOST TOWN LOGIC ---
+        function handleGhostTab() {
+            const trigger = document.getElementById('ghost-trigger');
+            trigger.classList.add('list-item-active');
+            setTimeout(() => trigger.classList.remove('list-item-active'), 150);
+
+            if (ghostState !== 0) return; 
+            ghostState = 1;
+            
+            const thin = document.getElementById('hand-thin');
+            const large = document.getElementById('hand-large');
+            
+            let speedMultiplier = 1; 
+            
+            ghostInterval = setInterval(() => {
+                clockSeconds += (0.1 * speedMultiplier);
+                
+                // Rotation logic
+                thin.style.transform = `rotate(${clockSeconds * 6}deg)`;
+                large.style.transform = `rotate(${clockSeconds * 0.1}deg)`;
+
+                // Phase 2: Sticker + Warp (5s)
+                if (clockSeconds > 5 && ghostState === 1) {
+                    ghostState = 2;
+                    document.getElementById('pov-sticker').classList.add('visible');
+                    speedMultiplier = 20; // Accel
+                }
+
+                // Phase 3: BREAK (60s simulated)
+                if (clockSeconds >= 60 && ghostState === 2) {
+                    ghostState = 3;
+                    clearInterval(ghostInterval);
+                    document.getElementById('main-clock').classList.add('broken');
+                }
+
+            }, 100); 
+        }
+
+        function resetGhostTown() {
+            clearInterval(ghostInterval);
+            ghostState = 0;
+            clockSeconds = 0;
+            document.getElementById('hand-thin').style.transform = 'rotate(0deg)';
+            document.getElementById('hand-large').style.transform = 'rotate(0deg)';
+            document.getElementById('pov-sticker').classList.remove('visible');
+            document.getElementById('main-clock').classList.remove('broken');
+        }
+
+        // --- CHART & SMOKE ---
+        function spawnSmoke() {
+            if (currentSlideIndex !== 3 || !chartInstance) return;
+            const activeBtn = document.querySelector('.victim-btn.active');
+            if (!activeBtn) return;
+
+            const rect = activeBtn.getBoundingClientRect();
+            
+            const p = document.createElement('div');
+            p.classList.add('smoke-particle');
+            const size = Math.random() * 20 + 15;
+            const drift = (Math.random() * 20) + 10 + 'px'; // Drift right
+            
+            // Spawn from RIGHT side of button
+            p.style.left = `${rect.right - 40}px`; 
+            p.style.top = `${rect.top + (rect.height/2) - (size/2)}px`;
+            p.style.setProperty('--drift', drift);
+            
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 2500);
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('dataChart');
+            if (!ctx || chartInstance) return;
+            Chart.defaults.font.family = 'JetBrains Mono';
+            Chart.defaults.font.size = 14;
+            Chart.defaults.color = '#000';
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['SUFFERING', 'DIGNITY', 'GRADE'],
+                    datasets: [
+                        { label: 'TEFQ', data: [tefqStats.suffering, tefqStats.dignity, tefqStats.grade], backgroundColor: '#facc15', borderWidth: 3, borderColor: 'black' },
+                        { label: studentProfiles['it'].name, data: [studentProfiles['it'].suffering, studentProfiles['it'].dignity, studentProfiles['it'].grade], backgroundColor: '#000000', borderWidth: 0 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top', labels: { font: { weight: 'bold' } } } },
+                    scales: { y: { beginAtZero: true, max: 10, grid: { color: '#f3f4f6' } }, x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } } },
+                    animation: { duration: 1000, easing: 'easeOutElastic' }
+                }
+            });
+            document.getElementById('tefq-roi').innerText = calculateROI(tefqStats) + "x";
+            document.getElementById('victim-roi').innerText = calculateROI(studentProfiles['it']) + "x";
+        }
+
+        function calculateROI(stats) { return ((stats.grade + stats.dignity) / stats.suffering).toFixed(1); }
+
+        function updateVictimChart(victimId) {
+            document.querySelectorAll('.victim-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${victimId}`).classList.add('active');
+            
+            // Button feedback
+            const btn = document.getElementById(`btn-${victimId}`);
+            btn.classList.add('active-press');
+            setTimeout(() => btn.classList.remove('active-press'), 100);
+
+            spawnSmoke(); 
+            const victim = studentProfiles[victimId];
+            if (!chartInstance) initChart();
+            else {
+                chartInstance.data.datasets[1].label = victim.name;
+                chartInstance.data.datasets[1].data = [victim.suffering, victim.dignity, victim.grade];
+                chartInstance.update();
+            }
+            const victimROI = calculateROI(victim);
+            document.getElementById('victim-label').innerText = victim.label;
+            document.getElementById('victim-roi').innerText = victimROI + "x";
+            document.getElementById('victim-panel').classList.add('border-red-500');
+            setTimeout(() => document.getElementById('victim-panel').classList.remove('border-red-500'), 300);
+        }
+
+        // --- INTERACTIONS ---
+        function triggerAction() {
+            if (currentSlideIndex === 3) {
+                currentVictimIndex = (currentVictimIndex + 1) % victimKeys.length;
+                updateVictimChart(victimKeys[currentVictimIndex]);
+                return;
+            }
+            if (currentSlideIndex === 6) { handleGhostTab(); return; }
+            if (currentSlideIndex === 7) { 
+                const btn = document.getElementById('defeat-btn');
+                btn.classList.add('active-press');
+                setTimeout(() => btn.classList.remove('active-press'), 150);
+                triggerConfetti(); 
+                return; 
+            }
+
+            const items = document.querySelectorAll(`#slide-${currentSlideIndex} .interactive-item`);
+            if (items.length > 0) {
+                if (interactionIndex >= items.length) interactionIndex = 0;
+                // Visual Feedback
+                items[interactionIndex].classList.add('action-pressed');
+                setTimeout(() => items[interactionIndex].classList.remove('action-pressed'), 150);
+                items[interactionIndex].click();
+            }
+        }
+
+        function updateInteractionFocus() {
+            document.querySelectorAll('.active-focus').forEach(el => el.classList.remove('active-focus'));
+            const items = document.querySelectorAll(`#slide-${currentSlideIndex} .interactive-item`);
+            if (items.length > 0) {
+                if (interactionIndex >= items.length) interactionIndex = 0;
+                items[interactionIndex].classList.add('active-focus');
+            }
+        }
+
+        function triggerZoom(mediaArray, title) {
+            currentGallery = mediaArray;
+            currentMediaIndex = 0;
+            updateZoomDisplay(title);
+            document.getElementById('zoom-modal').classList.add('active');
+        }
+
+        function updateZoomDisplay(title) {
+            const videoUI = document.getElementById('zoom-video-ui');
+            const imgUI = document.getElementById('zoom-img');
+            const thumbsContainer = document.getElementById('zoom-thumbs');
+            const zoomText = document.getElementById('zoom-text');
+            const currentFile = currentGallery[currentMediaIndex];
+
+            thumbsContainer.innerHTML = '';
+            currentGallery.forEach((file, idx) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'zoom-thumb';
+                thumb.innerText = idx + 1;
+                if (idx === currentMediaIndex) thumb.classList.add('active');
+                thumbsContainer.appendChild(thumb);
+            });
+
+            if (title === 'REDACTED') {
+                videoUI.style.display = 'flex'; imgUI.style.display = 'none';
+                document.getElementById('zoom-icon').innerText = '🚫';
+                zoomText.innerText = "ERROR: EVIDENCE REDACTED";
+                zoomText.className = "absolute top-4 left-4 font-mono text-red-500 text-xl bg-black px-2 blink-text";
+                return;
+            }
+
+            // Reset UI
+            zoomText.className = "absolute top-4 left-4 font-mono text-white text-xl bg-black px-2";
+
+            if (currentFile.endsWith('.mp4')) {
+                videoUI.style.display = 'flex'; imgUI.style.display = 'none';
+                document.getElementById('zoom-icon').innerText = '▶';
+                zoomText.innerText = "PLAYING: " + (title || "FILE") + " (" + (currentMediaIndex+1) + "/" + currentGallery.length + ")";
+                const bar = document.getElementById('zoom-bar');
+                bar.style.width = '0%'; bar.style.transition = 'none';
+                setTimeout(() => { bar.style.transition = 'width 5s linear'; bar.style.width = '100%'; }, 100);
+            } else {
+                videoUI.style.display = 'none'; imgUI.style.display = 'block';
+                imgUI.src = currentFile;
+                imgUI.onerror = function() {
+                    this.style.display='none'; videoUI.style.display='flex';
+                    document.getElementById('zoom-icon').innerText = '🖼️';
+                    zoomText.innerText = "IMAGE: " + title;
+                };
+            }
+        }
+
+        function closeZoom() { document.getElementById('zoom-modal').classList.remove('active'); }
+
+        function cycleGallery(direction) {
+            if (currentGallery.length <= 1) return;
+            if (direction === 'next') currentMediaIndex = (currentMediaIndex + 1) % currentGallery.length;
+            else currentMediaIndex = (currentMediaIndex - 1 + currentGallery.length) % currentGallery.length;
+            updateZoomDisplay();
+        }
+
+        function triggerConfetti() {
+            var end = Date.now() + 3000;
+            (function frame() {
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#000', '#facc15'], zIndex: 9999 });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#000', '#facc15'], zIndex: 9999 });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+
         document.addEventListener('keydown', (e) => {
-            appState.handleInput(e.key);
+            const isZoom = document.getElementById('zoom-modal').classList.contains('active');
+            
+            if (e.key === 'Alt') {
+                e.preventDefault();
+                if (currentSlideIndex === 7) {
+                    const banner = document.getElementById('winner-ui');
+                    banner.style.display = (banner.style.display === 'flex') ? 'none' : 'flex';
+                }
+                return;
+            }
+
+            switch(e.key) {
+                case 'PageDown': case 'ArrowDown': case 'Right':
+                    e.preventDefault(); 
+                    if(isZoom) cycleGallery('next'); 
+                    else goToSlide(currentSlideIndex + 1); 
+                    break;
+                case 'PageUp': case 'ArrowUp': case 'Left':
+                    e.preventDefault(); 
+                    if(isZoom) cycleGallery('prev'); 
+                    else goToSlide(currentSlideIndex - 1); 
+                    break;
+                case 'Tab': 
+                    e.preventDefault(); 
+                    if (isZoom) closeZoom(); else triggerAction(); 
+                    break;
+                case 'b': case 'B': 
+                    const vp = document.getElementById('viewport');
+                    if (vp.classList.contains('crt-off')) {
+                        location.reload(); 
+                    } else {
+                        // Force clean state
+                        vp.classList.remove('crt-on');
+                        // Trigger reflow to ensure animation restarts cleanly
+                        void vp.offsetWidth; 
+                        vp.classList.add('crt-off');
+                    }
+                    break;
+            }
         });
-
-        window.onload = () => appState.init();
-
     </script>
 </body>
 </html>
-
