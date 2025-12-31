@@ -3,99 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEFQ: Jealousy Engine v30.0 (Stable)</title>
+    <title>TEFQ: Jealousy Engine v31.0</title>
     
-    <!-- DEPENDENCIES -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
-    <!-- FONTS -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=JetBrains+Mono:wght@400;800&display=swap');
 
         :root {
-            --bg-color: #ffffff;
-            --text-color: #000000;
             --accent-color: #facc15;
             --danger-color: #f97316;
             --critical-color: #ef4444;
         }
 
-        /* --- 0. CORE RESET (NO SCROLLBARS EVER) --- */
-        html, body, * {
-            scrollbar-width: none !important;
-            -ms-overflow-style: none !important;
-        }
-        *::-webkit-scrollbar {
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
-        }
-
+        /* RESET & CORE */
+        html, body, * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+        *::-webkit-scrollbar { display: none !important; }
+        
         body {
             background-color: #000;
-            color: var(--text-color);
+            color: #000;
             font-family: 'Space Grotesk', sans-serif;
             overflow: hidden;
             height: 100vh; width: 100vw;
             margin: 0; padding: 0;
-            cursor: none; /* Hide cursor for presentation mode */
+            cursor: none;
         }
 
         .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-        /* --- 1. VISUAL LAYERS (Z-INDEX HIERARCHY) --- */
-        /* 0: Viewport/Slides
-           100: Scanlines
-           500: Narrative Bar
-           600: HUD
-           1000: Winner Banner
-           5000: Zoom Overlay
-           9000: Smoke Particles
-           9999: Blackout Curtain
-        */
-
-        /* Scanlines */
+        /* --- VISUAL LAYERS --- */
+        /* SCANLINES */
         .scanlines {
             position: fixed; inset: 0; pointer-events: none; z-index: 100;
-            background: linear-gradient(
-                to bottom,
-                rgba(255,255,255,0),
-                rgba(255,255,255,0) 50%,
-                rgba(0,0,0,0.15) 50%,
-                rgba(0,0,0,0.15)
-            );
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
             background-size: 100% 6px;
             animation: scan-drift 4s ease-in-out infinite alternate;
         }
         @keyframes scan-drift { 0% { background-position-y: 0px; } 100% { background-position-y: 20px; } }
 
-        /* Blackout Curtain (TV Effect) */
+        /* BLACKOUT CURTAIN */
         #blackout-curtain {
-            position: fixed; inset: 0; background: black; z-index: 9999;
-            pointer-events: none; opacity: 0; transform: scale(1, 0); /* Start collapsed */
+            position: fixed; inset: 0; background: black; z-index: 99999;
+            transform: scale(1, 0); opacity: 0; pointer-events: none;
+            transition: none; /* Controlled by animation classes */
         }
-        
-        .anim-tv-off { animation: tvOff 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards; pointer-events: all !important; }
-        .anim-tv-on { animation: tvOn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; pointer-events: none !important; }
+        .tv-off { animation: animOff 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards; pointer-events: all !important; }
+        .tv-on { animation: animOn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; pointer-events: none !important; }
 
-        @keyframes tvOff {
-            0% { transform: scale(1, 1); opacity: 1; filter: brightness(1); }
-            50% { transform: scale(1, 0.02); opacity: 1; filter: brightness(20); background: white; } /* Flash line */
-            100% { transform: scale(0, 0); opacity: 1; background: black; }
+        @keyframes animOff {
+            0% { transform: scale(1, 1); opacity: 0; }
+            1% { opacity: 1; background: transparent; }
+            50% { transform: scale(1, 0.02); background: white; opacity: 1; }
+            100% { transform: scale(0, 0); background: black; opacity: 1; }
         }
-        @keyframes tvOn {
-            0% { transform: scale(0.001, 0.001); opacity: 1; background: white; }
-            60% { transform: scale(1, 0.01); opacity: 1; background: white; }
-            100% { transform: scale(1, 1); opacity: 0; background: transparent; }
+        @keyframes animOn {
+            0% { transform: scale(0.001, 0.001); background: white; opacity: 1; }
+            60% { transform: scale(1, 0.01); background: white; opacity: 1; }
+            100% { transform: scale(1, 1); background: transparent; opacity: 0; }
         }
 
-        /* --- 2. LAYOUT & SLIDES --- */
+        /* VIEWPORT */
         #viewport {
             position: relative; width: 100%; height: 100%;
-            perspective: 1000px;
-            background-color: var(--bg-color);
+            perspective: 1000px; background-color: #fff;
             transform-origin: center;
         }
 
@@ -104,14 +77,14 @@
             width: 100%; height: 100%;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             padding: 4rem 2rem; background: white;
-            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); /* Snappy transition */
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
             will-change: transform;
         }
         .slide.past { transform: translateY(-100%); opacity: 0; }
         .slide.active { transform: translateY(0); opacity: 1; z-index: 10; }
         .slide.future { transform: translateY(100%); opacity: 0; }
 
-        /* --- 3. HUD ELEMENTS --- */
+        /* --- HUD --- */
         .hud-container {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             width: 95%; max-width: 1400px; height: 40px;
@@ -121,12 +94,12 @@
         }
         .hud-label { background: black; color: white; height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; }
         .hud-track { flex-grow: 1; height: 100%; background: #e5e5e5; position: relative; overflow: hidden; }
-        .hud-bar { 
-            height: 100%; width: 0%; 
-            background: var(--accent-color); 
-            position: relative; 
-            transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); /* Continuous movement */
+        .hud-bar { height: 100%; width: 0%; background: var(--accent-color); position: relative; transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); }
+        .hud-bar.hazard-bg {
+            background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 10px, transparent 10px, transparent 20px);
+            background-size: 28px 28px; animation: moveStripes 1s linear infinite;
         }
+        @keyframes moveStripes { from { background-position: 0 0; } to { background-position: 56px 0; } }
         .hud-value { background: black; color: var(--accent-color); height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; min-width: 160px; justify-content: flex-end; }
         .page-counter { background: var(--accent-color); color: black; height: 100%; display: flex; align-items: center; padding: 0 12px; font-weight: 900; border-left: 2px solid black; }
 
@@ -137,64 +110,47 @@
             font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
             border-left: 4px solid var(--accent-color);
             display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            z-index: 500;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 500;
         }
         .narrative-label { color: var(--accent-color); font-weight: bold; text-transform: uppercase; margin-right: 10px; }
 
-        /* --- 4. CARDS & CONTENT --- */
+        /* --- CARDS & UI --- */
         .brutalist-card {
             border: 3px solid black; background: white;
             box-shadow: 6px 6px 0px black; transition: transform 0.1s;
             cursor: pointer; overflow: hidden; position: relative;
             display: flex; flex-direction: column;
         }
-        .brutalist-card.active-focus {
-            transform: translate(-3px, -3px); box-shadow: 9px 9px 0px var(--accent-color); border-color: black; z-index: 20;
-        }
+        .brutalist-card.active-focus { transform: translate(-3px, -3px); box-shadow: 9px 9px 0px var(--accent-color); border-color: black; z-index: 20; }
         .card-icon { font-size: 4rem; background: #f3f4f6; flex-grow: 1; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid black; }
         .card-content { padding: 1rem; background: white; }
-        
         .bullet-list li { margin-bottom: 0.5rem; display: flex; align-items: flex-start; }
         .bullet-list li::before { content: ">>"; color: var(--accent-color); background: black; margin-right: 8px; padding: 0 4px; font-weight: bold; font-size: 0.8rem; }
 
-        /* --- 5. CHART & SMOKE --- */
+        /* --- CHART & SMOKE --- */
         .victim-btn { border: 3px solid black; background: white; padding: 1rem; text-align: left; font-weight: bold; cursor: pointer; transition: all 0.2s; margin-bottom: 0.5rem; position: relative; }
         .victim-btn.active { background: black; color: var(--accent-color); border-color: black; transform: translate(4px, 0); box-shadow: -4px 0 0 var(--accent-color); }
+        .roi-panel { background: #111; border: 2px solid var(--accent-color); color: var(--accent-color); padding: 0.5rem 1rem; font-family: 'JetBrains Mono', monospace; display: flex; flex-direction: column; justify-content: center; height: 80px; }
+        .roi-panel.victim { border-color: #444; color: #666; }
+        .roi-value { font-size: 2rem; font-weight: 800; line-height: 1; }
+        .roi-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
 
         .smoke-particle {
-            position: fixed;
-            width: 20px; height: 20px; background: #333;
+            position: fixed; width: 20px; height: 20px; background: #333;
             border-radius: 50%; pointer-events: none; z-index: 9000;
             animation: smokeRise 2s forwards; filter: blur(5px); opacity: 0;
         }
         @keyframes smokeRise {
             0% { transform: scale(0.5) translate(0, 0); opacity: 0.8; }
-            100% { transform: scale(3) translate(50px, -150px); opacity: 0; }
+            100% { transform: scale(4) translate(50px, -150px); opacity: 0; }
         }
 
-        /* --- 6. ZOOM OVERLAY --- */
-        .zoom-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 5000;
-            display: none; flex-direction: row; align-items: center; justify-content: center; gap: 2rem; padding: 2rem;
-        }
-        .zoom-overlay.active { display: flex; }
-        
-        #zoom-thumbs { display: flex; flex-direction: column; gap: 1rem; max-height: 80vh; overflow-y: auto; width: 80px; flex-shrink: 0; }
-        .zoom-thumb { width: 80px; height: 80px; border: 2px solid #333; background: #111; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #666; cursor: pointer; transition: all 0.2s; }
-        .zoom-thumb.active { border-color: var(--accent-color); color: white; background: #222; transform: scale(1.05); box-shadow: 4px 4px 0px var(--accent-color); }
-
-        .zoom-content { flex-grow: 1; max-width: 1200px; aspect-ratio: 16/9; background: #111; border: 4px solid var(--accent-color); position: relative; display: flex; align-items: center; justify-content: center; }
-        .play-indicator { font-size: 8rem; color: var(--accent-color); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
-        .multi-indicator { position: absolute; top: 10px; right: 10px; background: black; color: white; font-family: 'JetBrains Mono'; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; }
-
-        /* --- 7. CLOCK (GHOST TOWN) --- */
+        /* --- CLOCK (GHOST TOWN) --- */
         #clock-wrapper { 
             position: relative; width: 400px; height: 400px; 
-            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
-        #clock-wrapper.broken { transform: rotate(15deg) translateY(100px); opacity: 0.7; }
+        #clock-wrapper.broken { transform: rotate(20deg) translateY(150px); opacity: 0.8; pointer-events: none; }
         
         .clock-face {
             width: 100%; height: 100%; border: 8px solid #000; border-radius: 50%;
@@ -202,13 +158,13 @@
         }
         .crack-overlay {
             position: absolute; inset: 0; 
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 50 L20 10 M50 50 L80 20 M50 50 L50 90' stroke='black' stroke-width='3'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 50 L20 10 M50 50 L80 20 M50 50 L50 90 M30 40 L70 60' stroke='black' stroke-width='4' fill='none'/%3E%3C/svg%3E");
             opacity: 0; pointer-events: none; z-index: 60;
         }
         #clock-wrapper.broken .crack-overlay { opacity: 1; }
 
         .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; background: black; }
-        #hand-thin { width: 4px; height: 45%; margin-left: -2px; background: red; z-index: 10; }
+        #hand-thin { width: 4px; height: 45%; margin-left: -2px; background: var(--critical-color); z-index: 10; }
         #hand-large { width: 8px; height: 35%; margin-left: -4px; z-index: 5; }
         
         .pov-sticker {
@@ -221,32 +177,40 @@
         }
         .pov-sticker.visible { transform: translate(-50%, -50%) rotate(-10deg) scale(1); }
 
-        .warp-msg {
-            position: absolute; inset: 0; background: rgba(0,0,0,0.9);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 70;
-        }
-        .warp-msg.visible { opacity: 1; }
-        .warp-text { color: #facc15; font-size: 5rem; font-weight: 900; text-align: center; border: 10px solid #facc15; padding: 40px; transform: rotate(5deg); }
+        .start-btn { cursor: pointer; transition: all 0.2s; }
+        .start-btn.pressed { background-color: var(--accent-color); color: black; transform: scale(0.95); box-shadow: inset 4px 4px 0px rgba(0,0,0,0.2); }
 
-        /* --- 8. WINNER UI --- */
+        /* --- ZOOM OVERLAY --- */
+        .zoom-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 5000;
+            display: none; flex-direction: row; align-items: center; justify-content: center; gap: 2rem; padding: 2rem;
+        }
+        .zoom-overlay.active { display: flex; }
+        
+        #zoom-thumbs { display: flex; flex-direction: column; gap: 1rem; max-height: 80vh; overflow-y: auto; width: 100px; flex-shrink: 0; }
+        .zoom-thumb { width: 80px; height: 80px; border: 2px solid #333; background: #111; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #666; cursor: pointer; transition: all 0.2s; }
+        .zoom-thumb.active { border-color: var(--accent-color); color: white; background: #222; transform: scale(1.05); box-shadow: 4px 4px 0px var(--accent-color); }
+
+        .zoom-content { flex-grow: 1; max-width: 1200px; aspect-ratio: 16/9; background: #111; border: 4px solid var(--accent-color); position: relative; display: flex; align-items: center; justify-content: center; }
+        .play-indicator { font-size: 8rem; color: var(--accent-color); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
+
+        /* Winner UI */
         .winner-banner { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 1000; align-items: center; justify-content: center; }
         .winner-frame { font-size: 10vw; font-weight: 900; border: 20px solid black; padding: 20px 60px; background: var(--accent-color); transform: rotate(-3deg); box-shadow: 10px 10px 0px black; width: fit-content; }
         
         /* VFX */
         .screen-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
         @keyframes shake { 0% { transform: translate(0, 0) rotate(0deg); } 20% { transform: translate(3px, 3px) rotate(1deg); } 40% { transform: translate(3px, -3px) rotate(1deg); } 60% { transform: translate(2px, 2px) rotate(0deg); } 80% { transform: translate(2px, -2px) rotate(-1deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
-        .blink-text { animation: blinker 0.2s linear infinite; color: red; }
-        @keyframes blinker { 50% { opacity: 0; } }
         .hero-badge { border: 4px solid black; background: white; padding: 8px 16px; font-weight: 800; font-family: 'JetBrains Mono', monospace; transform: rotate(-3deg); box-shadow: 4px 4px 0px rgba(0,0,0,0.2); margin-bottom: 2rem; }
+        .instruction-toast { position: fixed; bottom: 80px; right: 20px; background: black; color: white; padding: 8px 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 20001; }
     </style>
 </head>
 <body>
 
     <div class="scanlines"></div>
-    <div id="blackout-curtain"></div> <!-- TV CURTAIN -->
-    
-    <!-- WINNER UI -->
+    <div id="blackout-curtain"></div>
+    <div id="toast" class="instruction-toast">ACTION TRIGGERED</div>
     <div id="winner-ui" class="winner-banner"><div class="winner-frame">TEFQ WINS</div></div>
 
     <!-- ZOOM MODAL -->
@@ -281,7 +245,7 @@
     <div id="viewport">
         <!-- 00. HERO -->
         <section id="slide-0" class="slide active" data-progress="10" data-thread="The Hook" data-narrative="You chose boring. We chose chaos.">
-            <div class="hero-badge">ELECTIVES ANALYSIS v30.0</div>
+            <div class="hero-badge">ELECTIVES ANALYSIS v31.0</div>
             <h1 class="text-9xl font-black mb-2 tracking-tighter">TEFQ</h1>
             <h2 class="text-4xl font-thin text-gray-500">JUST TO MAKE YOU <span class="bg-yellow-400 text-black px-2 font-bold">JEALOUS</span>.</h2>
             <div class="mt-16 font-mono text-sm text-gray-400 animate-bounce">[PRESS DOWN TO BEGIN]</div>
@@ -315,20 +279,17 @@
                     </ul>
                 </div>
                 <div class="col-span-8 grid grid-cols-2 gap-4 h-[60vh]">
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['rainbow_flame.mp4'], 'FIRE')">
+                    <div class="brutalist-card interactive-item" data-media='[{"type":"video","src":"rainbow_flame.mp4","title":"Rainbow Fire"},{"type":"video","src":"magnesium.mp4","title":"Magnesium Flare"}]'>
+                        <div class="multi-indicator">2 FILES</div>
                         <div class="card-icon text-6xl">🔥🌈</div>
-                        <div class="card-content font-bold">Rainbow Flames</div>
+                        <div class="card-content font-bold">Pyromania</div>
                     </div>
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['magnesium.mp4'], 'FLARE')">
-                        <div class="card-icon text-6xl">💥</div>
-                        <div class="card-content font-bold">Magnesium Flare</div>
-                    </div>
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['spill.mp4', 'leidenfrost.mp4'], 'CHAOS')">
+                    <div class="brutalist-card interactive-item" data-media='[{"type":"video","src":"spill.mp4","title":"The Spill"},{"type":"video","src":"leidenfrost.mp4","title":"Leidenfrost"}]'>
                         <div class="multi-indicator">2 FILES</div>
                         <div class="card-icon text-6xl">⚠️</div>
-                        <div class="card-content font-bold">The Spill / Leidenfrost</div>
+                        <div class="card-content font-bold">Accidents</div>
                     </div>
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['foam_bomb.mp4'], 'BOOM')">
+                    <div class="brutalist-card interactive-item" data-media='[{"type":"video","src":"foam_bomb.mp4","title":"Foam Bomb"}]'>
                         <div class="card-icon text-6xl">🐘🫧</div>
                         <div class="card-content font-bold">Foam Bomb</div>
                     </div>
@@ -377,12 +338,12 @@
                     </ul>
                 </div>
                 <div class="col-span-8 grid grid-cols-2 gap-8 h-[50vh]">
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['mug_cake.mp4', 'gum.png'], 'FOOD')">
+                    <div class="brutalist-card interactive-item" data-media='[{"type":"video","src":"mug_cake.mp4","title":"Mug Cake"},{"type":"image","src":"gum.png","title":"pH Gum"}]'>
                         <div class="multi-indicator">2 FILES</div>
                         <div class="card-icon text-8xl">🧁</div>
                         <div class="card-content font-bold">Consumables Protocol<br><span class="text-green-600">Grade: A+</span></div>
                     </div>
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['chair_good.png', 'chair_bad.png'], 'CHAIRS')">
+                    <div class="brutalist-card interactive-item" data-media='[{"type":"image","src":"chair_good.png","title":"TEFQ Throne"},{"type":"image","src":"chair_bad.png","title":"Wood Chair"}]'>
                         <div class="multi-indicator">2 FILES</div>
                         <div class="card-icon text-8xl">🛋️</div>
                         <div class="card-content font-bold">The Throne vs The Wood<br><span class="text-yellow-500">Status: VIP</span></div>
@@ -403,12 +364,12 @@
                     </ul>
                 </div>
                 <div class="col-span-8 grid grid-cols-2 gap-8 h-[50vh]">
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['instagram.png', 'valentin_tree.png', 'valentin_screen.png'], 'CLOUT')">
+                    <div class="brutalist-card interactive-item" data-media='[{"type":"image","src":"instagram.png","title":"Viral Post"},{"type":"image","src":"valentin_tree.png","title":"Dept. Head"},{"type":"image","src":"valentin_screen.png","title":"Oversight"}]'>
                         <div class="multi-indicator">3 FILES</div>
                         <div class="card-icon text-8xl">📸</div>
                         <div class="card-content font-bold">Media Dominance</div>
                     </div>
-                    <div class="brutalist-card interactive-item" onclick="appState.triggerZoom(['missing_evidence.png'], 'REDACTED')">
+                    <div class="brutalist-card interactive-item" data-media='[{"type":"image","src":"missing_evidence.png","title":"REDACTED"}]'>
                         <div class="card-icon text-8xl">✂️🫧</div>
                         <div class="card-content font-bold">Scissor Bubbles<br><span class="text-red-500">EVIDENCE MISSING</span></div>
                     </div>
@@ -416,7 +377,7 @@
             </div>
         </section>
 
-        <!-- 06. GHOST TOWN (TEMPORAL) -->
+        <!-- 06. GHOST TOWN -->
         <section id="slide-6" class="slide future" data-progress="95" data-thread="Module 05" data-narrative="A moment of silence for those who chose wrong.">
             
             <div class="w-full max-w-7xl grid grid-cols-2 gap-12 items-center">
@@ -444,9 +405,6 @@
                         <div id="pov-sticker" class="pov-sticker">
                             POV:<br>ESTÁS EN CLASE<br>DE TEFQ
                         </div>
-                        <div id="warp-msg" class="warp-msg">
-                            <div class="warp-text">TEFQ<br>WARPS<br>TIME</div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -455,7 +413,7 @@
         <!-- 07. VERDICT -->
         <section id="slide-7" class="slide future" data-progress="100" data-thread="Victory" data-narrative="Press Alt for Verdict. Press Tab to Admit Defeat.">
             <h1 class="text-9xl font-black mb-8 animate-pulse text-red-600">FATAL ERROR</h1>
-            <div class="p-12 border-8 border-red-600 bg-black text-white shadow-[12px_12px_0px_red] max-w-3xl text-center interactive-item active-focus" onclick="appState.triggerConfetti()">
+            <div class="p-12 border-8 border-red-600 bg-black text-white shadow-[12px_12px_0px_red] max-w-3xl text-center interactive-item active-focus">
                 <p class="text-4xl font-bold text-red-500 mb-6">JEALOUSY OVERLOAD</p>
                 <div class="bg-white text-black font-black text-6xl p-6 border-4 border-yellow-400 cursor-pointer hover:scale-105 transition">
                     [ ADMIT DEFEAT ]
@@ -464,9 +422,9 @@
         </section>
     </div>
 
-    <!-- LOGIC -->
+    <!-- APP LOGIC -->
     <script>
-        // --- DATA DICTIONARY ---
+        // --- CONFIG ---
         const dataConfig = {
             students: {
                 it: { name: 'IT STUDENT', label: 'IT EFFICIENCY', suffering: 9, dignity: 2, grade: 5 },
@@ -478,82 +436,82 @@
             tefq: { suffering: 1, dignity: 10, grade: 10 }
         };
 
-        // --- APP STATE MANAGER ---
         const appState = {
             currentSlide: 0,
             totalSlides: 8,
             interactionIndex: 0,
+            
+            // Sub-systems
             chartInstance: null,
             currentVictimIndex: 0,
+            
+            // Flags
             isZoomActive: false,
-            blackoutActive: false,
+            isSystemOff: false,
             
-            // Zoom Gallery
-            gallery: [],
-            galleryIndex: 0,
-            
+            // Gallery
+            slidePlaylist: [], // Array of objects {type, src, title}
+            mediaIndex: 0,
+
             // Ghost Town
-            ghostState: 'IDLE', // IDLE, NORMAL, WARP, DONE
-            startTime: 0,
-            simulatedTime: 0, // seconds
-            
+            ghostPhase: 0, // 0:Idle, 1:Normal, 2:Warp, 3:Done
+            clockTime: 0,
+            clockRaf: null,
+
             // Smoke
             smokeInterval: null,
 
-            // Core Methods
             init: function() {
                 // TV On
-                document.getElementById('blackout-curtain').classList.add('anim-tv-on');
-                
-                // Clock Generation
-                const face = document.querySelector('.clock-face');
-                for(let i=0; i<60; i++) {
-                    const tick = document.createElement('div');
-                    tick.style.position = 'absolute';
-                    tick.style.width = i % 5 === 0 ? '4px' : '2px';
-                    tick.style.height = i % 5 === 0 ? '15px' : '8px';
-                    tick.style.background = 'black';
-                    tick.style.top = '10px';
-                    tick.style.left = '50%';
-                    tick.style.transformOrigin = '0 142px'; 
-                    tick.style.transform = `rotate(${i * 6}deg)`;
-                    face.appendChild(tick);
-                }
-
+                document.getElementById('blackout-curtain').classList.add('tv-on');
                 this.updateUI(0);
-                this.updateJealousy(10);
+                this.generateClockTicks();
+                setInterval(() => this.monitorJealousy(), 100);
             },
 
-            // --- INPUT ROUTER ---
+            // --- INPUT HANDLER (THE BRAIN) ---
             handleInput: function(key) {
-                // Global Blackout Override
+                // Priority 1: Blackout Toggle (Always active)
                 if (key === 'b' || key === 'B') {
-                    if (this.blackoutActive) {
-                        location.reload(); // REBOOT
-                    } else {
-                        document.getElementById('blackout-curtain').classList.remove('anim-tv-on');
-                        document.getElementById('blackout-curtain').classList.add('anim-tv-off');
-                        this.blackoutActive = true;
-                    }
+                    this.toggleBlackout();
                     return;
                 }
 
-                if (this.blackoutActive) return; // Input lock
+                if (this.isSystemOff) return; // Block input if off
 
-                // Navigation Logic
+                // Priority 2: Zoom Navigation
                 if (this.isZoomActive) {
-                    // ZOOM MODE CONTROLS
-                    if (key === 'Tab') { this.closeZoom(); }
-                    else if (key === 'ArrowDown' || key === 'ArrowRight' || key === 'PageDown') { this.cycleGallery('next'); }
-                    else if (key === 'ArrowUp' || key === 'ArrowLeft' || key === 'PageUp') { this.cycleGallery('prev'); }
+                    if (key === 'Tab') this.closeZoom();
+                    else if (['ArrowDown', 'ArrowRight', 'PageDown'].includes(key)) this.cycleMedia(1);
+                    else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(key)) this.cycleMedia(-1);
+                    return;
+                }
+
+                // Priority 3: Alt Key (Winner Banner)
+                if (key === 'Alt' && this.currentSlide === 7) {
+                    const banner = document.getElementById('winner-ui');
+                    banner.style.display = (banner.style.display === 'flex') ? 'none' : 'flex';
+                    return;
+                }
+
+                // Priority 4: Standard Navigation
+                if (['ArrowDown', 'ArrowRight', 'PageDown'].includes(key)) this.changeSlide(1);
+                else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(key)) this.changeSlide(-1);
+                else if (key === 'Tab') this.triggerAction();
+            },
+
+            toggleBlackout: function() {
+                const curtain = document.getElementById('blackout-curtain');
+                if (this.isSystemOff) {
+                    // Turn ON
+                    curtain.classList.remove('tv-off');
+                    curtain.classList.add('tv-on');
+                    this.isSystemOff = false;
                 } else {
-                    // NORMAL MODE CONTROLS
-                    if (key === 'Tab') { this.triggerAction(); }
-                    else if (key === 'ArrowDown' || key === 'ArrowRight' || key === 'PageDown') { this.changeSlide(1); }
-                    else if (key === 'ArrowUp' || key === 'ArrowLeft' || key === 'PageUp') { this.changeSlide(-1); }
-                    else if (key === 'Alt') { 
-                        if (this.currentSlide === 7) document.getElementById('winner-ui').style.display = (document.getElementById('winner-ui').style.display === 'flex') ? 'none' : 'flex';
-                    }
+                    // Turn OFF
+                    curtain.classList.remove('tv-on');
+                    curtain.classList.add('tv-off');
+                    this.isSystemOff = true;
                 }
             },
 
@@ -561,14 +519,14 @@
                 const newIndex = this.currentSlide + direction;
                 if (newIndex < 0 || newIndex >= this.totalSlides) return;
 
-                // Cleanup previous slide state
+                // Cleanup
                 if (this.currentSlide === 3) this.stopSmoke();
                 if (this.currentSlide === 6) this.resetGhostTown();
 
                 this.currentSlide = newIndex;
                 this.interactionIndex = 0;
 
-                // DOM Updates
+                // DOM
                 const slides = document.querySelectorAll('section.slide');
                 slides.forEach((slide, i) => {
                     slide.classList.remove('active', 'past', 'future');
@@ -578,9 +536,9 @@
                 });
 
                 this.updateUI(newIndex);
-                this.updateInteractionFocus();
+                this.updateFocus();
 
-                // Slide Specific Triggers
+                // Triggers
                 if (newIndex === 3) {
                     setTimeout(() => this.initChart(), 500);
                     this.startSmoke();
@@ -595,68 +553,188 @@
                 document.getElementById('narrative-text').innerText = slide.getAttribute('data-narrative');
                 document.getElementById('page-counter').innerText = `0${index} / 07`;
                 
-                this.updateJealousy(progress);
+                // Progress Bar
+                const bar = document.getElementById('jealousy-bar');
+                const num = document.getElementById('jealousy-val');
+                bar.style.width = progress + '%';
+                num.innerText = progress + '% JEALOUS';
             },
 
-            updateJealousy: function(target) {
+            monitorJealousy: function() {
                 const bar = document.getElementById('jealousy-bar');
                 const num = document.getElementById('jealousy-val');
                 const viewport = document.getElementById('viewport');
                 
-                bar.style.width = target + '%';
-                
-                // State monitoring for colors/shake is done in the CSS transition loop, 
-                // but we set target classes here for instant feedback if needed.
+                const parentWidth = bar.parentElement.clientWidth;
+                const width = bar.clientWidth;
+                const percent = (width / parentWidth) * 100;
+
                 let color = 'var(--accent-color)';
-                if (target > 60) color = 'var(--danger-color)';
-                if (target >= 95) {
+                let shake = false;
+
+                if (percent > 60) color = 'var(--danger-color)';
+                if (percent >= 95) {
                     color = 'var(--critical-color)';
-                    viewport.classList.add('screen-shake');
-                } else {
-                    viewport.classList.remove('screen-shake');
+                    shake = true;
                 }
-                
+
                 bar.style.backgroundColor = color;
-                num.innerText = target + '% JEALOUS';
-                if (target >= 95) num.style.color = 'var(--critical-color)';
+                if (percent >= 99) num.style.color = 'var(--critical-color)';
                 else num.style.color = 'var(--accent-color)';
+
+                if (shake) viewport.classList.add('screen-shake');
+                else viewport.classList.remove('screen-shake');
             },
 
-            // --- ACTION ROUTER ---
+            // --- ACTION TRIGGER ---
             triggerAction: function() {
-                if (this.currentSlide === 3) { // Chart Slide
+                // Chart Swap
+                if (this.currentSlide === 3) {
                     this.currentVictimIndex = (this.currentVictimIndex + 1) % dataConfig.victimOrder.length;
                     this.updateVictimChart(dataConfig.victimOrder[this.currentVictimIndex]);
                     return;
                 }
-                if (this.currentSlide === 6) { // Ghost Town
+                // Ghost Town
+                if (this.currentSlide === 6) {
                     this.startGhostSequence();
                     return;
                 }
-                if (this.currentSlide === 7) { // Final
+                // Final Confetti
+                if (this.currentSlide === 7) {
                     this.triggerConfetti();
                     return;
                 }
 
-                // Standard Click
+                // Standard Interaction (Open Zoom)
                 const items = document.querySelectorAll(`#slide-${this.currentSlide} .interactive-item`);
                 if (items.length > 0) {
-                    items[this.interactionIndex].click();
-                    this.interactionIndex = (this.interactionIndex + 1) % items.length;
-                    this.updateInteractionFocus();
+                    // Collect all media from the slide into a playlist
+                    this.slidePlaylist = [];
+                    items.forEach(item => {
+                        if (item.dataset.media) {
+                            const media = JSON.parse(item.dataset.media);
+                            this.slidePlaylist = this.slidePlaylist.concat(media);
+                        }
+                    });
+                    
+                    // If media exists, open viewer at index 0 (or find clicked item's index if sophisticated, but 0 is safe)
+                    if (this.slidePlaylist.length > 0) {
+                        this.mediaIndex = 0;
+                        this.openZoom();
+                    }
                 }
             },
 
-            updateInteractionFocus: function() {
-                document.querySelectorAll('.active-focus').forEach(el => el.classList.remove('active-focus'));
-                const items = document.querySelectorAll(`#slide-${this.currentSlide} .interactive-item`);
-                if (items.length > 0) {
-                    if (this.interactionIndex >= items.length) this.interactionIndex = 0;
-                    items[this.interactionIndex].classList.add('active-focus');
+            // --- MEDIA VIEWER (UNIFIED) ---
+            openZoom: function() {
+                this.isZoomActive = true;
+                document.getElementById('zoom-modal').classList.add('active');
+                this.renderZoom();
+            },
+
+            closeZoom: function() {
+                this.isZoomActive = false;
+                document.getElementById('zoom-modal').classList.remove('active');
+            },
+
+            cycleMedia: function(direction) {
+                if (this.slidePlaylist.length === 0) return;
+                
+                if (direction === 1) this.mediaIndex = (this.mediaIndex + 1) % this.slidePlaylist.length;
+                else this.mediaIndex = (this.mediaIndex - 1 + this.slidePlaylist.length) % this.slidePlaylist.length;
+                
+                this.renderZoom();
+            },
+
+            renderZoom: function() {
+                const item = this.slidePlaylist[this.mediaIndex];
+                const videoUI = document.getElementById('zoom-video-ui');
+                const imgUI = document.getElementById('zoom-img');
+                const text = document.getElementById('zoom-text');
+                const thumbs = document.getElementById('zoom-thumbs');
+
+                // Thumbs
+                thumbs.innerHTML = '';
+                this.slidePlaylist.forEach((m, i) => {
+                    const t = document.createElement('div');
+                    t.className = `zoom-thumb ${i === this.mediaIndex ? 'active' : ''}`;
+                    t.innerText = i + 1;
+                    thumbs.appendChild(t);
+                });
+
+                // Content
+                if (item.title === 'REDACTED') {
+                    videoUI.style.display = 'flex'; imgUI.style.display = 'none';
+                    document.getElementById('zoom-icon').innerText = '🚫';
+                    text.innerText = "ERROR: EVIDENCE REDACTED";
+                    text.className = "absolute top-4 left-4 font-mono text-red-500 text-xl bg-black px-2 blink-text";
+                    return;
+                }
+
+                text.className = "absolute top-4 left-4 font-mono text-white text-xl bg-black px-2";
+                
+                if (item.type === 'video') {
+                    videoUI.style.display = 'flex'; imgUI.style.display = 'none';
+                    document.getElementById('zoom-icon').innerText = '▶';
+                    text.innerText = `PLAYING: ${item.title}`;
+                    
+                    const bar = document.getElementById('zoom-bar');
+                    bar.style.width = '0%'; bar.style.transition = 'none';
+                    setTimeout(() => { bar.style.transition = 'width 5s linear'; bar.style.width = '100%'; }, 50);
+                } else {
+                    videoUI.style.display = 'none'; imgUI.style.display = 'block';
+                    imgUI.src = item.src;
+                    imgUI.onerror = function() {
+                        this.style.display='none'; videoUI.style.display='flex';
+                        document.getElementById('zoom-icon').innerText = '🖼️';
+                    };
                 }
             },
 
             // --- CHART & SMOKE ---
+            spawnSmoke: function() {
+                const activeBtn = document.querySelector('.victim-btn.active');
+                if (!activeBtn) return;
+                const rect = activeBtn.getBoundingClientRect();
+                
+                const p = document.createElement('div');
+                p.classList.add('smoke-particle');
+                
+                // Right side center
+                const size = Math.random() * 20 + 15;
+                p.style.width = `${size}px`; p.style.height = `${size}px`;
+                p.style.left = `${rect.right - 10}px`;
+                p.style.top = `${rect.top + (rect.height/2) - 10}px`;
+                p.style.setProperty('--drift', (Math.random() - 0.5) * 50 + 'px');
+                
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 2500);
+            },
+            
+            startSmoke: function() {
+                if (this.smokeInterval) clearInterval(this.smokeInterval);
+                this.smokeInterval = setInterval(() => this.spawnSmoke(), 200);
+            },
+            stopSmoke: function() { if (this.smokeInterval) clearInterval(this.smokeInterval); },
+
+            updateVictimChart: function(key) {
+                document.querySelectorAll('.victim-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById(`btn-${key}`).classList.add('active');
+                
+                this.spawnSmoke(); // Feedback
+
+                const data = dataConfig.students[key];
+                if (this.chartInstance) {
+                    this.chartInstance.data.datasets[1].label = data.name;
+                    this.chartInstance.data.datasets[1].data = [data.suffering, data.dignity, data.grade];
+                    this.chartInstance.update();
+                }
+                
+                const roi = ((data.grade + data.dignity) / data.suffering).toFixed(1);
+                document.getElementById('victim-label').innerText = data.label;
+                document.getElementById('victim-roi').innerText = roi + "x";
+            },
+
             initChart: function() {
                 const ctx = document.getElementById('dataChart');
                 if (!ctx || this.chartInstance) return;
@@ -680,193 +758,95 @@
                 });
             },
 
-            updateVictimChart: function(key) {
-                document.querySelectorAll('.victim-btn').forEach(btn => btn.classList.remove('active'));
-                document.getElementById(`btn-${key}`).classList.add('active');
-                
-                // Emit smoke from new source
-                this.spawnSmoke();
-
-                const data = dataConfig.students[key];
-                if (this.chartInstance) {
-                    this.chartInstance.data.datasets[1].label = data.name;
-                    this.chartInstance.data.datasets[1].data = [data.suffering, data.dignity, data.grade];
-                    this.chartInstance.update();
-                }
-                
-                // Update ROI Panel
-                const roi = ((data.grade + data.dignity) / data.suffering).toFixed(1);
-                document.getElementById('victim-label').innerText = data.label;
-                document.getElementById('victim-roi').innerText = roi + "x";
-            },
-
-            spawnSmoke: function() {
-                const activeBtn = document.querySelector('.victim-btn.active');
-                if (!activeBtn) return;
-                const rect = activeBtn.getBoundingClientRect();
-                
-                const p = document.createElement('div');
-                p.classList.add('smoke-particle');
-                
-                // Right side center
-                const size = Math.random() * 20 + 15;
-                p.style.width = `${size}px`; p.style.height = `${size}px`;
-                p.style.left = `${rect.right - 10}px`;
-                p.style.top = `${rect.top + (rect.height/2) - 10}px`;
-                p.style.setProperty('--drift', (Math.random() - 0.5) * 50 + 'px');
-                
-                document.body.appendChild(p);
-                setTimeout(() => p.remove(), 2500);
-            },
-
-            startSmoke: function() {
-                if (this.smokeInterval) clearInterval(this.smokeInterval);
-                this.smokeInterval = setInterval(() => this.spawnSmoke(), 200);
-            },
-            stopSmoke: function() { if (this.smokeInterval) clearInterval(this.smokeInterval); },
-
             // --- GHOST TOWN ---
+            generateClockTicks: function() {
+                const face = document.querySelector('.clock-face');
+                for(let i=0; i<60; i++) {
+                    const tick = document.createElement('div');
+                    tick.style.position = 'absolute';
+                    tick.style.width = i % 5 === 0 ? '4px' : '2px';
+                    tick.style.height = i % 5 === 0 ? '15px' : '8px';
+                    tick.style.background = 'black';
+                    tick.style.top = '10px';
+                    tick.style.left = '50%';
+                    tick.style.transformOrigin = '0 142px';
+                    tick.style.transform = `rotate(${i * 6}deg)`;
+                    face.appendChild(tick);
+                }
+            },
+
             startGhostSequence: function() {
-                if (this.ghostState !== 'IDLE') return;
-                this.ghostState = 'NORMAL';
-                
-                const btn = document.getElementById('silence-btn');
-                btn.innerText = "[ TIME ACCELERATING... ]";
-                
+                if (this.ghostPhase !== 0) return;
+                this.ghostPhase = 1;
+                document.getElementById('silence-btn').classList.add('pressed');
+                document.getElementById('silence-btn').innerText = "[ TIME DILATING... ]";
+
                 let lastTime = performance.now();
-                this.simulatedTime = 0;
-                
-                const loop = (time) => {
-                    if (this.currentSlide !== 6 || this.ghostState === 'IDLE') return; // Break loop
-                    
-                    const delta = (time - lastTime) / 1000;
-                    lastTime = time;
-                    
-                    // Logic
+                this.clockTime = 0;
+
+                const loop = (now) => {
+                    if (this.currentSlide !== 6 || this.ghostPhase === 0) return; // Exit condition
+
+                    const delta = (now - lastTime) / 1000;
+                    lastTime = now;
+
                     let speed = 1;
-                    if (this.ghostState === 'NORMAL') {
+                    if (this.ghostPhase === 1) { // Normal
                         speed = 1;
-                        if (this.simulatedTime > 5) {
-                            this.ghostState = 'WARP';
+                        if (this.clockTime > 5) {
+                            this.ghostPhase = 2; // Warp
                             document.getElementById('pov-sticker').classList.add('visible');
                         }
-                    } else if (this.ghostState === 'WARP') {
-                        speed = 30; // Very fast
+                    } else if (this.ghostPhase === 2) { // Warp
+                        speed += (this.clockTime * 0.5); // Accel
                     }
-                    
-                    if (this.ghostState !== 'CRASH') {
-                        this.simulatedTime += delta * speed;
+
+                    if (this.ghostPhase !== 3) {
+                        this.clockTime += delta * speed;
                         
                         const thin = document.getElementById('hand-thin');
                         const large = document.getElementById('hand-large');
                         
-                        thin.style.transform = `rotate(${this.simulatedTime * 360}deg)`; // 1 rot per sec
-                        large.style.transform = `rotate(${this.simulatedTime * 6}deg)`; // 1 rot per min
-                        
-                        if (this.simulatedTime >= 60) {
-                            this.ghostState = 'CRASH';
+                        // Thin: 1 rot/sec = 360deg/sec
+                        thin.style.transform = `rotate(${this.clockTime * 360}deg)`;
+                        // Large: 1 rot/min = 6deg/sec
+                        large.style.transform = `rotate(${this.clockTime * 6}deg)`;
+
+                        if (this.clockTime >= 60) {
+                            this.ghostPhase = 3; // Crash
                             document.getElementById('clock-wrapper').classList.add('broken');
-                            document.getElementById('warp-msg').classList.add('visible');
                         }
                     }
-                    
                     requestAnimationFrame(loop);
                 };
                 requestAnimationFrame(loop);
             },
 
             resetGhostTown: function() {
-                this.ghostState = 'IDLE';
+                this.ghostPhase = 0;
+                this.clockTime = 0;
                 document.getElementById('hand-thin').style.transform = 'rotate(0deg)';
                 document.getElementById('hand-large').style.transform = 'rotate(0deg)';
                 document.getElementById('pov-sticker').classList.remove('visible');
-                document.getElementById('warp-msg').classList.remove('visible');
                 document.getElementById('clock-wrapper').classList.remove('broken');
+                document.getElementById('silence-btn').classList.remove('pressed');
                 document.getElementById('silence-btn').innerText = "[ PRESS TAB FOR SILENCE ]";
             },
 
-            // --- ZOOM GALLERY ---
-            triggerZoom: function(mediaArray, title) {
-                this.gallery = mediaArray;
-                this.galleryIndex = 0;
-                this.isZoomActive = true;
-                this.updateZoomDisplay(title);
-                document.getElementById('zoom-modal').classList.add('active');
-            },
-
-            closeZoom: function() {
-                this.isZoomActive = false;
-                document.getElementById('zoom-modal').classList.remove('active');
-            },
-
-            cycleGallery: function(direction) {
-                if (this.gallery.length <= 1) return;
-                if (direction === 'next') this.galleryIndex = (this.galleryIndex + 1) % this.gallery.length;
-                else this.galleryIndex = (this.galleryIndex - 1 + this.gallery.length) % this.gallery.length;
-                this.updateZoomDisplay();
-            },
-
-            updateZoomDisplay: function(title) {
-                const file = this.gallery[this.galleryIndex];
-                const videoUI = document.getElementById('zoom-video-ui');
-                const imgUI = document.getElementById('zoom-img');
-                const text = document.getElementById('zoom-text');
-                const thumbs = document.getElementById('zoom-thumbs');
-
-                // Render Thumbs
-                thumbs.innerHTML = '';
-                this.gallery.forEach((f, i) => {
-                    const t = document.createElement('div');
-                    t.className = `zoom-thumb ${i === this.galleryIndex ? 'active' : ''}`;
-                    t.innerText = i + 1;
-                    thumbs.appendChild(t);
-                });
-
-                // Render Content
-                if (title === 'REDACTED') {
-                    videoUI.style.display = 'flex'; imgUI.style.display = 'none';
-                    document.getElementById('zoom-icon').innerText = '🚫';
-                    text.innerText = "ERROR: EVIDENCE REDACTED";
-                    text.className = "absolute top-4 left-4 font-mono text-red-500 text-xl bg-black px-2 blink-text";
-                    return;
-                }
-
-                text.className = "absolute top-4 left-4 font-mono text-white text-xl bg-black px-2";
-                
-                if (file.endsWith('.mp4')) {
-                    videoUI.style.display = 'flex'; imgUI.style.display = 'none';
-                    document.getElementById('zoom-icon').innerText = '▶';
-                    text.innerText = "PLAYING MEDIA " + (this.galleryIndex + 1) + "/" + this.gallery.length;
-                    
-                    // Bar Anim
-                    const bar = document.getElementById('zoom-bar');
-                    bar.style.width = '0%'; bar.style.transition = 'none';
-                    setTimeout(() => { bar.style.transition = 'width 5s linear'; bar.style.width = '100%'; }, 50);
-                } else {
-                    videoUI.style.display = 'none'; imgUI.style.display = 'block';
-                    imgUI.src = file;
-                    imgUI.onerror = function() {
-                        this.style.display='none'; videoUI.style.display='flex';
-                        document.getElementById('zoom-icon').innerText = '🖼️';
-                    };
-                }
-            },
-
+            // --- CONFETTI ---
             triggerConfetti: function() {
-                var end = Date.now() + 3000;
-                (function frame() {
-                    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#000', '#facc15'], zIndex: 9999 });
-                    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#000', '#facc15'], zIndex: 9999 });
-                    if (Date.now() < end) requestAnimationFrame(frame);
-                }());
+                const colors = ['#000', '#facc15'];
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: colors, zIndex: 999 });
+            },
+
+            updateFocus: function() {
+                document.querySelectorAll('.active-focus').forEach(el => el.classList.remove('active-focus'));
+                const items = document.querySelectorAll(`#slide-${this.currentSlide} .interactive-item`);
+                if (items.length > 0) items[0].classList.add('active-focus');
             }
         };
 
-        // --- GLOBAL INPUT LISTENER ---
-        document.addEventListener('keydown', (e) => {
-            appState.handleInput(e.key);
-        });
-
+        document.addEventListener('keydown', (e) => appState.handleInput(e.key));
         window.onload = () => appState.init();
 
     </script>
