@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEFQ: Jealousy Engine v28.0</title>
+    <title>TEFQ: Jealousy Engine v29.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -33,28 +33,42 @@
 
         .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-        /* --- CRT ANIMATIONS (Viewport Wrapper) --- */
-        #viewport {
-            position: relative; width: 100%; height: 100%;
-            perspective: 1000px;
-            background-color: var(--bg-color);
-            transform-origin: center;
-            will-change: transform, filter;
+        /* --- CRT LAYERS --- */
+        /* 1. Scanlines (Static visual layer) */
+        .scanlines {
+            position: fixed; inset: 0; pointer-events: none; z-index: 900;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1)
+            );
+            background-size: 100% 6px; /* Thick lines */
+            animation: scan-drift 8s ease-in-out infinite alternate;
         }
+        @keyframes scan-drift { 0% { background-position-y: 0px; } 100% { background-position-y: 100px; } }
 
-        .crt-on { animation: turnOn 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
-        @keyframes turnOn {
-            0% { transform: scale(0.001, 0.001); filter: brightness(3); opacity: 1; }
-            40% { transform: scale(1, 0.002); filter: brightness(2); opacity: 1; }
-            100% { transform: scale(1, 1); filter: brightness(1); opacity: 1; }
+        /* 2. Blackout Curtain (The TV Off Effect) */
+        #blackout-curtain {
+            position: fixed; inset: 0; background: black; z-index: 99999;
+            transform: scale(0); opacity: 0; pointer-events: none;
         }
+        
+        /* Animations for Blackout */
+        .anim-turn-off { animation: turnOff 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards; pointer-events: all !important; }
+        .anim-turn-on { animation: turnOn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; pointer-events: none !important; }
 
-        .crt-off { animation: turnOff 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
         @keyframes turnOff {
-            0% { transform: scale(1, 1); filter: brightness(1); opacity: 1; }
-            40% { transform: scale(1, 0.002); filter: brightness(2); opacity: 1; }
-            80% { transform: scale(0.001, 0.001); filter: brightness(3); opacity: 1; }
-            100% { transform: scale(0, 0); filter: brightness(0); opacity: 0; }
+            0% { transform: scale(1, 1); opacity: 0; }
+            1% { opacity: 1; background: transparent; } /* Start transparent to show squeeze */
+            40% { transform: scale(1, 0.002); background: white; opacity: 1; } /* White line */
+            100% { transform: scale(0, 0); background: black; opacity: 1; }
+        }
+        @keyframes turnOn {
+            0% { transform: scale(0.001, 0.001); background: white; opacity: 1; }
+            40% { transform: scale(1, 0.002); background: white; opacity: 1; }
+            100% { transform: scale(1, 1); background: transparent; opacity: 0; }
         }
 
         /* --- SLIDE --- */
@@ -71,26 +85,6 @@
         .slide.future { transform: translateY(100%); z-index: 20; }
 
         /* --- UI ELEMENTS --- */
-        /* SCANLINES 3.0: Thicker, Transparent, Dynamic Motion */
-        .scanlines {
-            position: fixed; inset: 0; pointer-events: none; z-index: 900;
-            background: linear-gradient(
-                to bottom,
-                rgba(255,255,255,0),
-                rgba(255,255,255,0) 50%,
-                rgba(0,0,0,0.1) 50%, /* Reduced opacity */
-                rgba(0,0,0,0.1) 
-            );
-            background-size: 100% 6px; /* Thicker lines */
-            animation: scan-drift 8s ease-in-out infinite alternate;
-        }
-        
-        @keyframes scan-drift {
-            0% { background-position-y: 0px; }
-            100% { background-position-y: 100px; }
-        }
-
-        /* Narrative Bar */
         .narrative-container {
             position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
             width: 80%; max-width: 800px;
@@ -103,7 +97,6 @@
         }
         .narrative-label { color: var(--accent-color); font-weight: bold; text-transform: uppercase; margin-right: 10px; }
 
-        /* HUD */
         .hud-container {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             width: 95%; max-width: 1400px; height: 40px;
@@ -111,30 +104,16 @@
             z-index: 20000; border: 2px solid black; background: white;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
-        .hud-label { background: black; color: white; height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; }
         .hud-track { flex-grow: 1; height: 100%; background: #e5e5e5; position: relative; overflow: hidden; }
-        
-        /* Smooth Progress Bar */
-        .hud-bar { 
-            height: 100%; width: 0%; 
-            background: var(--accent-color); 
-            position: relative; 
-            transition: width 6s ease-out; /* Slow movement */
-        }
+        .hud-bar { height: 100%; width: 0%; background: var(--accent-color); position: relative; transition: width 6s ease-out; }
         .hud-bar.hazard-bg {
             background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 10px, transparent 10px, transparent 20px);
             background-size: 28px 28px; animation: moveStripes 1s linear infinite;
         }
         @keyframes moveStripes { from { background-position: 0 0; } to { background-position: 56px 0; } }
-        
         .hud-value { background: black; color: var(--accent-color); height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; min-width: 160px; justify-content: flex-end; }
-        
-        /* Page Counter */
-        .page-counter {
-            background: var(--accent-color); color: black; height: 100%;
-            display: flex; align-items: center; padding: 0 12px;
-            font-weight: 900; border-left: 2px solid black;
-        }
+        .hud-label { background: black; color: white; height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; }
+        .page-counter { background: var(--accent-color); color: black; height: 100%; display: flex; align-items: center; padding: 0 12px; font-weight: 900; border-left: 2px solid black; }
 
         /* --- CARDS & LISTS --- */
         .brutalist-card {
@@ -153,14 +132,25 @@
         .bullet-list li { margin-bottom: 0.5rem; display: flex; align-items: flex-start; }
         .bullet-list li::before { content: ">>"; color: var(--accent-color); background: black; margin-right: 8px; padding: 0 4px; font-weight: bold; font-size: 0.8rem; }
 
-        /* Chart */
+        /* --- ROI / SMOKE --- */
         .roi-panel { background: #111; border: 2px solid var(--accent-color); color: var(--accent-color); padding: 0.5rem 1rem; font-family: 'JetBrains Mono', monospace; display: flex; flex-direction: column; justify-content: center; height: 80px; }
         .roi-panel.victim { border-color: #444; color: #666; }
         .roi-value { font-size: 2rem; font-weight: 800; line-height: 1; }
         .roi-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
         
-        .victim-btn { border: 3px solid black; background: white; padding: 1rem; text-align: left; font-weight: bold; cursor: pointer; transition: all 0.2s; margin-bottom: 0.5rem; position: relative; }
+        .victim-btn { border: 3px solid black; background: white; padding: 1rem; text-align: left; font-weight: bold; cursor: pointer; transition: all 0.2s; margin-bottom: 0.5rem; }
         .victim-btn.active { background: black; color: var(--accent-color); border-color: black; transform: translate(4px, 0); box-shadow: -4px 0 0 var(--accent-color); }
+
+        .smoke-particle {
+            position: fixed;
+            background: radial-gradient(circle, rgba(50,50,50,0.8) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%; pointer-events: none; z-index: 16000;
+            animation: smokeRise 2s forwards; filter: blur(4px);
+        }
+        @keyframes smokeRise {
+            0% { transform: scale(0.5) translate(0, 0); opacity: 0.8; }
+            100% { transform: scale(3) translate(var(--drift), -150px); opacity: 0; }
+        }
 
         /* --- ZOOM OVERLAY --- */
         .zoom-overlay {
@@ -176,31 +166,31 @@
         .zoom-content { flex-grow: 1; max-width: 1200px; aspect-ratio: 16/9; background: #111; border: 4px solid var(--accent-color); position: relative; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 100px rgba(250, 204, 21, 0.1); }
         .play-indicator { font-size: 8rem; color: var(--accent-color); animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
-
-        /* Winner UI */
-        .winner-banner { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 5000; align-items: center; justify-content: center; }
-        .winner-frame { font-size: 10vw; font-weight: 900; border: 20px solid black; padding: 20px 60px; background: var(--accent-color); transform: rotate(-3deg); box-shadow: 10px 10px 0px black; width: fit-content; }
         
-        /* VFX */
-        .screen-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
-        @keyframes shake { 0% { transform: translate(0, 0) rotate(0deg); } 20% { transform: translate(3px, 3px) rotate(1deg); } 40% { transform: translate(3px, -3px) rotate(1deg); } 60% { transform: translate(2px, 2px) rotate(0deg); } 80% { transform: translate(2px, -2px) rotate(-1deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
-        .hero-badge { border: 4px solid black; background: white; padding: 8px 16px; font-weight: 800; font-family: 'JetBrains Mono', monospace; transform: rotate(-3deg); box-shadow: 4px 4px 0px rgba(0,0,0,0.2); margin-bottom: 2rem; }
-        .instruction-toast { position: fixed; bottom: 80px; right: 20px; background: black; color: white; padding: 8px 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 20001; }
-        
-        /* Smoke */
-        .smoke-particle { position: fixed; background: radial-gradient(circle, rgba(50,50,50,0.9) 0%, rgba(0,0,0,0) 70%); border-radius: 50%; pointer-events: none; z-index: 16000; animation: smokeRise 2s forwards; filter: blur(4px); }
-        @keyframes smokeRise { 0% { transform: scale(0.5) translate(0, 0); opacity: 0.8; } 100% { transform: scale(3) translate(var(--drift), -100px); opacity: 0; } }
+        /* Multiple files indicator */
+        .multi-indicator { position: absolute; top: 10px; right: 10px; background: black; color: white; font-family: 'JetBrains Mono'; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; }
 
         /* --- CLOCK & GHOST TOWN --- */
+        #clock-wrapper { position: relative; width: 400px; height: 400px; transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #clock-wrapper.broken { transform: rotate(15deg) translateY(100px); opacity: 0.7; }
+        
         .clock-face {
-            width: 300px; height: 300px;
-            border: 6px solid #000; border-radius: 50%;
+            width: 100%; height: 100%;
+            border: 8px solid #000; border-radius: 50%;
             position: relative; background: white;
-            box-shadow: 10px 10px 0px rgba(0,0,0,0.2);
+            box-shadow: 15px 15px 0px rgba(0,0,0,0.1);
         }
-        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; background: black; }
-        #hand-thin { width: 2px; height: 45%; margin-left: -1px; background: red; }
-        #hand-large { width: 6px; height: 40%; margin-left: -3px; }
+        
+        /* Cracks overlay */
+        .crack-overlay {
+            position: absolute; inset: 0; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50 50 L20 20 M50 50 L80 10 M50 50 L30 80" stroke="black" stroke-width="2" fill="none"/></svg>'); /* Simplified Placeholder */
+            opacity: 0; pointer-events: none; z-index: 60;
+        }
+        #clock-wrapper.broken .crack-overlay { opacity: 1; }
+
+        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; background: black; transition: transform 0.1s linear; }
+        #hand-thin { width: 4px; height: 45%; margin-left: -2px; background: red; z-index: 10; }
+        #hand-large { width: 8px; height: 35%; margin-left: -4px; z-index: 5; }
         
         .pov-sticker {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg) scale(0);
@@ -212,28 +202,25 @@
         }
         .pov-sticker.visible { transform: translate(-50%, -50%) rotate(-10deg) scale(1); }
 
-        .warp-msg {
-            position: absolute; inset: 0; background: rgba(0,0,0,0.9);
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 70;
-        }
-        .warp-msg.visible { opacity: 1; }
-        .warp-text {
-            color: #facc15; font-size: 5rem; font-weight: 900; text-align: center;
-            border: 10px solid #facc15; padding: 40px; transform: rotate(5deg);
-        }
+        .start-btn { cursor: pointer; transition: all 0.1s; }
+        .start-btn:active, .start-btn.pressed { transform: scale(0.95); background-color: var(--accent-color); color: black; }
+
+        /* Winner UI */
+        .winner-banner { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 5000; align-items: center; justify-content: center; }
+        .winner-frame { font-size: 10vw; font-weight: 900; border: 20px solid black; padding: 20px 60px; background: var(--accent-color); transform: rotate(-3deg); box-shadow: 10px 10px 0px black; width: fit-content; }
         
-        /* Multiple files indicator */
-        .multi-indicator {
-            position: absolute; top: 10px; right: 10px;
-            background: black; color: white; font-family: 'JetBrains Mono';
-            font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;
-        }
+        /* VFX */
+        .screen-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
+        @keyframes shake { 0% { transform: translate(0, 0) rotate(0deg); } 20% { transform: translate(3px, 3px) rotate(1deg); } 40% { transform: translate(3px, -3px) rotate(1deg); } 60% { transform: translate(2px, 2px) rotate(0deg); } 80% { transform: translate(2px, -2px) rotate(-1deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
+        .hero-badge { border: 4px solid black; background: white; padding: 8px 16px; font-weight: 800; font-family: 'JetBrains Mono', monospace; transform: rotate(-3deg); box-shadow: 4px 4px 0px rgba(0,0,0,0.2); margin-bottom: 2rem; }
+        .instruction-toast { position: fixed; bottom: 80px; right: 20px; background: black; color: white; padding: 8px 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 20001; }
     </style>
 </head>
 <body>
 
     <div class="scanlines"></div>
+    <div id="blackout-curtain"></div> <!-- THE CURTAIN -->
+    
     <div id="toast" class="instruction-toast">ACTION TRIGGERED</div>
     <div id="winner-ui" class="winner-banner"><div class="winner-frame">TEFQ WINS</div></div>
 
@@ -266,10 +253,10 @@
         <div class="page-counter" id="page-counter">01 / 07</div>
     </div>
 
-    <div id="viewport" class="crt-on">
+    <div id="viewport">
         <!-- 00. HERO -->
         <section id="slide-0" class="slide active" data-progress="10" data-thread="The Hook" data-narrative="You chose boring. We chose chaos.">
-            <div class="hero-badge">ELECTIVES ANALYSIS v28.0</div>
+            <div class="hero-badge">ELECTIVES ANALYSIS v29.0</div>
             <h1 class="text-9xl font-black mb-2 tracking-tighter">TEFQ</h1>
             <h2 class="text-4xl font-thin text-gray-500">JUST TO MAKE YOU <span class="bg-yellow-400 text-black px-2 font-bold">JEALOUS</span>.</h2>
             <div class="mt-16 font-mono text-sm text-gray-400 animate-bounce">[PRESS DOWN TO BEGIN]</div>
@@ -407,16 +394,6 @@
         <!-- 06. GHOST TOWN (TEMPORAL) -->
         <section id="slide-6" class="slide future" data-progress="95" data-thread="Module 05" data-narrative="A moment of silence for those who chose wrong.">
             
-            <!-- STICKER -->
-            <div id="pov-sticker" class="pov-sticker">
-                POV:<br>YOU ARE IN<br>TEFQ CLASS
-            </div>
-
-            <!-- WARP MSG -->
-            <div id="warp-msg" class="warp-msg">
-                <div class="warp-text">TEFQ<br>WARPS<br>TIME</div>
-            </div>
-
             <div class="w-full max-w-7xl grid grid-cols-2 gap-12 items-center">
                 <!-- Left: List -->
                 <div class="flex flex-col gap-6">
@@ -426,16 +403,22 @@
                         <div class="p-6 border-4 border-gray-200 grayscale opacity-50"><h4 class="text-xl font-bold">PE: Thermal Shock</h4></div>
                         <div class="p-6 border-4 border-gray-200 grayscale opacity-50"><h4 class="text-xl font-bold">FRENCH: 404 Error</h4></div>
                     </div>
-                    <div class="mt-4 bg-black text-white p-4 font-bold text-center blink-text interactive-item">
+                    <div class="mt-4 bg-black text-white p-4 font-bold text-center blink-text interactive-item start-btn" onclick="handleGhostTab()" id="silence-btn">
                         [ PRESS TAB FOR SILENCE ]
                     </div>
                 </div>
                 
                 <!-- Right: Clock -->
-                <div class="flex justify-center">
-                    <div class="clock-face">
-                        <div id="hand-thin" class="hand"></div>
-                        <div id="hand-large" class="hand"></div>
+                <div class="flex justify-center relative">
+                    <div id="clock-wrapper">
+                        <div class="clock-face">
+                            <div class="crack-overlay"></div>
+                            <div id="hand-thin" class="hand"></div>
+                            <div id="hand-large" class="hand"></div>
+                        </div>
+                        <div id="pov-sticker" class="pov-sticker">
+                            POV:<br>ESTÁS EN CLASE<br>DE TEFQ
+                        </div>
                     </div>
                 </div>
             </div>
@@ -444,7 +427,7 @@
         <!-- 07. VERDICT -->
         <section id="slide-7" class="slide future" data-progress="100" data-thread="Victory" data-narrative="Press Alt for Verdict. Press Tab to Admit Defeat.">
             <h1 class="text-9xl font-black mb-8 animate-pulse text-red-600">FATAL ERROR</h1>
-            <div class="p-12 border-8 border-red-600 bg-black text-white shadow-[12px_12px_0px_red] max-w-3xl text-center interactive-item active-focus" onclick="triggerConfetti()">
+            <div class="p-12 border-8 border-red-600 bg-black text-white shadow-[12px_12px_0px_red] max-w-3xl text-center interactive-item active-focus" onclick="triggerConfetti()" id="end-btn">
                 <p class="text-4xl font-bold text-red-500 mb-6">JEALOUSY OVERLOAD</p>
                 <div class="bg-white text-black font-black text-6xl p-6 border-4 border-yellow-400 cursor-pointer hover:scale-105 transition">
                     [ ADMIT DEFEAT ]
@@ -471,18 +454,19 @@
         let chartInstance = null;
         let currentVictimIndex = 0; 
         let interactionIndex = 0;
+        let isSystemOff = false;
         
         let currentGallery = [];
         let currentMediaIndex = 0;
         
-        // Ghost Town State
-        let ghostState = 0; // 0:Idle, 1:Normal, 2:Warp, 3:Done
+        let smokeInterval = null;
         let ghostInterval = null;
-        let clockSeconds = 0; // Simulated time in seconds
-        
+        let ghostTime = 0;
+        let ghostPhase = 0; // 0:Idle, 1:Normal, 2:Warp, 3:Done
+
         // --- INIT ---
         window.onload = function() {
-            // Clock Ticks
+            // Generate ticks for clock
             const face = document.querySelector('.clock-face');
             for(let i=0; i<60; i++) {
                 const tick = document.createElement('div');
@@ -492,25 +476,30 @@
                 tick.style.background = 'black';
                 tick.style.top = '10px';
                 tick.style.left = '50%';
-                tick.style.transformOrigin = '0 140px'; 
+                tick.style.transformOrigin = '0 142px'; // Radius - offset
                 tick.style.transform = `rotate(${i * 6}deg)`;
                 face.appendChild(tick);
             }
-            document.getElementById('viewport').classList.add('crt-on');
+            // Trigger TV On
+            document.getElementById('blackout-curtain').classList.add('anim-turn-on');
             updateNarrative(0);
             updatePageCounter(0);
             
-            // Start Jealousy Monitor
+            // Start Jealousy Monitor Loop
             setInterval(monitorJealousyColor, 100);
         };
 
         // --- NAVIGATION ---
         function goToSlide(index) {
             if (index < 0 || index >= totalSlides) return;
+            // Block navigation if zoom is active
             if (document.getElementById('zoom-modal').classList.contains('active')) return;
 
-            // Reset Ghost Town if leaving
+            // Reset Ghost Town if leaving Slide 6
             if (currentSlideIndex === 6 && index !== 6) resetGhostTown();
+            // Handle Smoke
+            if (currentSlideIndex === 3 && index !== 3) stopSmoke();
+            if (index === 3) startSmoke();
 
             const slides = document.querySelectorAll('section.slide');
             slides.forEach((slide, i) => {
@@ -526,6 +515,7 @@
             updateNarrative(index);
             updatePageCounter(index);
 
+            // Progress Logic
             const activeSlide = document.getElementById(`slide-${index}`);
             const progress = parseFloat(activeSlide.getAttribute('data-progress'));
             updateJealousy(progress);
@@ -543,16 +533,11 @@
             document.getElementById('page-counter').innerText = `0${index} / 0${totalSlides-1}`;
         }
 
-        // --- JEALOUSY MONITOR (CONTINUOUS) ---
+        // --- JEALOUSY MONITOR (Continuous Check) ---
         function updateJealousy(target) {
             const bar = document.getElementById('jealousy-bar');
             const num = document.getElementById('jealousy-val');
-            
-            // Slow, continuous transition
-            bar.style.transition = 'width 6s ease-out';
             bar.style.width = target + '%';
-            
-            // Update Text Number
             num.innerText = target + '% JEALOUS';
         }
 
@@ -561,7 +546,6 @@
             const num = document.getElementById('jealousy-val');
             const viewport = document.getElementById('viewport');
             
-            // Get computed width percentage approx
             const parentWidth = bar.parentElement.clientWidth;
             const width = bar.clientWidth;
             const percent = (width / parentWidth) * 100;
@@ -583,59 +567,65 @@
             else viewport.classList.remove('screen-shake');
         }
 
-        // --- GHOST TOWN LOGIC ---
+        // --- GHOST TOWN LOGIC (Time Warp) ---
         function handleGhostTab() {
-            if (ghostState !== 0) return; // Already running or done
-            ghostState = 1;
+            if (ghostPhase !== 0) return;
             
+            const btn = document.getElementById('silence-btn');
+            btn.classList.add('pressed');
+            btn.innerText = "[ TIME ACCELERATING... ]";
+            
+            ghostPhase = 1;
             const thin = document.getElementById('hand-thin');
             const large = document.getElementById('hand-large');
             
-            // Start Loop
-            let speedMultiplier = 1; // 1 = Normal
+            let speed = 1; // 1 = Realtime (1s = 1s)
+            let baseTick = 50; // ms per update loop
             
             ghostInterval = setInterval(() => {
-                // Increment time
-                clockSeconds += (0.1 * speedMultiplier); // 100ms ticks
-                
-                // Update rotation
-                // Seconds hand: 6 deg per second
-                thin.style.transform = `rotate(${clockSeconds * 6}deg)`;
-                // Minutes hand: 0.1 deg per second (6 deg per minute)
-                large.style.transform = `rotate(${clockSeconds * 0.1}deg)`;
-
-                // Phase 2: Sticker + Warp (at 5 seconds real time)
-                if (clockSeconds > 5 && ghostState === 1) {
-                    ghostState = 2;
+                // Determine speed based on phase
+                if (ghostTime > 5 && ghostPhase === 1) {
+                    ghostPhase = 2; // WARP
                     document.getElementById('pov-sticker').classList.add('visible');
-                    speedMultiplier = 20; // WARP SPEED
+                    speed = 20; // 20x Speed
                 }
-
-                // Phase 3: End (at 60 simulated seconds)
-                if (clockSeconds >= 60 && ghostState === 2) {
-                    ghostState = 3;
+                
+                // Add time
+                ghostTime += (baseTick/1000) * speed; 
+                
+                // Rotation
+                // Seconds: 60s = 360deg -> 6 deg/s
+                thin.style.transform = `rotate(${ghostTime * 6}deg)`;
+                // Minutes: 3600s = 360deg -> 0.1 deg/s
+                large.style.transform = `rotate(${ghostTime * 0.1}deg)`;
+                
+                // End Condition (1 Minute mark ~ 60s)
+                if (ghostTime >= 60 && ghostPhase === 2) {
+                    ghostPhase = 3;
                     clearInterval(ghostInterval);
-                    document.getElementById('warp-msg').classList.add('visible');
+                    document.getElementById('clock-wrapper').classList.add('broken');
                 }
-
-            }, 100); // Update every 100ms
+            }, 50);
         }
 
         function resetGhostTown() {
             clearInterval(ghostInterval);
-            ghostState = 0;
-            clockSeconds = 0;
+            ghostPhase = 0;
+            ghostTime = 0;
             document.getElementById('hand-thin').style.transform = 'rotate(0deg)';
             document.getElementById('hand-large').style.transform = 'rotate(0deg)';
             document.getElementById('pov-sticker').classList.remove('visible');
-            document.getElementById('warp-msg').classList.remove('visible');
+            document.getElementById('clock-wrapper').classList.remove('broken');
+            const btn = document.getElementById('silence-btn');
+            btn.classList.remove('pressed');
+            btn.innerText = "[ PRESS TAB FOR SILENCE ]";
         }
 
         // --- CHART & SMOKE ---
         function spawnSmoke() {
             if (currentSlideIndex !== 3 || !chartInstance) return;
             
-            // Find active victim button
+            // SMOKE SOURCE: THE BUTTON
             const activeBtn = document.querySelector('.victim-btn.active');
             if (!activeBtn) return;
 
@@ -646,15 +636,19 @@
             const size = Math.random() * 20 + 15;
             const drift = (Math.random() - 0.5) * 50 + 'px';
             
-            // Center smoke on button
+            // Right Side Center
             p.style.width = `${size}px`; p.style.height = `${size}px`;
-            p.style.left = `${rect.left + (rect.width/2) - (size/2)}px`;
+            p.style.left = `${rect.right - (size/2)}px`;
             p.style.top = `${rect.top + (rect.height/2) - (size/2)}px`;
             p.style.setProperty('--drift', drift);
             
             document.body.appendChild(p);
             setTimeout(() => p.remove(), 2500);
         }
+        function startSmoke() { if (smokeInterval) clearInterval(smokeInterval); smokeInterval = setInterval(spawnSmoke, 150); }
+        function stopSmoke() { if (smokeInterval) clearInterval(smokeInterval); }
+
+        function calculateROI(stats) { return ((stats.grade + stats.dignity) / stats.suffering).toFixed(1); }
 
         function initChart() {
             const ctx = document.getElementById('dataChart');
@@ -682,12 +676,13 @@
             document.getElementById('victim-roi').innerText = calculateROI(studentProfiles['it']) + "x";
         }
 
-        function calculateROI(stats) { return ((stats.grade + stats.dignity) / stats.suffering).toFixed(1); }
-
         function updateVictimChart(victimId) {
             document.querySelectorAll('.victim-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`btn-${victimId}`).classList.add('active');
-            spawnSmoke(); // Burst smoke on click
+            
+            // Visual feedback
+            spawnSmoke();
+
             const victim = studentProfiles[victimId];
             if (!chartInstance) initChart();
             else {
@@ -704,14 +699,25 @@
 
         // --- INTERACTIONS ---
         function triggerAction() {
+            // Priority: Last Slide Confetti
+            if (currentSlideIndex === 7) { 
+                triggerConfetti(); 
+                document.getElementById('end-btn').style.transform = "scale(0.95)";
+                setTimeout(() => document.getElementById('end-btn').style.transform = "scale(1)", 100);
+                return; 
+            }
+            
+            // Priority: Ghost Town Clock
+            if (currentSlideIndex === 6) { handleGhostTab(); return; }
+
+            // Priority: Chart
             if (currentSlideIndex === 3) {
                 currentVictimIndex = (currentVictimIndex + 1) % victimKeys.length;
                 updateVictimChart(victimKeys[currentVictimIndex]);
                 return;
             }
-            if (currentSlideIndex === 6) { handleGhostTab(); return; }
-            if (currentSlideIndex === 7) { triggerConfetti(); return; }
 
+            // Standard Item Click
             const items = document.querySelectorAll(`#slide-${currentSlideIndex} .interactive-item`);
             if (items.length > 0) {
                 if (interactionIndex >= items.length) interactionIndex = 0;
@@ -728,6 +734,7 @@
             }
         }
 
+        // --- ZOOM & GALLERY ---
         function triggerZoom(mediaArray, title) {
             currentGallery = mediaArray;
             currentMediaIndex = 0;
@@ -742,6 +749,7 @@
             const zoomText = document.getElementById('zoom-text');
             const currentFile = currentGallery[currentMediaIndex];
 
+            // Update Sidebar Thumbs
             thumbsContainer.innerHTML = '';
             currentGallery.forEach((file, idx) => {
                 const thumb = document.createElement('div');
@@ -759,6 +767,8 @@
                 return;
             }
 
+            // Normal Display
+            zoomText.className = "absolute top-4 left-4 font-mono text-white text-xl bg-black px-2";
             if (currentFile.endsWith('.mp4')) {
                 videoUI.style.display = 'flex'; imgUI.style.display = 'none';
                 document.getElementById('zoom-icon').innerText = '▶';
@@ -783,7 +793,7 @@
             if (currentGallery.length <= 1) return;
             if (direction === 'next') currentMediaIndex = (currentMediaIndex + 1) % currentGallery.length;
             else currentMediaIndex = (currentMediaIndex - 1 + currentGallery.length) % currentGallery.length;
-            updateZoomDisplay();
+            updateZoomDisplay(); // Keeps existing title implicitly by not passing new one
         }
 
         function cycleSelection(direction) {
@@ -803,9 +813,11 @@
             }());
         }
 
+        // --- INPUTS ---
         document.addEventListener('keydown', (e) => {
             const isZoom = document.getElementById('zoom-modal').classList.contains('active');
             
+            // Alt Key Logic
             if (e.key === 'Alt') {
                 e.preventDefault();
                 if (currentSlideIndex === 7) {
@@ -831,11 +843,15 @@
                     if (isZoom) closeZoom(); else triggerAction(); 
                     break;
                 case 'b': case 'B': 
-                    const vp = document.getElementById('viewport');
-                    if (vp.classList.contains('crt-off')) {
+                    const curtain = document.getElementById('blackout-curtain');
+                    if (isSystemOff) {
+                        // REBOOT
                         location.reload(); 
                     } else {
-                        vp.classList.remove('crt-on'); vp.classList.add('crt-off');
+                        // SHUTDOWN
+                        curtain.classList.remove('anim-turn-on');
+                        curtain.classList.add('anim-turn-off');
+                        isSystemOff = true;
                     }
                     break;
             }
