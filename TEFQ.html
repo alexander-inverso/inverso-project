@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEFQ: Jealousy Engine v27.0</title>
+    <title>TEFQ: Jealousy Engine v28.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -33,37 +33,7 @@
 
         .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-        /* --- NEW DYNAMIC CRT SCANLINES --- */
-        .scanlines {
-            position: fixed; inset: 0; pointer-events: none; z-index: 900;
-            background: linear-gradient(
-                to bottom,
-                rgba(255,255,255,0),
-                rgba(255,255,255,0) 50%,
-                rgba(0,0,0,0.2) 50%,
-                rgba(0,0,0,0.2)
-            );
-            background-size: 100% 6px; /* Thicker lines */
-            animation: rolling-scan 8s ease-in-out infinite alternate;
-        }
-        
-        /* The Pixel Grid Overlay */
-        .scanlines::before {
-            content: " "; display: block; position: absolute; inset: 0;
-            background: linear-gradient(90deg, rgba(255,0,0,0.03), rgba(0,255,0,0.01), rgba(0,0,255,0.03));
-            background-size: 3px 100%;
-            pointer-events: none;
-        }
-
-        @keyframes rolling-scan {
-            0% { background-position-y: 0px; }
-            10% { background-position-y: 50px; } /* Slow start */
-            50% { background-position-y: 600px; } /* Fast middle */
-            90% { background-position-y: 650px; } /* Slow down */
-            100% { background-position-y: 700px; } /* End */
-        }
-
-        /* --- CRT ON/OFF ANIMATIONS --- */
+        /* --- CRT ANIMATIONS (Viewport Wrapper) --- */
         #viewport {
             position: relative; width: 100%; height: 100%;
             perspective: 1000px;
@@ -72,7 +42,6 @@
             will-change: transform, filter;
         }
 
-        /* Power ON Sequence */
         .crt-on { animation: turnOn 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
         @keyframes turnOn {
             0% { transform: scale(0.001, 0.001); filter: brightness(3); opacity: 1; }
@@ -80,7 +49,6 @@
             100% { transform: scale(1, 1); filter: brightness(1); opacity: 1; }
         }
 
-        /* Power OFF Sequence */
         .crt-off { animation: turnOff 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
         @keyframes turnOff {
             0% { transform: scale(1, 1); filter: brightness(1); opacity: 1; }
@@ -102,7 +70,27 @@
         .slide.active { transform: translateY(0); z-index: 10; }
         .slide.future { transform: translateY(100%); z-index: 20; }
 
-        /* --- HUD & NARRATIVE --- */
+        /* --- UI ELEMENTS --- */
+        /* SCANLINES 3.0: Thicker, Transparent, Dynamic Motion */
+        .scanlines {
+            position: fixed; inset: 0; pointer-events: none; z-index: 900;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%, /* Reduced opacity */
+                rgba(0,0,0,0.1) 
+            );
+            background-size: 100% 6px; /* Thicker lines */
+            animation: scan-drift 8s ease-in-out infinite alternate;
+        }
+        
+        @keyframes scan-drift {
+            0% { background-position-y: 0px; }
+            100% { background-position-y: 100px; }
+        }
+
+        /* Narrative Bar */
         .narrative-container {
             position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
             width: 80%; max-width: 800px;
@@ -115,6 +103,7 @@
         }
         .narrative-label { color: var(--accent-color); font-weight: bold; text-transform: uppercase; margin-right: 10px; }
 
+        /* HUD */
         .hud-container {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             width: 95%; max-width: 1400px; height: 40px;
@@ -125,20 +114,27 @@
         .hud-label { background: black; color: white; height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; }
         .hud-track { flex-grow: 1; height: 100%; background: #e5e5e5; position: relative; overflow: hidden; }
         
-        /* Bar with Smooth Transition */
+        /* Smooth Progress Bar */
         .hud-bar { 
             height: 100%; width: 0%; 
             background: var(--accent-color); 
             position: relative; 
-            transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1); /* Smooth interpolation */
+            transition: width 6s ease-out; /* Slow movement */
         }
-        
         .hud-bar.hazard-bg {
             background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 10px, transparent 10px, transparent 20px);
             background-size: 28px 28px; animation: moveStripes 1s linear infinite;
         }
         @keyframes moveStripes { from { background-position: 0 0; } to { background-position: 56px 0; } }
+        
         .hud-value { background: black; color: var(--accent-color); height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; min-width: 160px; justify-content: flex-end; }
+        
+        /* Page Counter */
+        .page-counter {
+            background: var(--accent-color); color: black; height: 100%;
+            display: flex; align-items: center; padding: 0 12px;
+            font-weight: 900; border-left: 2px solid black;
+        }
 
         /* --- CARDS & LISTS --- */
         .brutalist-card {
@@ -157,6 +153,15 @@
         .bullet-list li { margin-bottom: 0.5rem; display: flex; align-items: flex-start; }
         .bullet-list li::before { content: ">>"; color: var(--accent-color); background: black; margin-right: 8px; padding: 0 4px; font-weight: bold; font-size: 0.8rem; }
 
+        /* Chart */
+        .roi-panel { background: #111; border: 2px solid var(--accent-color); color: var(--accent-color); padding: 0.5rem 1rem; font-family: 'JetBrains Mono', monospace; display: flex; flex-direction: column; justify-content: center; height: 80px; }
+        .roi-panel.victim { border-color: #444; color: #666; }
+        .roi-value { font-size: 2rem; font-weight: 800; line-height: 1; }
+        .roi-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        
+        .victim-btn { border: 3px solid black; background: white; padding: 1rem; text-align: left; font-weight: bold; cursor: pointer; transition: all 0.2s; margin-bottom: 0.5rem; position: relative; }
+        .victim-btn.active { background: black; color: var(--accent-color); border-color: black; transform: translate(4px, 0); box-shadow: -4px 0 0 var(--accent-color); }
+
         /* --- ZOOM OVERLAY --- */
         .zoom-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 15000;
@@ -172,14 +177,6 @@
         .play-indicator { font-size: 8rem; color: var(--accent-color); animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
 
-        /* Chart */
-        .roi-panel { background: #111; border: 2px solid var(--accent-color); color: var(--accent-color); padding: 0.5rem 1rem; font-family: 'JetBrains Mono', monospace; display: flex; flex-direction: column; justify-content: center; height: 80px; }
-        .roi-panel.victim { border-color: #444; color: #666; }
-        .roi-value { font-size: 2rem; font-weight: 800; line-height: 1; }
-        .roi-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-        .victim-btn { border: 3px solid black; background: white; padding: 1rem; text-align: left; font-weight: bold; cursor: pointer; transition: all 0.2s; margin-bottom: 0.5rem; }
-        .victim-btn.active { background: black; color: var(--accent-color); border-color: black; transform: translate(4px, 0); box-shadow: -4px 0 0 var(--accent-color); }
-
         /* Winner UI */
         .winner-banner { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 5000; align-items: center; justify-content: center; }
         .winner-frame { font-size: 10vw; font-weight: 900; border: 20px solid black; padding: 20px 60px; background: var(--accent-color); transform: rotate(-3deg); box-shadow: 10px 10px 0px black; width: fit-content; }
@@ -189,8 +186,49 @@
         @keyframes shake { 0% { transform: translate(0, 0) rotate(0deg); } 20% { transform: translate(3px, 3px) rotate(1deg); } 40% { transform: translate(3px, -3px) rotate(1deg); } 60% { transform: translate(2px, 2px) rotate(0deg); } 80% { transform: translate(2px, -2px) rotate(-1deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
         .hero-badge { border: 4px solid black; background: white; padding: 8px 16px; font-weight: 800; font-family: 'JetBrains Mono', monospace; transform: rotate(-3deg); box-shadow: 4px 4px 0px rgba(0,0,0,0.2); margin-bottom: 2rem; }
         .instruction-toast { position: fixed; bottom: 80px; right: 20px; background: black; color: white; padding: 8px 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 20001; }
-        .smoke-particle { position: fixed; background: radial-gradient(circle, rgba(80,80,80,0.9) 0%, rgba(20,20,20,0) 70%); border-radius: 50%; pointer-events: none; z-index: 16000; animation: smokeRise 2s forwards; filter: blur(4px); }
-        @keyframes smokeRise { 0% { transform: scale(0.5) translate(0, 0); opacity: 0.8; } 100% { transform: scale(3) translate(var(--drift), -120px); opacity: 0; } }
+        
+        /* Smoke */
+        .smoke-particle { position: fixed; background: radial-gradient(circle, rgba(50,50,50,0.9) 0%, rgba(0,0,0,0) 70%); border-radius: 50%; pointer-events: none; z-index: 16000; animation: smokeRise 2s forwards; filter: blur(4px); }
+        @keyframes smokeRise { 0% { transform: scale(0.5) translate(0, 0); opacity: 0.8; } 100% { transform: scale(3) translate(var(--drift), -100px); opacity: 0; } }
+
+        /* --- CLOCK & GHOST TOWN --- */
+        .clock-face {
+            width: 300px; height: 300px;
+            border: 6px solid #000; border-radius: 50%;
+            position: relative; background: white;
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.2);
+        }
+        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; background: black; }
+        #hand-thin { width: 2px; height: 45%; margin-left: -1px; background: red; }
+        #hand-large { width: 6px; height: 40%; margin-left: -3px; }
+        
+        .pov-sticker {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg) scale(0);
+            background: #facc15; border: 4px solid black; padding: 20px;
+            font-family: 'JetBrains Mono', monospace; font-weight: 900; font-size: 2rem;
+            text-align: center; box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 60;
+        }
+        .pov-sticker.visible { transform: translate(-50%, -50%) rotate(-10deg) scale(1); }
+
+        .warp-msg {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.9);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 70;
+        }
+        .warp-msg.visible { opacity: 1; }
+        .warp-text {
+            color: #facc15; font-size: 5rem; font-weight: 900; text-align: center;
+            border: 10px solid #facc15; padding: 40px; transform: rotate(5deg);
+        }
+        
+        /* Multiple files indicator */
+        .multi-indicator {
+            position: absolute; top: 10px; right: 10px;
+            background: black; color: white; font-family: 'JetBrains Mono';
+            font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -225,12 +263,13 @@
             <div id="jealousy-bar" class="hud-bar hazard-bg"></div>
         </div>
         <div id="jealousy-val" class="hud-value">0% JEALOUS</div>
+        <div class="page-counter" id="page-counter">01 / 07</div>
     </div>
 
     <div id="viewport" class="crt-on">
         <!-- 00. HERO -->
         <section id="slide-0" class="slide active" data-progress="10" data-thread="The Hook" data-narrative="You chose boring. We chose chaos.">
-            <div class="hero-badge">ELECTIVES ANALYSIS v27.0</div>
+            <div class="hero-badge">ELECTIVES ANALYSIS v28.0</div>
             <h1 class="text-9xl font-black mb-2 tracking-tighter">TEFQ</h1>
             <h2 class="text-4xl font-thin text-gray-500">JUST TO MAKE YOU <span class="bg-yellow-400 text-black px-2 font-bold">JEALOUS</span>.</h2>
             <div class="mt-16 font-mono text-sm text-gray-400 animate-bounce">[PRESS DOWN TO BEGIN]</div>
@@ -241,21 +280,21 @@
             <div class="w-full max-w-5xl">
                 <h3 class="text-6xl font-black mb-12 border-b-4 border-black pb-4">EVIDENCE LOCKER</h3>
                 <div class="grid grid-cols-2 gap-8 font-mono text-sm">
-                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>01. DANGER</strong><br>Fire & Explosions.</div>
-                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>02. THE SUFFERING ROI</strong><br>Calculated Misery.</div>
+                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>01. HIGH ENERGY PHYSICS</strong><br>Fire, explosions, and near-death experiences.</div>
+                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>02. ACADEMIC SUPERIORITY</strong><br>Calculated Misery vs Empirical Efficiency.</div>
                     <div class="p-4 border-l-8 border-black bg-gray-50"><strong>03. COMFORT OPS</strong><br>Food & Furniture.</div>
-                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>04. JOY</strong><br>Bubbles & Pranks.</div>
-                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>05. THE OTHERS</strong><br>Why your life is sad.</div>
+                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>04. MEDIA DOMINANCE</strong><br>Clout, Content, and Primates.</div>
+                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>05. THE GHOST TOWN</strong><br>Why your life is sad.</div>
                     <div class="p-4 border-l-8 border-black bg-gray-50"><strong>06. VERDICT</strong><br>Submission.</div>
                 </div>
             </div>
         </section>
 
-        <!-- 02. DANGER -->
-        <section id="slide-2" class="slide future" data-progress="35" data-thread="Spectacle" data-narrative="PE students run. We create controlled disasters.">
+        <!-- 02. HIGH ENERGY -->
+        <section id="slide-2" class="slide future" data-progress="35" data-thread="Module 01" data-narrative="PE students run. We create controlled disasters.">
             <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                 <div class="col-span-4 flex flex-col justify-center h-full">
-                    <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">HIGH ENERGY PHYSICS</h3>
+                    <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">HIGH ENERGY</h3>
                     <ul class="bullet-list space-y-4">
                         <li><strong>Safety Literacy:</strong> Survival skills.</li>
                         <li><strong>Magnesium Flare:</strong> Retina damage included.</li>
@@ -273,6 +312,7 @@
                         <div class="card-content font-bold">Magnesium Flare</div>
                     </div>
                     <div class="brutalist-card interactive-item" onclick="triggerZoom(['spill.mp4', 'leidenfrost.mp4'], 'CHAOS')">
+                        <div class="multi-indicator">2 FILES</div>
                         <div class="card-icon text-6xl">⚠️</div>
                         <div class="card-content font-bold">The Spill / Leidenfrost</div>
                     </div>
@@ -285,10 +325,10 @@
         </section>
 
         <!-- 03. EFFICIENCY (ROI) -->
-        <section id="slide-3" class="slide future" data-progress="50" data-thread="The Math" data-narrative="Cake > Cardio. Efficiency is absolute.">
+        <section id="slide-3" class="slide future" data-progress="50" data-thread="Module 02" data-narrative="Cake > Cardio. Efficiency is absolute.">
             <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                 <div class="col-span-4">
-                    <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">ACADEMIC SUPERIORITY</h3>
+                    <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">ACADEMIC ROI</h3>
                     <ul class="bullet-list space-y-4 mb-8">
                         <li><strong>Empirical Efficiency:</strong> Real reactions.</li>
                         <li><strong>Solution Prep:</strong> Mixing acid by hand.</li>
@@ -314,7 +354,7 @@
         </section>
 
         <!-- 04. COMFORT OPS -->
-        <section id="slide-4" class="slide future" data-progress="65" data-thread="Lifestyle" data-narrative="We eat cake in cushioned chairs. Psych students cry on wood.">
+        <section id="slide-4" class="slide future" data-progress="65" data-thread="Module 03" data-narrative="We eat cake in cushioned chairs. Psych students cry on wood.">
             <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                 <div class="col-span-4">
                     <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">COMFORT OPS</h3>
@@ -326,10 +366,12 @@
                 </div>
                 <div class="col-span-8 grid grid-cols-2 gap-8 h-[50vh]">
                     <div class="brutalist-card interactive-item" onclick="triggerZoom(['mug_cake.mp4', 'gum.png'], 'FOOD')">
+                        <div class="multi-indicator">2 FILES</div>
                         <div class="card-icon text-8xl">🧁</div>
                         <div class="card-content font-bold">Consumables Protocol<br><span class="text-green-600">Grade: A+</span></div>
                     </div>
                     <div class="brutalist-card interactive-item" onclick="triggerZoom(['chair_good.png', 'chair_bad.png'], 'CHAIRS')">
+                        <div class="multi-indicator">2 FILES</div>
                         <div class="card-icon text-8xl">🛋️</div>
                         <div class="card-content font-bold">The Throne vs The Wood<br><span class="text-yellow-500">Status: VIP</span></div>
                     </div>
@@ -338,7 +380,7 @@
         </section>
 
         <!-- 05. MEDIA & JOY -->
-        <section id="slide-5" class="slide future" data-progress="80" data-thread="Module 05 & 06" data-narrative="We are the main characters. You are NPCs.">
+        <section id="slide-5" class="slide future" data-progress="80" data-thread="Module 04" data-narrative="We are the main characters. You are NPCs.">
             <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                 <div class="col-span-4">
                     <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">MEDIA & JOY</h3>
@@ -350,6 +392,7 @@
                 </div>
                 <div class="col-span-8 grid grid-cols-2 gap-8 h-[50vh]">
                     <div class="brutalist-card interactive-item" onclick="triggerZoom(['instagram.png', 'valentin_tree.png', 'valentin_screen.png'], 'CLOUT')">
+                        <div class="multi-indicator">3 FILES</div>
                         <div class="card-icon text-8xl">📸</div>
                         <div class="card-content font-bold">Media Dominance</div>
                     </div>
@@ -361,22 +404,38 @@
             </div>
         </section>
 
-        <!-- 06. GHOST TOWN -->
-        <section id="slide-6" class="slide future" data-progress="95" data-thread="Contrast" data-narrative="A moment of silence for those who chose wrong.">
-            <div class="w-full max-w-6xl text-center">
-                <h3 class="text-6xl font-black mb-12 border-b-4 border-black pb-4">THE GHOST TOWN</h3>
-                <div class="grid grid-cols-3 gap-8 font-mono">
-                    <div class="p-8 border-4 border-gray-200 grayscale opacity-50 interactive-item">
-                        <h4 class="text-3xl font-bold text-gray-400 mb-2">IT</h4>
-                        <p class="text-sm">Handwritten SQL.<br>Sadness.</p>
+        <!-- 06. GHOST TOWN (TEMPORAL) -->
+        <section id="slide-6" class="slide future" data-progress="95" data-thread="Module 05" data-narrative="A moment of silence for those who chose wrong.">
+            
+            <!-- STICKER -->
+            <div id="pov-sticker" class="pov-sticker">
+                POV:<br>YOU ARE IN<br>TEFQ CLASS
+            </div>
+
+            <!-- WARP MSG -->
+            <div id="warp-msg" class="warp-msg">
+                <div class="warp-text">TEFQ<br>WARPS<br>TIME</div>
+            </div>
+
+            <div class="w-full max-w-7xl grid grid-cols-2 gap-12 items-center">
+                <!-- Left: List -->
+                <div class="flex flex-col gap-6">
+                    <h3 class="text-5xl font-black border-b-4 border-black pb-4">THE GHOST TOWN</h3>
+                    <div class="interactive-group flex flex-col gap-4 font-mono">
+                        <div class="p-6 border-4 border-gray-200 grayscale opacity-50"><h4 class="text-xl font-bold">IT: Handwritten SQL</h4></div>
+                        <div class="p-6 border-4 border-gray-200 grayscale opacity-50"><h4 class="text-xl font-bold">PE: Thermal Shock</h4></div>
+                        <div class="p-6 border-4 border-gray-200 grayscale opacity-50"><h4 class="text-xl font-bold">FRENCH: 404 Error</h4></div>
                     </div>
-                    <div class="p-8 border-4 border-gray-200 grayscale opacity-50 interactive-item">
-                        <h4 class="text-3xl font-bold text-gray-400 mb-2">PE</h4>
-                        <p class="text-sm">Sweat.<br>Thermal Shock.</p>
+                    <div class="mt-4 bg-black text-white p-4 font-bold text-center blink-text interactive-item">
+                        [ PRESS TAB FOR SILENCE ]
                     </div>
-                    <div class="p-8 border-4 border-gray-200 grayscale opacity-50 interactive-item">
-                        <h4 class="text-3xl font-bold text-gray-400 mb-2">FRENCH</h4>
-                        <p class="text-sm">404 Error.<br>NPC Activity.</p>
+                </div>
+                
+                <!-- Right: Clock -->
+                <div class="flex justify-center">
+                    <div class="clock-face">
+                        <div id="hand-thin" class="hand"></div>
+                        <div id="hand-large" class="hand"></div>
                     </div>
                 </div>
             </div>
@@ -412,16 +471,37 @@
         let chartInstance = null;
         let currentVictimIndex = 0; 
         let interactionIndex = 0;
-        let blackoutState = false;
         
         let currentGallery = [];
         let currentMediaIndex = 0;
-        let smokeInterval = null;
-
+        
+        // Ghost Town State
+        let ghostState = 0; // 0:Idle, 1:Normal, 2:Warp, 3:Done
+        let ghostInterval = null;
+        let clockSeconds = 0; // Simulated time in seconds
+        
         // --- INIT ---
         window.onload = function() {
+            // Clock Ticks
+            const face = document.querySelector('.clock-face');
+            for(let i=0; i<60; i++) {
+                const tick = document.createElement('div');
+                tick.style.position = 'absolute';
+                tick.style.width = i % 5 === 0 ? '4px' : '2px';
+                tick.style.height = i % 5 === 0 ? '15px' : '8px';
+                tick.style.background = 'black';
+                tick.style.top = '10px';
+                tick.style.left = '50%';
+                tick.style.transformOrigin = '0 140px'; 
+                tick.style.transform = `rotate(${i * 6}deg)`;
+                face.appendChild(tick);
+            }
             document.getElementById('viewport').classList.add('crt-on');
             updateNarrative(0);
+            updatePageCounter(0);
+            
+            // Start Jealousy Monitor
+            setInterval(monitorJealousyColor, 100);
         };
 
         // --- NAVIGATION ---
@@ -429,9 +509,8 @@
             if (index < 0 || index >= totalSlides) return;
             if (document.getElementById('zoom-modal').classList.contains('active')) return;
 
-            // Handle Smoke
-            if (currentSlideIndex === 3 && index !== 3) stopSmoke();
-            if (index === 3) startSmoke();
+            // Reset Ghost Town if leaving
+            if (currentSlideIndex === 6 && index !== 6) resetGhostTown();
 
             const slides = document.querySelectorAll('section.slide');
             slides.forEach((slide, i) => {
@@ -445,8 +524,8 @@
             interactionIndex = 0;
             updateInteractionFocus();
             updateNarrative(index);
+            updatePageCounter(index);
 
-            // Progress Logic
             const activeSlide = document.getElementById(`slide-${index}`);
             const progress = parseFloat(activeSlide.getAttribute('data-progress'));
             updateJealousy(progress);
@@ -456,62 +535,126 @@
 
         function updateNarrative(index) {
             const slide = document.getElementById(`slide-${index}`);
-            const thread = slide.getAttribute('data-thread');
-            const text = slide.getAttribute('data-narrative');
-            document.getElementById('narrative-thread').innerText = thread;
-            document.getElementById('narrative-text').innerText = text;
+            document.getElementById('narrative-thread').innerText = slide.getAttribute('data-thread');
+            document.getElementById('narrative-text').innerText = slide.getAttribute('data-narrative');
         }
 
-        function updateJealousy(targetPercentage) {
+        function updatePageCounter(index) {
+            document.getElementById('page-counter').innerText = `0${index} / 0${totalSlides-1}`;
+        }
+
+        // --- JEALOUSY MONITOR (CONTINUOUS) ---
+        function updateJealousy(target) {
+            const bar = document.getElementById('jealousy-bar');
+            const num = document.getElementById('jealousy-val');
+            
+            // Slow, continuous transition
+            bar.style.transition = 'width 6s ease-out';
+            bar.style.width = target + '%';
+            
+            // Update Text Number
+            num.innerText = target + '% JEALOUS';
+        }
+
+        function monitorJealousyColor() {
             const bar = document.getElementById('jealousy-bar');
             const num = document.getElementById('jealousy-val');
             const viewport = document.getElementById('viewport');
             
-            bar.className = 'hud-bar hazard-bg'; 
-            bar.style.width = targetPercentage + '%';
-            
-            // Calculate color and VFX based on TARGET, not current
-            let color = 'var(--accent-color)';
-            document.body.classList.remove('screen-shake');
+            // Get computed width percentage approx
+            const parentWidth = bar.parentElement.clientWidth;
+            const width = bar.clientWidth;
+            const percent = (width / parentWidth) * 100;
 
-            if (targetPercentage > 60) color = 'var(--danger-color)';
-            if (targetPercentage >= 95) {
+            let color = 'var(--accent-color)';
+            let shake = false;
+
+            if (percent > 60) color = 'var(--danger-color)';
+            if (percent >= 95) {
                 color = 'var(--critical-color)';
-                viewport.classList.add('screen-shake');
+                shake = true;
             }
 
             bar.style.backgroundColor = color;
-            num.innerText = targetPercentage + '% JEALOUS';
-            
-            if (targetPercentage === 100) num.style.color = 'var(--critical-color)';
+            if (percent >= 99) num.style.color = 'var(--critical-color)';
             else num.style.color = 'var(--accent-color)';
+
+            if (shake) viewport.classList.add('screen-shake');
+            else viewport.classList.remove('screen-shake');
+        }
+
+        // --- GHOST TOWN LOGIC ---
+        function handleGhostTab() {
+            if (ghostState !== 0) return; // Already running or done
+            ghostState = 1;
+            
+            const thin = document.getElementById('hand-thin');
+            const large = document.getElementById('hand-large');
+            
+            // Start Loop
+            let speedMultiplier = 1; // 1 = Normal
+            
+            ghostInterval = setInterval(() => {
+                // Increment time
+                clockSeconds += (0.1 * speedMultiplier); // 100ms ticks
+                
+                // Update rotation
+                // Seconds hand: 6 deg per second
+                thin.style.transform = `rotate(${clockSeconds * 6}deg)`;
+                // Minutes hand: 0.1 deg per second (6 deg per minute)
+                large.style.transform = `rotate(${clockSeconds * 0.1}deg)`;
+
+                // Phase 2: Sticker + Warp (at 5 seconds real time)
+                if (clockSeconds > 5 && ghostState === 1) {
+                    ghostState = 2;
+                    document.getElementById('pov-sticker').classList.add('visible');
+                    speedMultiplier = 20; // WARP SPEED
+                }
+
+                // Phase 3: End (at 60 simulated seconds)
+                if (clockSeconds >= 60 && ghostState === 2) {
+                    ghostState = 3;
+                    clearInterval(ghostInterval);
+                    document.getElementById('warp-msg').classList.add('visible');
+                }
+
+            }, 100); // Update every 100ms
+        }
+
+        function resetGhostTown() {
+            clearInterval(ghostInterval);
+            ghostState = 0;
+            clockSeconds = 0;
+            document.getElementById('hand-thin').style.transform = 'rotate(0deg)';
+            document.getElementById('hand-large').style.transform = 'rotate(0deg)';
+            document.getElementById('pov-sticker').classList.remove('visible');
+            document.getElementById('warp-msg').classList.remove('visible');
         }
 
         // --- CHART & SMOKE ---
         function spawnSmoke() {
             if (currentSlideIndex !== 3 || !chartInstance) return;
-            const meta = chartInstance.getDatasetMeta(1); // Victim dataset
-            if (!meta || !meta.data.length) return;
-            meta.data.forEach(bar => {
-                const { x, y } = bar;
-                const canvas = document.getElementById('dataChart');
-                const rect = canvas.getBoundingClientRect();
-                const p = document.createElement('div');
-                p.classList.add('smoke-particle');
-                const size = Math.random() * 20 + 15;
-                const drift = (Math.random() - 0.5) * 50 + 'px';
-                p.style.width = `${size}px`; p.style.height = `${size}px`;
-                p.style.left = `${rect.left + x - (size/2)}px`;
-                p.style.top = `${rect.top + y - (size/2)}px`;
-                p.style.setProperty('--drift', drift);
-                document.body.appendChild(p);
-                setTimeout(() => p.remove(), 2500);
-            });
-        }
-        function startSmoke() { if (smokeInterval) clearInterval(smokeInterval); smokeInterval = setInterval(spawnSmoke, 150); }
-        function stopSmoke() { if (smokeInterval) clearInterval(smokeInterval); }
+            
+            // Find active victim button
+            const activeBtn = document.querySelector('.victim-btn.active');
+            if (!activeBtn) return;
 
-        function calculateROI(stats) { return ((stats.grade + stats.dignity) / stats.suffering).toFixed(1); }
+            const rect = activeBtn.getBoundingClientRect();
+            
+            const p = document.createElement('div');
+            p.classList.add('smoke-particle');
+            const size = Math.random() * 20 + 15;
+            const drift = (Math.random() - 0.5) * 50 + 'px';
+            
+            // Center smoke on button
+            p.style.width = `${size}px`; p.style.height = `${size}px`;
+            p.style.left = `${rect.left + (rect.width/2) - (size/2)}px`;
+            p.style.top = `${rect.top + (rect.height/2) - (size/2)}px`;
+            p.style.setProperty('--drift', drift);
+            
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 2500);
+        }
 
         function initChart() {
             const ctx = document.getElementById('dataChart');
@@ -539,9 +682,12 @@
             document.getElementById('victim-roi').innerText = calculateROI(studentProfiles['it']) + "x";
         }
 
+        function calculateROI(stats) { return ((stats.grade + stats.dignity) / stats.suffering).toFixed(1); }
+
         function updateVictimChart(victimId) {
             document.querySelectorAll('.victim-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`btn-${victimId}`).classList.add('active');
+            spawnSmoke(); // Burst smoke on click
             const victim = studentProfiles[victimId];
             if (!chartInstance) initChart();
             else {
@@ -558,16 +704,15 @@
 
         // --- INTERACTIONS ---
         function triggerAction() {
-            const currentSlideEl = document.getElementById(`slide-${currentSlideIndex}`);
-            
             if (currentSlideIndex === 3) {
                 currentVictimIndex = (currentVictimIndex + 1) % victimKeys.length;
                 updateVictimChart(victimKeys[currentVictimIndex]);
                 return;
             }
+            if (currentSlideIndex === 6) { handleGhostTab(); return; }
             if (currentSlideIndex === 7) { triggerConfetti(); return; }
 
-            const items = currentSlideEl.querySelectorAll('.interactive-item');
+            const items = document.querySelectorAll(`#slide-${currentSlideIndex} .interactive-item`);
             if (items.length > 0) {
                 if (interactionIndex >= items.length) interactionIndex = 0;
                 items[interactionIndex].click();
@@ -576,15 +721,13 @@
 
         function updateInteractionFocus() {
             document.querySelectorAll('.active-focus').forEach(el => el.classList.remove('active-focus'));
-            const currentSlideEl = document.getElementById(`slide-${currentSlideIndex}`);
-            const items = currentSlideEl.querySelectorAll('.interactive-item');
+            const items = document.querySelectorAll(`#slide-${currentSlideIndex} .interactive-item`);
             if (items.length > 0) {
                 if (interactionIndex >= items.length) interactionIndex = 0;
                 items[interactionIndex].classList.add('active-focus');
             }
         }
 
-        // --- ZOOM & GALLERY ---
         function triggerZoom(mediaArray, title) {
             currentGallery = mediaArray;
             currentMediaIndex = 0;
@@ -599,7 +742,6 @@
             const zoomText = document.getElementById('zoom-text');
             const currentFile = currentGallery[currentMediaIndex];
 
-            // Update Thumbs Sidebar
             thumbsContainer.innerHTML = '';
             currentGallery.forEach((file, idx) => {
                 const thumb = document.createElement('div');
@@ -609,12 +751,11 @@
                 thumbsContainer.appendChild(thumb);
             });
 
-            // Logic for REDACTED
             if (title === 'REDACTED') {
                 videoUI.style.display = 'flex'; imgUI.style.display = 'none';
                 document.getElementById('zoom-icon').innerText = '🚫';
                 zoomText.innerText = "ERROR: EVIDENCE REDACTED";
-                zoomText.classList.add('blink-text', 'text-red-500');
+                zoomText.className = "absolute top-4 left-4 font-mono text-red-500 text-xl bg-black px-2 blink-text";
                 return;
             }
 
@@ -645,6 +786,14 @@
             updateZoomDisplay();
         }
 
+        function cycleSelection(direction) {
+            const items = document.querySelectorAll(`#slide-${currentSlideIndex} .interactive-item`);
+            if (items.length === 0) return;
+            if (direction === 'next') interactionIndex = (interactionIndex + 1) % items.length;
+            else interactionIndex = (interactionIndex - 1 + items.length) % items.length;
+            updateInteractionFocus();
+        }
+
         function triggerConfetti() {
             var end = Date.now() + 3000;
             (function frame() {
@@ -654,7 +803,6 @@
             }());
         }
 
-        // --- INPUTS ---
         document.addEventListener('keydown', (e) => {
             const isZoom = document.getElementById('zoom-modal').classList.contains('active');
             
@@ -684,10 +832,10 @@
                     break;
                 case 'b': case 'B': 
                     const vp = document.getElementById('viewport');
-                    if (blackoutState) {
+                    if (vp.classList.contains('crt-off')) {
                         location.reload(); 
                     } else {
-                        vp.classList.remove('crt-on'); vp.classList.add('crt-off'); blackoutState = true;
+                        vp.classList.remove('crt-on'); vp.classList.add('crt-off');
                     }
                     break;
             }
