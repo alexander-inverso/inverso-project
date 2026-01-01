@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEFQ: Jealousy Engine v28.1</title>
+    <title>TEFQ: Jealousy Engine v29.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -33,15 +33,27 @@
 
         .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-        /* --- CRT ANIMATIONS (Viewport Wrapper) --- */
-        #viewport {
-            position: relative; width: 100%; height: 100%;
-            perspective: 1000px;
-            background-color: var(--bg-color);
-            transform-origin: center;
-            will-change: transform, filter;
+        /* --- SYSTEM LAYERS (NEW ARCHITECTURE) --- */
+        
+        /* 1. Blackout Layer (The Quote Screen) */
+        #blackout-layer {
+            position: fixed; inset: 0; background: black; z-index: 30000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 1; transition: opacity 0.5s; pointer-events: auto;
+        }
+        #blackout-layer.hidden-layer { opacity: 0; pointer-events: none; }
+
+        /* 2. System Root (The Container that gets turned ON/OFF) */
+        #system-root {
+            width: 100vw; height: 100vh; position: relative;
+            transform-origin: center; will-change: transform, filter;
+            opacity: 0; /* Default OFF */
         }
 
+        /* 3. Shake Wrapper (The Container that shakes) */
+        #shake-wrapper { width: 100%; height: 100%; position: relative; }
+
+        /* CRT ANIMATIONS */
         .crt-on { animation: turnOn 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
         @keyframes turnOn {
             0% { transform: scale(0.001, 0.001); filter: brightness(3); opacity: 1; }
@@ -72,7 +84,7 @@
 
         /* --- UI ELEMENTS --- */
         .scanlines {
-            position: fixed; inset: 0; pointer-events: none; z-index: 900;
+            position: fixed; inset: 0; pointer-events: none; z-index: 31000; /* Above blackout */
             background: linear-gradient(
                 to bottom,
                 rgba(255,255,255,0),
@@ -83,26 +95,22 @@
             background-size: 100% 6px;
             animation: scan-drift 8s ease-in-out infinite alternate;
         }
-        
-        @keyframes scan-drift {
-            0% { background-position-y: 0px; }
-            100% { background-position-y: 100px; }
-        }
+        @keyframes scan-drift { 0% { background-position-y: 0px; } 100% { background-position-y: 100px; } }
 
         .narrative-container {
-            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
             width: 80%; max-width: 800px;
             background: black; color: white; padding: 10px 20px;
             font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
             border-left: 4px solid var(--accent-color);
             display: flex; justify-content: space-between; align-items: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            z-index: 20000; transition: opacity 0.3s;
+            z-index: 20000;
         }
         .narrative-label { color: var(--accent-color); font-weight: bold; text-transform: uppercase; margin-right: 10px; }
 
         .hud-container {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             width: 95%; max-width: 1400px; height: 40px;
             display: flex; align-items: center; gap: 0;
             z-index: 20000; border: 2px solid black; background: white;
@@ -111,12 +119,7 @@
         .hud-label { background: black; color: white; height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; }
         .hud-track { flex-grow: 1; height: 100%; background: #e5e5e5; position: relative; overflow: hidden; }
         
-        .hud-bar { 
-            height: 100%; width: 0%; 
-            background: var(--accent-color); 
-            position: relative; 
-            transition: width 6s ease-out;
-        }
+        .hud-bar { height: 100%; width: 0%; background: var(--accent-color); position: relative; transition: width 1s linear; }
         .hud-bar.hazard-bg {
             background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 10px, transparent 10px, transparent 20px);
             background-size: 28px 28px; animation: moveStripes 1s linear infinite;
@@ -124,11 +127,7 @@
         @keyframes moveStripes { from { background-position: 0 0; } to { background-position: 56px 0; } }
         
         .hud-value { background: black; color: var(--accent-color); height: 100%; display: flex; align-items: center; padding: 0 16px; font-weight: 800; min-width: 160px; justify-content: flex-end; }
-        .page-counter {
-            background: var(--accent-color); color: black; height: 100%;
-            display: flex; align-items: center; padding: 0 12px;
-            font-weight: 900; border-left: 2px solid black;
-        }
+        .page-counter { background: var(--accent-color); color: black; height: 100%; display: flex; align-items: center; padding: 0 12px; font-weight: 900; border-left: 2px solid black; }
 
         /* --- CARDS & LISTS --- */
         .brutalist-card {
@@ -143,7 +142,8 @@
         .brutalist-card:active, .brutalist-card.action-pressed {
             transform: translate(2px, 2px); box-shadow: 2px 2px 0px var(--accent-color);
         }
-
+        .brutalist-card.is-empty { border-color: #ef4444; opacity: 0.8; }
+        .brutalist-card.is-empty .card-icon { background: #fee2e2; color: #ef4444; }
         .card-icon { font-size: 4rem; background: #f3f4f6; flex-grow: 1; display: flex; align-items: center; justify-content: center; border-bottom: 3px solid black; }
         .card-content { padding: 1rem; background: white; }
         
@@ -156,7 +156,6 @@
         .roi-panel.victim { border-color: #444; color: #666; }
         .roi-value { font-size: 2rem; font-weight: 800; line-height: 1; }
         .roi-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-        
         .victim-btn { border: 3px solid black; background: white; padding: 1rem; text-align: left; font-weight: bold; cursor: pointer; transition: all 0.1s; margin-bottom: 0.5rem; position: relative; }
         .victim-btn.active { background: black; color: var(--accent-color); border-color: black; transform: translate(4px, 0); box-shadow: -4px 0 0 var(--accent-color); }
         .victim-btn.active-press { transform: scale(0.98); background: var(--accent-color); color: black; }
@@ -168,14 +167,23 @@
         }
         .zoom-overlay.active { display: flex; }
         
+        /* Zoom Cover / Placeholder Logic */
+        .zoom-cover {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.4); 
+            display: flex; align-items: center; justify-content: center;
+            z-index: 50; cursor: pointer; transition: opacity 0.2s;
+        }
+        .zoom-cover:hover { background: rgba(0,0,0,0.2); }
+        .zoom-cover.hidden { opacity: 0; pointer-events: none; }
+        .zoom-cover-emoji { font-size: 8rem; filter: drop-shadow(0 0 10px black); transition: transform 0.2s; }
+        .zoom-cover:hover .zoom-cover-emoji { transform: scale(1.1); }
+
         #zoom-thumbs { display: flex; flex-direction: column; gap: 1rem; max-height: 80vh; overflow-y: auto; width: 80px; flex-shrink: 0; }
         .zoom-thumb { width: 80px; height: 80px; border: 2px solid #333; background: #111; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #666; cursor: pointer; transition: all 0.2s; }
         .zoom-thumb.active { border-color: var(--accent-color); color: white; background: #222; transform: scale(1.05); box-shadow: 4px 4px 0px var(--accent-color); }
 
         .zoom-content { flex-grow: 1; max-width: 1200px; aspect-ratio: 16/9; background: #111; border: 4px solid var(--accent-color); position: relative; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 100px rgba(250, 204, 21, 0.1); }
-        .play-indicator { font-size: 8rem; color: var(--accent-color); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
-
+        
         /* Winner UI */
         .winner-banner { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 5000; align-items: center; justify-content: center; }
         .winner-frame { font-size: 10vw; font-weight: 900; border: 20px solid black; padding: 20px 60px; background: var(--accent-color); transform: rotate(-3deg); box-shadow: 10px 10px 0px black; width: fit-content; }
@@ -184,273 +192,240 @@
         .screen-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
         @keyframes shake { 0% { transform: translate(0, 0) rotate(0deg); } 20% { transform: translate(3px, 3px) rotate(1deg); } 40% { transform: translate(3px, -3px) rotate(1deg); } 60% { transform: translate(2px, 2px) rotate(0deg); } 80% { transform: translate(2px, -2px) rotate(-1deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
         .hero-badge { border: 4px solid black; background: white; padding: 8px 16px; font-weight: 800; font-family: 'JetBrains Mono', monospace; transform: rotate(-3deg); box-shadow: 4px 4px 0px rgba(0,0,0,0.2); margin-bottom: 2rem; }
-        .instruction-toast { position: fixed; bottom: 80px; right: 20px; background: black; color: white; padding: 8px 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 20001; }
         
         /* Smoke */
         .smoke-particle { position: fixed; background: radial-gradient(circle, rgba(50,50,50,0.9) 0%, rgba(0,0,0,0) 70%); border-radius: 50%; pointer-events: none; z-index: 16000; animation: smokeRise 2s forwards; filter: blur(4px); }
         @keyframes smokeRise { 0% { transform: scale(0.5) translate(0, 0); opacity: 0.8; } 100% { transform: scale(3) translate(var(--drift), -100px); opacity: 0; } }
 
-        /* --- CLOCK & GHOST TOWN --- */
-        .clock-face {
-            width: 300px; height: 300px;
-            border: 6px solid #000; border-radius: 50%;
-            position: relative; background: white;
-            box-shadow: 10px 10px 0px rgba(0,0,0,0.2);
-            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-        }
-        /* Broken State */
-        .clock-face.broken {
-            transform: translateY(150px) rotate(25deg);
-        }
-
-        .crack-overlay {
-            position: absolute; inset: 0; pointer-events: none; opacity: 0;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 200px; color: rgba(0,0,0,0.8); z-index: 100;
-            text-shadow: 2px 2px 0px white;
-        }
-        .clock-face.broken .crack-overlay { opacity: 1; }
-
-        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; background: black; transition: transform 0.1s linear; }
-        #hand-thin { width: 4px; height: 45%; margin-left: -2px; background: #ef4444; }
-        #hand-large { width: 8px; height: 40%; margin-left: -4px; }
+        /* Clock */
+        .clock-face { width: 300px; height: 300px; border: 6px solid #000; border-radius: 50%; position: relative; background: white; box-shadow: 10px 10px 0px rgba(0,0,0,0.2); transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        .clock-face.broken { transform: translateY(150px) rotate(25deg); }
         
-        .pov-sticker {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg) scale(0);
-            background: #facc15; border: 4px solid black; padding: 20px;
-            font-family: 'JetBrains Mono', monospace; font-weight: 900; font-size: 2rem;
-            text-align: center; box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 60;
-        }
+        .crack-overlay { position: absolute; inset: 0; pointer-events: none; opacity: 0; display: flex; align-items: center; justify-content: center; z-index: 100; font-family: monospace; font-weight: bold; font-size: 80px; color: black; line-height: 0.8; }
+        .clock-face.broken .crack-overlay { opacity: 1; }
+        
+        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; background: black; transition: transform 0.1s linear; }
+        #hand-thin { width: 4px; height: 45%; margin-left: -2px; background: #ef4444; } /* SECONDS */
+        #hand-large { width: 8px; height: 40%; margin-left: -4px; } /* MINUTES */
+        
+        .pov-sticker { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg) scale(0); background: #facc15; border: 4px solid black; padding: 20px; font-family: 'JetBrains Mono', monospace; font-weight: 900; font-size: 2rem; text-align: center; box-shadow: 10px 10px 0px rgba(0,0,0,0.5); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 60; }
         .pov-sticker.visible { transform: translate(-50%, -50%) rotate(-10deg) scale(1); }
         
-        /* Multiple files indicator */
-        .multi-indicator {
-            position: absolute; top: 10px; right: 10px;
-            background: black; color: white; font-family: 'JetBrains Mono';
-            font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;
-        }
+        /* DYNAMIC TAGS */
+        .multi-indicator { position: absolute; top: 10px; right: 10px; background: black; color: white; font-family: 'JetBrains Mono'; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; z-index: 5; }
         
-        .list-item-active {
-            background: black !important; color: white !important; border-color: var(--accent-color) !important;
-            transform: scale(0.98);
-        }
-
-        .defeat-btn {
-            transition: transform 0.1s;
-        }
-        .defeat-btn:active, .defeat-btn.active-press {
-            transform: scale(0.95) !important;
-            background-color: #facc15 !important;
-        }
+        .list-item-active { background: black !important; color: white !important; border-color: var(--accent-color) !important; transform: scale(0.98); }
+        .defeat-btn { transition: transform 0.1s; }
+        .defeat-btn:active, .defeat-btn.active-press { transform: scale(0.95) !important; background-color: #facc15 !important; }
     </style>
 </head>
 <body>
+
+    <script>
+        // --- MANIFEST CONFIG ---
+        const MEDIA_ROOT = "./TEFQ Media";
+        const MEDIA_MANIFEST = {
+            "fire": { folder: "01_Fire", files: ["rainbow_flame.mp4"], title: "RAINBOW FLAME" },
+            "flare": { folder: "02_Flare", files: ["magnesium.mp4"], title: "MAGNESIUM FLARE" },
+            "chaos": { folder: "03_Spill", files: ["spill.mp4", "leidenfrost.mp4"], title: "CHAOS PROTOCOL" },
+            "boom": { folder: "04_Foam", files: ["foam_bomb.mp4"], title: "FOAM BOMB" },
+            "food": { folder: "05_Food", files: ["mug_cake.mp4", "gum.png"], title: "CONSUMABLES" },
+            "chairs": { folder: "06_Chairs", files: ["chair_good.png", "chair_bad.png"], title: "INFRASTRUCTURE" },
+            "clout": { folder: "07_Clout", files: ["instagram.png", "valentin.png", "screen.png"], title: "MEDIA DOMINANCE" },
+            "redacted": { folder: "08_Evidence", files: [], title: "SCISSOR BUBBLES" }
+        };
+    </script>
 
     <div class="scanlines"></div>
     <div id="toast" class="instruction-toast">ACTION TRIGGERED</div>
     <div id="winner-ui" class="winner-banner"><div class="winner-frame">TEFQ WINS</div></div>
 
-    <div id="zoom-modal" class="zoom-overlay">
-        <div id="zoom-thumbs"></div>
-        <div class="zoom-content" id="zoom-frame">
-            <div id="zoom-video-ui" class="flex flex-col items-center w-full h-full justify-center">
-                <div id="zoom-icon" class="play-indicator">▶</div>
-                <div id="zoom-text" class="absolute top-4 left-4 font-mono text-white text-xl bg-black px-2">PLAYING FILE</div>
-                <div class="absolute bottom-0 left-0 h-2 bg-yellow-400 w-0 transition-all duration-[5000ms] ease-linear" id="zoom-bar"></div>
-            </div>
-            <img id="zoom-img" src="" class="w-full h-full object-contain hidden" onerror="this.style.display='none'; document.getElementById('zoom-video-ui').style.display='flex';">
-        </div>
-        <div class="fixed bottom-10 text-white font-mono text-sm bg-black px-4 py-2 border border-white">
-            [↑/↓] NEXT FILE &nbsp;|&nbsp; [TAB] CLOSE
-        </div>
+    <div id="blackout-layer">
+        <div class="font-mono text-gray-400 text-xl italic mb-8">"Hierarchy is not a social construct.<br>It is an output of competence."</div>
+        <div class="text-white font-black text-4xl animate-pulse">[ PRESS B TO BEGIN ]</div>
     </div>
 
-    <div class="narrative-container" id="narrative-ui">
-        <div><span class="narrative-label">THREAD:</span> <span id="narrative-thread">LOADING...</span></div>
-        <div class="text-gray-400" id="narrative-text">...</div>
-    </div>
-
-    <div class="hud-container">
-        <div class="hud-label">AUDIENCE STATUS</div>
-        <div class="hud-track">
-            <div id="jealousy-bar" class="hud-bar hazard-bg"></div>
-        </div>
-        <div id="jealousy-val" class="hud-value">0% JEALOUS</div>
-        <div class="page-counter" id="page-counter">01 / 07</div>
-    </div>
-
-    <div id="viewport" class="crt-on">
-        <section id="slide-0" class="slide active" data-progress="10" data-thread="The Hook" data-narrative="You chose boring. We chose chaos.">
-            <div class="hero-badge">ELECTIVES ANALYSIS v28.1</div>
-            <h1 class="text-9xl font-black mb-2 tracking-tighter">TEFQ</h1>
-            <h2 class="text-4xl font-thin text-gray-500">JUST TO MAKE YOU <span class="bg-yellow-400 text-black px-2 font-bold">JEALOUS</span>.</h2>
-            <div class="mt-16 font-mono text-sm text-gray-400 animate-bounce">[PRESS DOWN TO BEGIN]</div>
-        </section>
-
-        <section id="slide-1" class="slide future" data-progress="20" data-thread="The Roadmap" data-narrative="We have categorized our superiority into 6 modules.">
-            <div class="w-full max-w-5xl">
-                <h3 class="text-6xl font-black mb-12 border-b-4 border-black pb-4">EVIDENCE LOCKER</h3>
-                <div class="grid grid-cols-2 gap-8 font-mono text-sm">
-                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>01. HIGH ENERGY PHYSICS</strong><br>Fire, explosions, and near-death experiences.</div>
-                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>02. ACADEMIC SUPERIORITY</strong><br>Calculated Misery vs Empirical Efficiency.</div>
-                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>03. COMFORT OPS</strong><br>Food & Furniture.</div>
-                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>04. MEDIA DOMINANCE</strong><br>Clout, Content, and Primates.</div>
-                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>05. THE GHOST TOWN</strong><br>Why your life is sad.</div>
-                    <div class="p-4 border-l-8 border-black bg-gray-50"><strong>06. VERDICT</strong><br>Submission.</div>
-                </div>
-            </div>
-        </section>
-
-        <section id="slide-2" class="slide future" data-progress="35" data-thread="Module 01" data-narrative="PE students run. We create controlled disasters.">
-            <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
-                <div class="col-span-4 flex flex-col justify-center h-full">
-                    <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">HIGH ENERGY</h3>
-                    <ul class="bullet-list space-y-4">
-                        <li><strong>Safety Literacy:</strong> Survival skills.</li>
-                        <li><strong>Magnesium Flare:</strong> Retina damage included.</li>
-                        <li><strong>The Spill:</strong> "The Idiots with Fire".</li>
-                        <li><strong>Leidenfrost Effect:</strong> Chaos in the lab.</li>
-                    </ul>
-                </div>
-                <div class="col-span-8 grid grid-cols-2 gap-4 h-[60vh]">
-                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['rainbow_flame.mp4'], 'FIRE')">
-                        <div class="card-icon text-6xl">🔥🌈</div>
-                        <div class="card-content font-bold">Rainbow Flames</div>
-                    </div>
-                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['magnesium.mp4'], 'FLARE')">
-                        <div class="card-icon text-6xl">💥</div>
-                        <div class="card-content font-bold">Magnesium Flare</div>
-                    </div>
-                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['spill.mp4', 'leidenfrost.mp4'], 'CHAOS')">
-                        <div class="multi-indicator">2 FILES</div>
-                        <div class="card-icon text-6xl">⚠️</div>
-                        <div class="card-content font-bold">The Spill / Leidenfrost</div>
-                    </div>
-                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['foam_bomb.mp4'], 'BOOM')">
-                        <div class="card-icon text-6xl">🐘🫧</div>
-                        <div class="card-content font-bold">Foam Bomb</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="slide-3" class="slide future" data-progress="50" data-thread="Module 02" data-narrative="Cake > Cardio. Efficiency is absolute.">
-            <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
-                <div class="col-span-4">
-                    <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">ACADEMIC ROI</h3>
-                    <ul class="bullet-list space-y-4 mb-8">
-                        <li><strong>Empirical Efficiency:</strong> Real reactions.</li>
-                        <li><strong>Solution Prep:</strong> Mixing acid by hand.</li>
-                        <li><strong>The "No 10" Rule:</strong> We eat grades.</li>
-                    </ul>
-                    <div class="interactive-group flex flex-col gap-2">
-                        <div class="victim-btn active interactive-item" id="btn-it">IT STUDENT</div>
-                        <div class="victim-btn interactive-item" id="btn-pe">PE STUDENT</div>
-                        <div class="victim-btn interactive-item" id="btn-psych">PSYCH STUDENT</div>
-                        <div class="victim-btn interactive-item" id="btn-french">FRENCH STUDENT</div>
-                    </div>
-                </div>
-                <div class="col-span-8 flex flex-col gap-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="roi-panel"><div class="roi-label">TEFQ EFFICIENCY</div><div class="roi-value" id="tefq-roi">20.0x</div></div>
-                        <div class="roi-panel victim" id="victim-panel"><div class="roi-label" id="victim-label">IT EFFICIENCY</div><div class="roi-value text-white" id="victim-roi">0.7x</div></div>
-                    </div>
-                    <div class="border-4 border-black bg-white p-4 shadow-[12px_12px_0px_#e5e7eb] h-[400px]">
-                        <canvas id="dataChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="slide-4" class="slide future" data-progress="65" data-thread="Module 03" data-narrative="We eat cake in cushioned chairs. Psych students cry on wood.">
-            <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
-                <div class="col-span-4">
-                    <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">COMFORT OPS</h3>
-                    <ul class="bullet-list space-y-4">
-                        <li><strong>Bio-Hacking:</strong> Edible stoichiometry.</li>
-                        <li><strong>pH Analysis:</strong> Gum experiment.</li>
-                        <li><strong>Infrastructure:</strong> The Chair Gap.</li>
-                    </ul>
-                </div>
-                <div class="col-span-8 grid grid-cols-2 gap-8 h-[50vh]">
-                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['mug_cake.mp4', 'gum.png'], 'FOOD')">
-                        <div class="multi-indicator">2 FILES</div>
-                        <div class="card-icon text-8xl">🧁</div>
-                        <div class="card-content font-bold">Consumables Protocol<br><span class="text-green-600">Grade: A+</span></div>
-                    </div>
-                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['chair_good.png', 'chair_bad.png'], 'CHAIRS')">
-                        <div class="multi-indicator">2 FILES</div>
-                        <div class="card-icon text-8xl">🛋️</div>
-                        <div class="card-content font-bold">The Throne vs The Wood<br><span class="text-yellow-500">Status: VIP</span></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="slide-5" class="slide future" data-progress="80" data-thread="Module 04" data-narrative="We are the main characters. You are NPCs.">
-            <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
-                <div class="col-span-4">
-                    <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">MEDIA & JOY</h3>
-                    <ul class="bullet-list space-y-4">
-                        <li><strong>Valentín:</strong> Dept. Head.</li>
-                        <li><strong>Clout:</strong> School Instagram.</li>
-                        <li><strong>Joy Optimization:</strong> Scissor Bubbles.</li>
-                    </ul>
-                </div>
-                <div class="col-span-8 grid grid-cols-2 gap-8 h-[50vh]">
-                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['instagram.png', 'valentin_tree.png', 'valentin_screen.png'], 'CLOUT')">
-                        <div class="multi-indicator">3 FILES</div>
-                        <div class="card-icon text-8xl">📸</div>
-                        <div class="card-content font-bold">Media Dominance</div>
-                    </div>
-                    <div class="brutalist-card interactive-item" onclick="triggerZoom(['missing_evidence.png'], 'REDACTED')">
-                        <div class="card-icon text-8xl">✂️🫧</div>
-                        <div class="card-content font-bold">Scissor Bubbles<br><span class="text-red-500">EVIDENCE MISSING</span></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="slide-6" class="slide future" data-progress="95" data-thread="Module 05" data-narrative="A moment of silence for those who chose wrong.">
-            
-            <div id="pov-sticker" class="pov-sticker">
-                POV:<br>YOU ARE IN<br>TEFQ CLASS
-            </div>
-
-            <div class="w-full max-w-7xl grid grid-cols-2 gap-12 items-center">
-                <div class="flex flex-col gap-6">
-                    <h3 class="text-5xl font-black border-b-4 border-black pb-4">THE GHOST TOWN</h3>
-                    <div class="interactive-group flex flex-col gap-4 font-mono">
-                        <div class="p-6 border-4 border-gray-200 grayscale opacity-50"><h4 class="text-xl font-bold">IT: Handwritten SQL</h4></div>
-                        <div class="p-6 border-4 border-gray-200 grayscale opacity-50"><h4 class="text-xl font-bold">PE: Thermal Shock</h4></div>
-                        <div class="p-6 border-4 border-gray-200 grayscale opacity-50"><h4 class="text-xl font-bold">FRENCH: 404 Error</h4></div>
-                    </div>
-                    <div class="mt-4 bg-black text-white p-4 font-bold text-center blink-text interactive-item" id="ghost-trigger">
-                        [ HOLD TAB TO ACCELERATE ]
-                    </div>
+    <div id="system-root">
+        
+        <div id="zoom-modal" class="zoom-overlay">
+            <div id="zoom-thumbs"></div>
+            <div class="zoom-content" id="zoom-frame">
+                <div id="zoom-cover" class="zoom-cover" onclick="playMedia()">
+                    <div id="zoom-cover-emoji" class="zoom-cover-emoji">▶️</div>
                 </div>
                 
-                <div class="flex justify-center">
-                    <div class="clock-face" id="main-clock">
-                        <div class="crack-overlay">⚡</div>
-                        <div id="hand-thin" class="hand"></div>
-                        <div id="hand-large" class="hand"></div>
+                <div id="zoom-video-ui" class="flex flex-col items-center w-full h-full justify-center">
+                    <div id="zoom-icon" class="play-indicator opacity-20">▶</div>
+                    <div id="zoom-text" class="absolute top-4 left-4 font-mono text-white text-xl bg-black px-2 z-10">PLAYING FILE</div>
+                    <div class="absolute bottom-0 left-0 h-2 bg-gray-800 w-full z-10">
+                        <div class="h-full bg-yellow-400 w-0" id="zoom-bar"></div>
                     </div>
                 </div>
+                <img id="zoom-img" src="" class="w-full h-full object-contain hidden relative z-0" onerror="this.style.display='none'; document.getElementById('zoom-video-ui').style.display='flex';">
             </div>
-        </section>
+            <div class="fixed bottom-10 text-white font-mono text-sm bg-black px-4 py-2 border border-white">
+                [↑/↓] NEXT FILE &nbsp;|&nbsp; [TAB] CLOSE
+            </div>
+        </div>
 
-        <section id="slide-7" class="slide future" data-progress="100" data-thread="Victory" data-narrative="Press Alt for Verdict. Press Tab to Admit Defeat.">
-            <h1 class="text-9xl font-black mb-8 animate-pulse text-red-600">FATAL ERROR</h1>
-            <div class="p-12 border-8 border-red-600 bg-black text-white shadow-[12px_12px_0px_red] max-w-3xl text-center interactive-item active-focus" onclick="triggerConfetti()">
-                <p class="text-4xl font-bold text-red-500 mb-6">JEALOUSY OVERLOAD</p>
-                <div class="defeat-btn bg-white text-black font-black text-6xl p-6 border-4 border-yellow-400 cursor-pointer hover:scale-105 transition" id="defeat-btn">
-                    [ ADMIT DEFEAT ]
-                </div>
+        <div class="narrative-container" id="narrative-ui">
+            <div><span class="narrative-label">THREAD:</span> <span id="narrative-thread">LOADING...</span></div>
+            <div class="text-gray-400" id="narrative-text">...</div>
+        </div>
+
+        <div class="hud-container">
+            <div class="hud-label">AUDIENCE STATUS</div>
+            <div class="hud-track">
+                <div id="jealousy-bar" class="hud-bar hazard-bg"></div>
             </div>
-        </section>
+            <div id="jealousy-val" class="hud-value">0% JEALOUS</div>
+            <div class="page-counter" id="page-counter">01 / 07</div>
+        </div>
+
+        <div id="shake-wrapper">
+            <div id="viewport">
+                <section id="slide-0" class="slide active" data-progress="0" data-thread="The Hook" data-narrative="You chose boring. We chose chaos.">
+                    <div class="hero-badge">ELECTIVES ANALYSIS v29.1</div>
+                    <h1 class="text-9xl font-black mb-2 tracking-tighter">TEFQ</h1>
+                    <h2 class="text-4xl font-thin text-gray-500">JUST TO MAKE YOU <span class="bg-yellow-400 text-black px-2 font-bold">JEALOUS</span>.</h2>
+                    <div class="mt-16 font-mono text-sm text-gray-400 animate-bounce">[PRESS DOWN TO BEGIN]</div>
+                </section>
+
+                <section id="slide-1" class="slide future" data-progress="20" data-thread="The Roadmap" data-narrative="We have categorized our superiority into 6 modules.">
+                    <div class="w-full max-w-5xl">
+                        <h3 class="text-6xl font-black mb-12 border-b-4 border-black pb-4">EVIDENCE LOCKER</h3>
+                        <div class="grid grid-cols-2 gap-8 font-mono text-sm">
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>01. HIGH ENERGY PHYSICS</strong><br>Fire, explosions, and near-death experiences.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>02. ACADEMIC SUPERIORITY</strong><br>Calculated Misery vs Empirical Efficiency.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>03. COMFORT OPS</strong><br>Food & Furniture.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>04. MEDIA DOMINANCE</strong><br>Clout, Content, and Primates.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>05. THE GHOST TOWN</strong><br>Why your life is sad.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>06. VERDICT</strong><br>Submission.</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="slide-2" class="slide future" data-progress="35" data-thread="Module 01" data-narrative="PE students run. We create controlled disasters.">
+                    <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
+                        <div class="col-span-4 flex flex-col justify-center h-full">
+                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">HIGH ENERGY</h3>
+                            <ul class="bullet-list space-y-4">
+                                <li><strong>Safety Literacy:</strong> Survival skills.</li>
+                                <li><strong>Magnesium Flare:</strong> Retina damage included.</li>
+                                <li><strong>The Spill:</strong> "The Idiots with Fire".</li>
+                                <li><strong>Leidenfrost Effect:</strong> Chaos in the lab.</li>
+                            </ul>
+                        </div>
+                        <div class="col-span-8 grid grid-cols-2 gap-4 h-[60vh]">
+                            <div class="brutalist-card interactive-item" data-media-id="fire"><div class="card-icon text-6xl">🔥🌈</div><div class="card-content font-bold">Rainbow Flames</div></div>
+                            <div class="brutalist-card interactive-item" data-media-id="flare"><div class="card-icon text-6xl">💥</div><div class="card-content font-bold">Magnesium Flare</div></div>
+                            <div class="brutalist-card interactive-item" data-media-id="chaos"><div class="card-icon text-6xl">⚠️</div><div class="card-content font-bold">The Spill / Leidenfrost</div></div>
+                            <div class="brutalist-card interactive-item" data-media-id="boom"><div class="card-icon text-6xl">🐘🫧</div><div class="card-content font-bold">Foam Bomb</div></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="slide-3" class="slide future" data-progress="50" data-thread="Module 02" data-narrative="Cake > Cardio. Efficiency is absolute.">
+                    <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
+                        <div class="col-span-4">
+                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">ACADEMIC ROI</h3>
+                            <ul class="bullet-list space-y-4 mb-8">
+                                <li><strong>Empirical Efficiency:</strong> Real reactions.</li>
+                                <li><strong>Solution Prep:</strong> Mixing acid by hand.</li>
+                                <li><strong>The "No 10" Rule:</strong> We eat grades.</li>
+                            </ul>
+                            <div class="interactive-group flex flex-col gap-2">
+                                <div class="victim-btn active interactive-item" id="btn-it">IT STUDENT</div>
+                                <div class="victim-btn interactive-item" id="btn-pe">PE STUDENT</div>
+                                <div class="victim-btn interactive-item" id="btn-psych">PSYCH STUDENT</div>
+                                <div class="victim-btn interactive-item" id="btn-french">FRENCH STUDENT</div>
+                            </div>
+                        </div>
+                        <div class="col-span-8 flex flex-col gap-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="roi-panel"><div class="roi-label">TEFQ EFFICIENCY</div><div class="roi-value" id="tefq-roi">20.0x</div></div>
+                                <div class="roi-panel victim" id="victim-panel"><div class="roi-label" id="victim-label">IT EFFICIENCY</div><div class="roi-value text-white" id="victim-roi">0.7x</div></div>
+                            </div>
+                            <div class="border-4 border-black bg-white p-4 shadow-[12px_12px_0px_#e5e7eb] h-[400px]">
+                                <canvas id="dataChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="slide-4" class="slide future" data-progress="65" data-thread="Module 03" data-narrative="We eat cake in cushioned chairs. Psych students cry on wood.">
+                    <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
+                        <div class="col-span-4">
+                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">COMFORT OPS</h3>
+                            <ul class="bullet-list space-y-4">
+                                <li><strong>Bio-Hacking:</strong> Edible stoichiometry.</li>
+                                <li><strong>pH Analysis:</strong> Gum experiment.</li>
+                                <li><strong>Infrastructure:</strong> The Chair Gap.</li>
+                            </ul>
+                        </div>
+                        <div class="col-span-8 grid grid-cols-2 gap-8 h-[50vh]">
+                            <div class="brutalist-card interactive-item" data-media-id="food"><div class="card-icon text-8xl">🧁</div><div class="card-content font-bold">Consumables Protocol<br><span class="text-green-600">Grade: A+</span></div></div>
+                            <div class="brutalist-card interactive-item" data-media-id="chairs"><div class="card-icon text-8xl">🛋️</div><div class="card-content font-bold">The Throne vs The Wood<br><span class="text-yellow-500">Status: VIP</span></div></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="slide-5" class="slide future" data-progress="80" data-thread="Module 04" data-narrative="We are the main characters. You are NPCs.">
+                    <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
+                        <div class="col-span-4">
+                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">MEDIA & JOY</h3>
+                            <ul class="bullet-list space-y-4">
+                                <li><strong>Valentín:</strong> Dept. Head.</li>
+                                <li><strong>Clout:</strong> School Instagram.</li>
+                                <li><strong>Joy Optimization:</strong> Scissor Bubbles.</li>
+                            </ul>
+                        </div>
+                        <div class="col-span-8 grid grid-cols-2 gap-8 h-[50vh]">
+                            <div class="brutalist-card interactive-item" data-media-id="clout"><div class="card-icon text-8xl">📸</div><div class="card-content font-bold">Media Dominance</div></div>
+                            <div class="brutalist-card interactive-item" data-media-id="redacted"><div class="card-icon text-8xl">✂️🫧</div><div class="card-content font-bold">Scissor Bubbles<br><span class="text-red-500">CHECKING FILES...</span></div></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="slide-6" class="slide future" data-progress="95" data-thread="Module 05" data-narrative="A moment of silence for those who chose wrong.">
+                    <div id="pov-sticker" class="pov-sticker">POV:<br>YOU ARE IN<br>TEFQ CLASS</div>
+                    <div class="w-full max-w-7xl grid grid-cols-2 gap-12 items-center">
+                        <div class="flex flex-col gap-6">
+                            <h3 class="text-5xl font-black border-b-4 border-black pb-4">THE GHOST TOWN</h3>
+                            <div class="interactive-group flex flex-col gap-4 font-mono">
+                                <div class="p-6 border-4 border-gray-200 grayscale opacity-50"><h4 class="text-xl font-bold">IT: Handwritten SQL</h4></div>
+                                <div class="p-6 border-4 border-gray-200 grayscale opacity-50"><h4 class="text-xl font-bold">PE: Thermal Shock</h4></div>
+                                <div class="p-6 border-4 border-gray-200 grayscale opacity-50"><h4 class="text-xl font-bold">FRENCH: 404 Error</h4></div>
+                            </div>
+                            <div class="mt-4 bg-black text-white p-4 font-bold text-center blink-text interactive-item" id="ghost-trigger">
+                                [ HOLD TAB TO ACCELERATE ]
+                            </div>
+                        </div>
+                        <div class="flex justify-center">
+                            <div class="clock-face" id="main-clock">
+                                <div class="crack-overlay">
+                                    /&nbsp;&nbsp;&nbsp;/<br>
+                                    --/--/--<br>
+                                    /&nbsp;&nbsp;/
+                                </div>
+                                <div id="hand-thin" class="hand"></div>
+                                <div id="hand-large" class="hand"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="slide-7" class="slide future" data-progress="100" data-thread="Victory" data-narrative="Press Alt for Verdict. Press Tab to Admit Defeat.">
+                    <h1 class="text-9xl font-black mb-8 animate-pulse text-red-600">FATAL ERROR</h1>
+                    <div class="p-12 border-8 border-red-600 bg-black text-white shadow-[12px_12px_0px_red] max-w-3xl text-center interactive-item active-focus" onclick="triggerConfetti()">
+                        <p class="text-4xl font-bold text-red-500 mb-6">JEALOUSY OVERLOAD</p>
+                        <div class="defeat-btn bg-white text-black font-black text-6xl p-6 border-4 border-yellow-400 cursor-pointer hover:scale-105 transition" id="defeat-btn">
+                            [ ADMIT DEFEAT ]
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -465,6 +440,7 @@
         const tefqStats = { suffering: 1, dignity: 10, grade: 10 };
 
         // --- STATE ---
+        let systemOn = false; // Starts OFF
         let currentSlideIndex = 0;
         const totalSlides = 8;
         let chartInstance = null;
@@ -473,14 +449,16 @@
         
         let currentGallery = [];
         let currentMediaIndex = 0;
+        let currentMediaElement = null; // Track current playing media
         
-        // Ghost Town State
-        let ghostState = 0; // 0:Idle, 1:Normal, 2:Warp, 3:Done
+        let ghostState = 0; 
         let ghostInterval = null;
         let clockSeconds = 0; 
         
         // --- INIT ---
         window.onload = function() {
+            initMediaSystem();
+
             // Clock Ticks
             const face = document.querySelector('.clock-face');
             for(let i=0; i<60; i++) {
@@ -495,21 +473,49 @@
                 tick.style.transform = `rotate(${i * 6}deg)`;
                 face.appendChild(tick);
             }
-            document.getElementById('viewport').classList.add('crt-on');
+            
+            // Start Monitor
+            setInterval(monitorJealousyColor, 100);
             updateNarrative(0);
             updatePageCounter(0);
-            
-            // Start Jealousy Monitor
-            setInterval(monitorJealousyColor, 100);
         };
+
+        function initMediaSystem() {
+            const cards = document.querySelectorAll('[data-media-id]');
+            cards.forEach(card => {
+                const key = card.getAttribute('data-media-id');
+                const config = MEDIA_MANIFEST[key];
+                if (!config) return;
+
+                const fullPaths = config.files.map(f => `${MEDIA_ROOT}/${config.folder}/${f}`);
+                const fileCount = fullPaths.length;
+
+                if (fileCount === 0) {
+                    card.classList.add('is-empty');
+                    card.querySelector('.card-content span').innerHTML = "EVIDENCE MISSING";
+                    card.querySelector('.card-content span').className = "text-red-500 font-bold blink-text";
+                    card.onclick = () => triggerZoom([], 'REDACTED');
+                } else {
+                    card.onclick = () => triggerZoom(fullPaths, config.title);
+                    if (fileCount > 1) {
+                        const badge = document.createElement('div');
+                        badge.className = 'multi-indicator';
+                        badge.innerText = `${fileCount} FILES`;
+                        card.appendChild(badge);
+                    }
+                }
+            });
+        }
 
         // --- NAVIGATION ---
         function goToSlide(index) {
             if (index < 0 || index >= totalSlides) return;
             if (document.getElementById('zoom-modal').classList.contains('active')) return;
 
-            // Reset Ghost Town if leaving
-            if (currentSlideIndex === 6 && index !== 6) resetGhostTown();
+            // **SILENT RESET** of Ghost Town logic when leaving slide 6
+            if (currentSlideIndex === 6 && index !== 6) {
+                resetGhostTown();
+            }
 
             const slides = document.querySelectorAll('section.slide');
             slides.forEach((slide, i) => {
@@ -542,19 +548,40 @@
             document.getElementById('page-counter').innerText = `0${index} / 0${totalSlides-1}`;
         }
 
-        // --- JEALOUSY MONITOR ---
+        // --- JEALOUSY MONITOR (ANIMATED) ---
+        let currentJealousyVal = 0;
         function updateJealousy(target) {
             const bar = document.getElementById('jealousy-bar');
             const num = document.getElementById('jealousy-val');
-            bar.style.transition = 'width 6s ease-out';
+            
+            // Bar Animation (CSS)
             bar.style.width = target + '%';
-            num.innerText = target + '% JEALOUS';
+            
+            // Number Animation (JS Tween)
+            const start = currentJealousyVal;
+            const end = target;
+            const duration = 1000;
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                // Ease out cubic
+                const ease = 1 - Math.pow(1 - progress, 3);
+                
+                currentJealousyVal = Math.floor(start + (end - start) * ease);
+                num.innerText = currentJealousyVal + '% JEALOUS';
+
+                if (progress < 1) requestAnimationFrame(update);
+            }
+            requestAnimationFrame(update);
         }
 
         function monitorJealousyColor() {
             const bar = document.getElementById('jealousy-bar');
             const num = document.getElementById('jealousy-val');
-            const viewport = document.getElementById('viewport');
+            const wrapper = document.getElementById('shake-wrapper'); // Only shake the wrapper
+            
             const parentWidth = bar.parentElement.clientWidth;
             const width = bar.clientWidth;
             const percent = (width / parentWidth) * 100;
@@ -572,8 +599,8 @@
             if (percent >= 99) num.style.color = 'var(--critical-color)';
             else num.style.color = 'var(--accent-color)';
 
-            if (shake) viewport.classList.add('screen-shake');
-            else viewport.classList.remove('screen-shake');
+            if (shake && systemOn) wrapper.classList.add('screen-shake');
+            else wrapper.classList.remove('screen-shake');
         }
 
         // --- GHOST TOWN LOGIC ---
@@ -593,24 +620,23 @@
             ghostInterval = setInterval(() => {
                 clockSeconds += (0.1 * speedMultiplier);
                 
-                // Rotation logic
+                // Thin (Seconds): 360deg in 60s -> 6 deg/s
                 thin.style.transform = `rotate(${clockSeconds * 6}deg)`;
+                
+                // Large (Minutes): 6deg in 60s -> 0.1 deg/s (Slow)
                 large.style.transform = `rotate(${clockSeconds * 0.1}deg)`;
 
-                // Phase 2: Sticker + Warp (5s)
                 if (clockSeconds > 5 && ghostState === 1) {
                     ghostState = 2;
                     document.getElementById('pov-sticker').classList.add('visible');
-                    speedMultiplier = 20; // Accel
+                    speedMultiplier = 20; 
                 }
 
-                // Phase 3: BREAK (60s simulated)
                 if (clockSeconds >= 60 && ghostState === 2) {
                     ghostState = 3;
                     clearInterval(ghostInterval);
                     document.getElementById('main-clock').classList.add('broken');
                 }
-
             }, 100); 
         }
 
@@ -629,19 +655,14 @@
             if (currentSlideIndex !== 3 || !chartInstance) return;
             const activeBtn = document.querySelector('.victim-btn.active');
             if (!activeBtn) return;
-
             const rect = activeBtn.getBoundingClientRect();
-            
             const p = document.createElement('div');
             p.classList.add('smoke-particle');
             const size = Math.random() * 20 + 15;
-            const drift = (Math.random() * 20) + 10 + 'px'; // Drift right
-            
-            // Spawn from RIGHT side of button
+            const drift = (Math.random() * 20) + 10 + 'px'; 
             p.style.left = `${rect.right - 40}px`; 
             p.style.top = `${rect.top + (rect.height/2) - (size/2)}px`;
             p.style.setProperty('--drift', drift);
-            
             document.body.appendChild(p);
             setTimeout(() => p.remove(), 2500);
         }
@@ -671,18 +692,13 @@
             document.getElementById('tefq-roi').innerText = calculateROI(tefqStats) + "x";
             document.getElementById('victim-roi').innerText = calculateROI(studentProfiles['it']) + "x";
         }
-
         function calculateROI(stats) { return ((stats.grade + stats.dignity) / stats.suffering).toFixed(1); }
-
         function updateVictimChart(victimId) {
             document.querySelectorAll('.victim-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`btn-${victimId}`).classList.add('active');
-            
-            // Button feedback
             const btn = document.getElementById(`btn-${victimId}`);
             btn.classList.add('active-press');
             setTimeout(() => btn.classList.remove('active-press'), 100);
-
             spawnSmoke(); 
             const victim = studentProfiles[victimId];
             if (!chartInstance) initChart();
@@ -698,7 +714,103 @@
             setTimeout(() => document.getElementById('victim-panel').classList.remove('border-red-500'), 300);
         }
 
-        // --- INTERACTIONS ---
+        // --- MEDIA PLAYER LOGIC ---
+        function playMedia() {
+            document.getElementById('zoom-cover').classList.add('hidden');
+            if (currentMediaElement && currentMediaElement.tagName === 'VIDEO') {
+                currentMediaElement.play();
+                // Timeline anim
+                const bar = document.getElementById('zoom-bar');
+                bar.style.transition = 'width 5s linear'; // Fake timeline speed
+                bar.style.width = '100%';
+            }
+        }
+
+        function triggerZoom(mediaArray, title) {
+            currentGallery = mediaArray;
+            currentMediaIndex = 0;
+            updateZoomDisplay(title);
+            document.getElementById('zoom-modal').classList.add('active');
+        }
+
+        function updateZoomDisplay(title) {
+            const videoUI = document.getElementById('zoom-video-ui');
+            const imgUI = document.getElementById('zoom-img');
+            const thumbsContainer = document.getElementById('zoom-thumbs');
+            const zoomText = document.getElementById('zoom-text');
+            const zoomCover = document.getElementById('zoom-cover');
+            const zoomCoverEmoji = document.getElementById('zoom-cover-emoji');
+            const bar = document.getElementById('zoom-bar');
+
+            // Reset Timeline
+            bar.style.transition = 'none';
+            bar.style.width = '0%';
+
+            // ERROR STATE
+            if (title === 'REDACTED' || currentGallery.length === 0) {
+                videoUI.style.display = 'flex'; imgUI.style.display = 'none';
+                document.getElementById('zoom-icon').innerText = '🚫';
+                zoomText.innerText = "ERROR: EVIDENCE REDACTED";
+                zoomText.className = "absolute top-4 left-4 font-mono text-red-500 text-xl bg-black px-2 blink-text";
+                thumbsContainer.innerHTML = '';
+                
+                // Placeholder Logic
+                zoomCover.classList.remove('hidden');
+                zoomCoverEmoji.innerText = "🚫";
+                zoomCover.onclick = null; // Disable Play
+                currentMediaElement = null;
+                return;
+            }
+
+            // NORMAL STATE
+            const currentFile = currentGallery[currentMediaIndex];
+            
+            // Re-show Cover on slide change
+            zoomCover.classList.remove('hidden');
+            zoomCoverEmoji.innerText = "▶️";
+            zoomCover.onclick = playMedia; // Re-enable Play
+
+            thumbsContainer.innerHTML = '';
+            currentGallery.forEach((file, idx) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'zoom-thumb';
+                thumb.innerText = idx + 1;
+                if (idx === currentMediaIndex) thumb.classList.add('active');
+                thumbsContainer.appendChild(thumb);
+            });
+
+            zoomText.className = "absolute top-4 left-4 font-mono text-white text-xl bg-black px-2";
+
+            if (currentFile.endsWith('.mp4')) {
+                videoUI.style.display = 'flex'; imgUI.style.display = 'none';
+                document.getElementById('zoom-icon').innerText = '▶';
+                zoomText.innerText = "PLAYING: " + (title || "FILE") + " (" + (currentMediaIndex+1) + "/" + currentGallery.length + ")";
+                
+                // Mock Video Player logic
+                currentMediaElement = document.createElement('video'); // Virtual element for logic
+            } else {
+                videoUI.style.display = 'none'; imgUI.style.display = 'block';
+                imgUI.src = currentFile;
+                currentMediaElement = null;
+                // If image, clicking cover just reveals it
+                zoomCover.onclick = () => zoomCover.classList.add('hidden');
+            }
+        }
+
+        function closeZoom() { 
+            document.getElementById('zoom-modal').classList.remove('active'); 
+            // Pause any logic
+            if(currentMediaElement) currentMediaElement = null;
+        }
+
+        function cycleGallery(direction) {
+            if (currentGallery.length <= 1) return;
+            if (direction === 'next') currentMediaIndex = (currentMediaIndex + 1) % currentGallery.length;
+            else currentMediaIndex = (currentMediaIndex - 1 + currentGallery.length) % currentGallery.length;
+            updateZoomDisplay();
+        }
+
+        // --- GLOBAL INTERACTIONS ---
         function triggerAction() {
             if (currentSlideIndex === 3) {
                 currentVictimIndex = (currentVictimIndex + 1) % victimKeys.length;
@@ -717,7 +829,6 @@
             const items = document.querySelectorAll(`#slide-${currentSlideIndex} .interactive-item`);
             if (items.length > 0) {
                 if (interactionIndex >= items.length) interactionIndex = 0;
-                // Visual Feedback
                 items[interactionIndex].classList.add('action-pressed');
                 setTimeout(() => items[interactionIndex].classList.remove('action-pressed'), 150);
                 items[interactionIndex].click();
@@ -733,67 +844,6 @@
             }
         }
 
-        function triggerZoom(mediaArray, title) {
-            currentGallery = mediaArray;
-            currentMediaIndex = 0;
-            updateZoomDisplay(title);
-            document.getElementById('zoom-modal').classList.add('active');
-        }
-
-        function updateZoomDisplay(title) {
-            const videoUI = document.getElementById('zoom-video-ui');
-            const imgUI = document.getElementById('zoom-img');
-            const thumbsContainer = document.getElementById('zoom-thumbs');
-            const zoomText = document.getElementById('zoom-text');
-            const currentFile = currentGallery[currentMediaIndex];
-
-            thumbsContainer.innerHTML = '';
-            currentGallery.forEach((file, idx) => {
-                const thumb = document.createElement('div');
-                thumb.className = 'zoom-thumb';
-                thumb.innerText = idx + 1;
-                if (idx === currentMediaIndex) thumb.classList.add('active');
-                thumbsContainer.appendChild(thumb);
-            });
-
-            if (title === 'REDACTED') {
-                videoUI.style.display = 'flex'; imgUI.style.display = 'none';
-                document.getElementById('zoom-icon').innerText = '🚫';
-                zoomText.innerText = "ERROR: EVIDENCE REDACTED";
-                zoomText.className = "absolute top-4 left-4 font-mono text-red-500 text-xl bg-black px-2 blink-text";
-                return;
-            }
-
-            // Reset UI
-            zoomText.className = "absolute top-4 left-4 font-mono text-white text-xl bg-black px-2";
-
-            if (currentFile.endsWith('.mp4')) {
-                videoUI.style.display = 'flex'; imgUI.style.display = 'none';
-                document.getElementById('zoom-icon').innerText = '▶';
-                zoomText.innerText = "PLAYING: " + (title || "FILE") + " (" + (currentMediaIndex+1) + "/" + currentGallery.length + ")";
-                const bar = document.getElementById('zoom-bar');
-                bar.style.width = '0%'; bar.style.transition = 'none';
-                setTimeout(() => { bar.style.transition = 'width 5s linear'; bar.style.width = '100%'; }, 100);
-            } else {
-                videoUI.style.display = 'none'; imgUI.style.display = 'block';
-                imgUI.src = currentFile;
-                imgUI.onerror = function() {
-                    this.style.display='none'; videoUI.style.display='flex';
-                    document.getElementById('zoom-icon').innerText = '🖼️';
-                    zoomText.innerText = "IMAGE: " + title;
-                };
-            }
-        }
-
-        function closeZoom() { document.getElementById('zoom-modal').classList.remove('active'); }
-
-        function cycleGallery(direction) {
-            if (currentGallery.length <= 1) return;
-            if (direction === 'next') currentMediaIndex = (currentMediaIndex + 1) % currentGallery.length;
-            else currentMediaIndex = (currentMediaIndex - 1 + currentGallery.length) % currentGallery.length;
-            updateZoomDisplay();
-        }
-
         function triggerConfetti() {
             var end = Date.now() + 3000;
             (function frame() {
@@ -803,7 +853,38 @@
             }());
         }
 
+        function toggleSystem() {
+            const root = document.getElementById('system-root');
+            const blackout = document.getElementById('blackout-layer');
+
+            if (!systemOn) {
+                // TURN ON
+                blackout.classList.add('hidden-layer');
+                root.classList.remove('crt-off');
+                root.classList.add('crt-on');
+                systemOn = true;
+            } else {
+                // TURN OFF
+                blackout.classList.remove('hidden-layer');
+                root.classList.remove('crt-on');
+                
+                // Force Reflow
+                void root.offsetWidth; 
+                root.classList.add('crt-off');
+                systemOn = false;
+            }
+        }
+
         document.addEventListener('keydown', (e) => {
+            // BLACKOUT LOGIC
+            if (e.key === 'b' || e.key === 'B') {
+                toggleSystem();
+                return;
+            }
+
+            // Block everything else if System is OFF
+            if (!systemOn) return;
+
             const isZoom = document.getElementById('zoom-modal').classList.contains('active');
             
             if (e.key === 'Alt') {
@@ -829,18 +910,6 @@
                 case 'Tab': 
                     e.preventDefault(); 
                     if (isZoom) closeZoom(); else triggerAction(); 
-                    break;
-                case 'b': case 'B': 
-                    const vp = document.getElementById('viewport');
-                    if (vp.classList.contains('crt-off')) {
-                        location.reload(); 
-                    } else {
-                        // Force clean state
-                        vp.classList.remove('crt-on');
-                        // Trigger reflow to ensure animation restarts cleanly
-                        void vp.offsetWidth; 
-                        vp.classList.add('crt-off');
-                    }
                     break;
             }
         });
