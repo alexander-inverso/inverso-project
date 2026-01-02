@@ -4,589 +4,444 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ALEXANDER // THINK 4D</title>
-    <!-- Cargamos fuentes con mucha personalidad -->
+    <!-- Fuentes de alto impacto -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <style>
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden; /* El scroll lo maneja el canvas */
-            background-color: #ffffff;
-            cursor: default; /* Cursor base */
+            overflow: hidden;
+            background-color: #fbfbfb; /* Crema muy claro */
         }
         canvas {
             display: block;
+            touch-action: none;
         }
     </style>
 </head>
 <body>
 
-    <canvas id="app"></canvas>
+    <canvas id="mainCanvas"></canvas>
 
     <script>
         /**
-         * ALEXANDER ENGINE v1.0
-         * Motor de renderizado UI basado puramente en Canvas API.
-         * Sin DOM elements. Pura geometría y tipografía.
+         * ALEXANDER INTERACTIVE ENGINE v5.0
+         * Propósito: Renderizado 100% en Canvas con escalado dinámico.
+         * Estética: Geometría, Poster-Design, Branding de Alto Impacto.
          */
 
-        const canvas = document.getElementById('app');
-        const ctx = canvas.getContext('2d', { alpha: false }); // Optimización
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
 
-        // --- CONFIGURACIÓN DE ESTILO ---
-        const PALETTE = {
-            bg: '#ffffff',
-            ink: '#111111',
-            accent: '#ff4e00', // Safety Orange
-            accentLight: '#fff0e6',
-            gray: '#eeeeee'
+        // --- PALETA DE COLORES (Eliminado el rojo) ---
+        const THEME = {
+            bg: '#fbfbfb',
+            ink: '#0e0e0e',
+            accent: '#1D4ED8', // Azul Eléctrico (Alexander Blue)
+            secondary: '#FACC15', // Amarillo Energético
+            grid: '#e5e5e5',
+            white: '#ffffff'
         };
 
-        const FONTS = {
-            display: '800 {s}px "Syne"',
-            body: '500 {s}px "Space Grotesk"',
-            mono: '400 {s}px "Courier New"'
-        };
-
-        // --- ESTADO DEL SISTEMA ---
+        // --- ESTADO GLOBAL ---
         let STATE = {
-            width: window.innerWidth,
-            height: window.innerHeight,
-            page: 'HOME', // HOME, ESSAYS, IDENTITY, FUNDING
+            page: 'HOME',
             scrollY: 0,
             targetScrollY: 0,
-            maxScroll: 0,
+            width: 0,
+            height: 0,
+            dpr: window.devicePixelRatio || 1,
             mouseX: 0,
             mouseY: 0,
-            cursor: 'default',
-            shapes: [] // Geometría de fondo
+            isClicked: false,
+            clickPos: { x: 0, y: 0 },
+            hoverId: null,
+            animFrame: 0,
+            shapes: []
         };
 
-        // Zonas activas (botones, links) del frame actual
-        let clickables = [];
+        // --- CONTENIDO ---
+        const CONTENT = {
+            axioms: ["THINK 4D", "BE DIFFERENT, NOT INDIFFERENT", "DESIGN YOUR FUTURE", "BIOLOGY IS CODE"],
+            essays: [
+                { id: 'e1', title: "La Muerte como Fallo de Software", tag: "BIO-LOGIC", status: "REVISADO", color: THEME.accent },
+                { id: 'e2', title: "Mecanización de la EBAU: Matemáticas", tag: "STRATEGY", status: "PENDIENTE", color: THEME.ink },
+                { id: 'e3', title: "Transparencia Radical: One Take", tag: "MANIFESTO", status: "DRAFT", color: THEME.secondary }
+            ],
+            funding: [
+                { goal: "LIYSF Londres", current: 1800, total: 2400, unit: "€" },
+                { goal: "BIYSC Barcelona", current: 450, total: 1200, unit: "€" }
+            ],
+            bio: "Estudiante de 17 años. No busco el 'aprobado', busco la 'maestría'. Mi trayectoria está trazada hacia la ETH Zúrich para hackear el código fuente de la biología. Soy un outsider competente."
+        };
 
-        // --- 1. INICIALIZACIÓN Y EVENTOS ---
+        // --- SISTEMA DE NAVEGACIÓN ---
+        const NAV = [
+            { id: 'HOME', label: 'COVER' },
+            { id: 'ESSAYS', label: 'ENSAYOS' },
+            { id: 'WHO', label: 'WHO AM I' },
+            { id: 'GOAL', label: 'LIYSF/BIYSC' }
+        ];
 
-        function resize() {
-            // Manejo de DPI para nitidez en pantallas retina
-            const dpr = window.devicePixelRatio || 1;
-            canvas.width = window.innerWidth * dpr;
-            canvas.height = window.innerHeight * dpr;
-            ctx.scale(dpr, dpr);
-            STATE.width = window.innerWidth;
-            STATE.height = window.innerHeight;
-            
-            // Regenerar fondo geométrico al redimensionar
-            initShapes();
+        // --- FUNCIONES DE ESCALADO (V-Units) ---
+        const vw = (v) => (STATE.width / 100) * v;
+        const vh = (v) => (STATE.height / 100) * v;
+        const vmin = (v) => Math.min(vw(v), vh(v));
+
+        function init() {
+            resize();
+            createGeometricArt();
+            requestAnimationFrame(loop);
         }
 
-        window.addEventListener('resize', resize);
-        
-        // Scroll Virtual
-        window.addEventListener('wheel', (e) => {
-            STATE.targetScrollY += e.deltaY;
-            // Limites del scroll
-            if (STATE.targetScrollY < 0) STATE.targetScrollY = 0;
-            if (STATE.targetScrollY > STATE.maxScroll) STATE.targetScrollY = STATE.maxScroll;
-        });
+        function resize() {
+            STATE.width = window.innerWidth;
+            STATE.height = window.innerHeight;
+            canvas.width = STATE.width * STATE.dpr;
+            canvas.height = STATE.height * STATE.dpr;
+            canvas.style.width = STATE.width + 'px';
+            canvas.style.height = STATE.height + 'px';
+            ctx.scale(STATE.dpr, STATE.dpr);
+        }
 
-        // Mouse Tracker
+        function createGeometricArt() {
+            STATE.shapes = [];
+            for(let i=0; i<25; i++) {
+                STATE.shapes.push({
+                    x: Math.random() * 100,
+                    y: Math.random() * 200,
+                    size: Math.random() * 20 + 5,
+                    rot: Math.random() * Math.PI * 2,
+                    type: Math.random() > 0.5 ? 'rect' : 'poly',
+                    v: (Math.random() - 0.5) * 0.05
+                });
+            }
+        }
+
+        // --- INPUTS ---
+        window.addEventListener('resize', resize);
         window.addEventListener('mousemove', (e) => {
             STATE.mouseX = e.clientX;
             STATE.mouseY = e.clientY;
+        });
+        window.addEventListener('mousedown', (e) => {
+            STATE.isClicked = true;
+            STATE.clickPos = { x: e.clientX, y: e.clientY + STATE.scrollY };
+        });
+        window.addEventListener('mouseup', () => STATE.isClicked = false);
+        window.addEventListener('wheel', (e) => {
+            STATE.targetScrollY += e.deltaY;
+            if(STATE.targetScrollY < 0) STATE.targetScrollY = 0;
+            // Max scroll dinámico según página
+            let max = vh(STATE.page === 'HOME' ? 20 : 150);
+            if(STATE.targetScrollY > max) STATE.targetScrollY = max;
+        });
+
+        // --- RENDER LOOP ---
+        function loop() {
+            STATE.animFrame++;
+            STATE.scrollY += (STATE.targetScrollY - STATE.scrollY) * 0.1;
             
-            // Detección de Hover
-            let hovering = false;
-            // Ajustamos Y por si hay elementos fijos vs scrolleables
-            for (let btn of clickables) {
-                if (hitTest(btn)) {
-                    hovering = true;
-                    break;
-                }
-            }
-            document.body.style.cursor = hovering ? 'pointer' : 'default';
-        });
-
-        // Click Handler
-        window.addEventListener('click', (e) => {
-            for (let btn of clickables) {
-                if (hitTest(btn)) {
-                    btn.action();
-                    break;
-                }
-            }
-        });
-
-        // Generador de Geometría "Canva-like"
-        function initShapes() {
-            STATE.shapes = [];
-            for(let i=0; i<15; i++) {
-                STATE.shapes.push({
-                    x: Math.random() * STATE.width,
-                    y: Math.random() * STATE.height * 2, // Esparcido en vertical
-                    size: 50 + Math.random() * 300,
-                    type: Math.random() > 0.5 ? 'circle' : 'rect',
-                    color: Math.random() > 0.6 ? PALETTE.accent : '#000000',
-                    alpha: 0.03 + Math.random() * 0.05,
-                    rotation: Math.random() * Math.PI
-                });
-            }
-        }
-
-        // --- 2. MOTOR DE DIBUJO (CORE) ---
-
-        function draw() {
-            // A. Limpieza
-            ctx.fillStyle = PALETTE.bg;
+            ctx.clearRect(0, 0, STATE.width, STATE.height);
+            ctx.fillStyle = THEME.bg;
             ctx.fillRect(0, 0, STATE.width, STATE.height);
 
-            // B. Física del Scroll (Lerp para suavidad)
-            STATE.scrollY += (STATE.targetScrollY - STATE.scrollY) * 0.1;
+            drawBackground();
 
-            // C. Fondo Geométrico (Parallax sutil)
-            ctx.save();
-            ctx.translate(0, -STATE.scrollY * 0.5); // Se mueve más lento
-            drawBackgroundShapes();
-            ctx.restore();
-
-            // D. Reiniciar zonas clickables del frame
-            clickables = [];
-
-            // E. Renderizado de Página (Scrollable)
             ctx.save();
             ctx.translate(0, -STATE.scrollY);
+            
+            switch(STATE.page) {
+                case 'HOME': drawHome(); break;
+                case 'ESSAYS': drawEssays(); break;
+                case 'WHO': drawWho(); break;
+                case 'GOAL': drawGoal(); break;
+            }
 
-            let contentHeight = 0;
-
-            if (STATE.page === 'HOME') contentHeight = renderHome();
-            else if (STATE.page === 'ESSAYS') contentHeight = renderEssays();
-            else if (STATE.page === 'IDENTITY') contentHeight = renderIdentity();
-            else if (STATE.page === 'FUNDING') contentHeight = renderFunding();
-
-            STATE.maxScroll = Math.max(0, contentHeight - STATE.height + 100);
             ctx.restore();
 
-            // F. Elementos Fijos (UI Flotante)
-            renderMarquee();
-            renderNav();
+            drawHeader();
+            drawMarquee();
 
-            requestAnimationFrame(draw);
+            // Reset interaction state
+            STATE.hoverId = null;
+            requestAnimationFrame(loop);
         }
 
-        // --- 3. COMPONENTES GRÁFICOS ---
+        // --- ELEMENTOS UI ---
 
-        function drawBackgroundShapes() {
+        function drawBackground() {
+            ctx.save();
+            ctx.translate(0, -STATE.scrollY * 0.2);
             STATE.shapes.forEach(s => {
                 ctx.save();
-                ctx.translate(s.x, s.y);
-                ctx.rotate(s.rotation);
-                ctx.globalAlpha = s.alpha;
-                ctx.fillStyle = s.color;
-                
-                if (s.type === 'circle') {
+                ctx.translate(vw(s.x), vh(s.y));
+                ctx.rotate(s.rot + STATE.animFrame * s.v);
+                ctx.strokeStyle = THEME.grid;
+                ctx.lineWidth = 1;
+                if(s.type === 'rect') ctx.strokeRect(-vw(s.size)/2, -vw(s.size)/2, vw(s.size), vw(s.size));
+                else {
                     ctx.beginPath();
-                    ctx.arc(0, 0, s.size/2, 0, Math.PI*2);
-                    ctx.fill();
-                } else {
-                    ctx.fillRect(-s.size/2, -s.size/2, s.size, s.size);
+                    ctx.moveTo(0, -vw(s.size));
+                    ctx.lineTo(vw(s.size), vw(s.size));
+                    ctx.lineTo(-vw(s.size), vw(s.size));
+                    ctx.closePath();
+                    ctx.stroke();
                 }
                 ctx.restore();
             });
+            ctx.restore();
         }
 
-        function renderMarquee() {
-            const text = "THINK 4D  ///  BE DIFFERENT, NOT INDIFFERENT  ///  DESIGN YOUR FUTURE  ///  TRANSPARENCY IS THE NEW SMART  ///  ";
-            const fontSize = 16;
-            ctx.font = FONTS.display.replace('{s}', fontSize);
+        function drawHeader() {
+            const h = 80;
+            ctx.fillStyle = THEME.bg;
+            ctx.fillRect(0, 30, STATE.width, h);
             
-            // Fondo Marquee
-            ctx.fillStyle = PALETTE.accent;
-            ctx.fillRect(0, 0, STATE.width, 30);
-            
-            // Texto en movimiento
-            ctx.fillStyle = '#fff';
-            const speed = Date.now() / 20;
-            const textWidth = ctx.measureText(text).width;
-            const offset = -(speed % textWidth);
-            
-            ctx.fillText(text + text, offset, 20); // Dibujamos doble para el loop
-            
-            // Línea divisoria
-            ctx.fillStyle = PALETTE.ink;
-            ctx.fillRect(0, 30, STATE.width, 3);
-        }
+            // Brand
+            ctx.fillStyle = THEME.ink;
+            ctx.font = `800 ${vmin(4)}px Syne`;
+            ctx.textAlign = 'left';
+            ctx.fillText('ALEXANDER.', 40, 30 + 50);
 
-        function renderNav() {
-            const y = 33;
-            const h = 60;
-            
-            // Fondo Nav
-            ctx.fillStyle = 'rgba(255,255,255,0.95)';
-            ctx.fillRect(0, y, STATE.width, h);
-            ctx.fillStyle = PALETTE.ink;
-            ctx.fillRect(0, y+h, STATE.width, 4); // Borde inferior grueso
+            // Nav
+            const navWidth = vw(40);
+            const startX = STATE.width - navWidth - 40;
+            NAV.forEach((item, i) => {
+                const x = startX + (navWidth / NAV.length) * i;
+                const isHover = hitTest(x, 30, 100, h, true);
+                const isActive = STATE.page === item.id;
 
-            // Logo
-            ctx.fillStyle = PALETTE.ink;
-            ctx.font = FONTS.display.replace('{s}', 28);
-            ctx.fillText("ALEXANDER.", 20, y + 40);
-
-            // Botones Menú
-            const pages = [
-                { id: 'HOME', label: 'COVER' },
-                { id: 'ESSAYS', label: 'ENSAYOS' },
-                { id: 'IDENTITY', label: 'WHO AM I' },
-                { id: 'FUNDING', label: 'GOAL: LIYSF' }
-            ];
-
-            let xPos = STATE.width - 20;
-            
-            // Dibujar de derecha a izquierda
-            // Invertimos array temporalmente para cálculo layout
-            [...pages].reverse().forEach(page => {
-                ctx.font = FONTS.body.replace('{s}', 14);
-                const labelW = ctx.measureText(page.label).width + 40;
-                xPos -= labelW;
-
-                const isActive = STATE.page === page.id;
-                const btnRect = { x: xPos, y: y + 15, w: labelW - 10, h: 30, fixed: true };
-
-                // Detección hover visual (solo pinta, la lógica está en loop principal)
-                const isHover = hitTest(btnRect);
-
-                // Estilo Botón
-                if (isActive || isHover) {
-                    ctx.fillStyle = isActive ? PALETTE.ink : '#ddd';
-                    ctx.fillRect(btnRect.x, btnRect.y, btnRect.w, btnRect.h);
-                    ctx.fillStyle = isActive ? '#fff' : PALETTE.ink;
+                if(isHover) {
+                    STATE.hoverId = item.id;
+                    ctx.fillStyle = THEME.accent;
+                    if(STATE.isClicked) {
+                        STATE.page = item.id;
+                        STATE.targetScrollY = 0;
+                        STATE.isClicked = false;
+                    }
                 } else {
-                    ctx.fillStyle = PALETTE.ink;
+                    ctx.fillStyle = isActive ? THEME.ink : '#999';
                 }
 
-                ctx.fillText(page.label, btnRect.x + 15, btnRect.y + 20);
-
-                // Registrar zona click
-                clickables.push({
-                    ...btnRect,
-                    action: () => { STATE.page = page.id; STATE.targetScrollY = 0; }
-                });
+                ctx.font = `700 ${vmin(1.5)}px Space Grotesk`;
+                ctx.textAlign = 'center';
+                ctx.fillText(item.label, x + 50, 30 + 50);
+                if(isActive) {
+                    ctx.fillRect(x + 25, 30 + 60, 50, 3);
+                }
             });
         }
 
-        // --- 4. RENDERIZADO DE PÁGINAS (CONTENIDO) ---
+        function drawMarquee() {
+            const h = 30;
+            ctx.fillStyle = THEME.ink;
+            ctx.fillRect(0, 0, STATE.width, h);
+            
+            ctx.fillStyle = THEME.white;
+            ctx.font = `700 12px Space Grotesk`;
+            const text = CONTENT.axioms.join('   ///   ') + '   ///   ';
+            const textW = ctx.measureText(text).width;
+            const offset = (STATE.animFrame * 2) % textW;
+            
+            ctx.fillText(text, -offset, 20);
+            ctx.fillText(text, -offset + textW, 20);
+        }
 
-        function renderHome() {
-            let cursorY = 200;
-
-            // TITULAR GIGANTE
-            const bigSize = Math.min(150, STATE.width * 0.15);
-            ctx.fillStyle = PALETTE.ink;
-            ctx.font = FONTS.display.replace('{s}', bigSize);
+        function drawHome() {
+            let y = 250;
+            // Título Principal
+            ctx.fillStyle = THEME.ink;
+            ctx.font = `800 ${vmin(12)}px Syne`;
             ctx.textAlign = 'left';
             
-            ctx.fillText("THINK", 50, cursorY);
-            cursorY += bigSize * 0.9;
+            ctx.fillText('THINK', 40, y);
+            y += vmin(11);
             
-            // "4D" con gradiente/color
-            ctx.fillStyle = PALETTE.accent;
-            ctx.fillText("4D.", 50, cursorY);
-            
-            // Stroke effect (simulado dibujando offset negro detrás, o strokeText)
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = PALETTE.ink;
-            ctx.strokeText("4D.", 50, cursorY);
+            // Efecto Subrayado Grueso
+            ctx.fillStyle = THEME.accent;
+            ctx.fillRect(40, y - vmin(2), vmin(30), vmin(3));
+            ctx.fillStyle = THEME.ink;
+            ctx.fillText('4D.', 40, y);
 
-            cursorY += 50;
-
-            // INTRODUCCIÓN
-            const text = "No soy médico. Soy un arquitecto de sistemas biológicos en formación. Bienvenido a mi repositorio público.";
-            wrapText(text, 70, cursorY, Math.min(500, STATE.width - 100), 24, FONTS.body);
-
-            // STICKER DECORATIVO (Rotado)
-            ctx.save();
-            const stickerX = STATE.width * 0.7;
-            const stickerY = 300;
-            if (STATE.width > 800) {
-                ctx.translate(stickerX, stickerY);
-                ctx.rotate(10 * Math.PI / 180);
-                
-                // Sombra dura
-                ctx.fillStyle = PALETTE.ink;
-                ctx.fillRect(10, 10, 250, 150);
-                // Caja blanca
-                ctx.fillStyle = '#fff';
-                ctx.lineWidth = 4;
-                ctx.strokeStyle = PALETTE.ink;
-                ctx.fillRect(0, 0, 250, 150);
-                ctx.strokeRect(0, 0, 250, 150);
-                
-                // Texto Sticker
-                ctx.fillStyle = PALETTE.ink;
-                ctx.font = FONTS.display.replace('{s}', 40);
-                ctx.fillText("96%", 20, 60);
-                ctx.font = FONTS.body.replace('{s}', 14);
-                ctx.fillText("TARGET EBAU", 20, 90);
-                ctx.fillStyle = PALETTE.accent;
-                ctx.fillText("ESTIMADO", 20, 110);
-            }
-            ctx.restore();
-
-            return STATE.height; // Home no necesita mucho scroll
-        }
-
-        function renderEssays() {
-            let cursorY = 180;
-            
-            // TÍTULO
-            ctx.fillStyle = PALETTE.ink;
-            ctx.font = FONTS.display.replace('{s}', 60);
-            ctx.fillText("ENSAYOS.", 50, cursorY);
-            cursorY += 80;
-
-            // GRID DE ARTÍCULOS
-            const articles = [
-                { title: "La Muerte como Fallo de Software", tag: "#BIO-SYSTEMS", status: "REVISADO", date: "02 ENE 2026" },
-                { title: "Ingeniería Inversa del 10", tag: "#MATEMÁTICAS", status: "BORRADOR", date: "PENDIENTE" },
-                { title: "One Take: Transparencia Radical", tag: "#MANIFIESTO", status: "PRÓXIMAMENTE", date: "2026" }
-            ];
-
-            const cols = STATE.width > 900 ? 3 : 1;
-            const cardW = (STATE.width - 100 - (20 * (cols-1))) / cols;
-            const cardH = 300;
-
-            articles.forEach((art, i) => {
-                const col = i % cols;
-                const row = Math.floor(i / cols);
-                const x = 50 + col * (cardW + 20);
-                const y = cursorY + row * (cardH + 20);
-
-                // Caja Brutalista
-                const isHover = hitTest({x, y: y - STATE.scrollY, w: cardW, h: cardH, fixed: false}); // Fix scroll check
-                
-                // Sombra
-                ctx.fillStyle = isHover ? PALETTE.accent : PALETTE.ink;
-                ctx.fillRect(x + 8, y + 8, cardW, cardH);
-
-                // Fondo
-                ctx.fillStyle = i === 2 ? PALETTE.ink : '#fff'; // El tercero es negro
-                ctx.fillRect(x, y, cardW, cardH);
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = i === 2 ? '#fff' : PALETTE.ink;
-                ctx.strokeRect(x, y, cardW, cardH);
-
-                // Texto
-                ctx.fillStyle = i === 2 ? '#fff' : PALETTE.ink;
-                
-                // Tag
-                ctx.font = FONTS.mono.replace('{s}', 12);
-                ctx.fillText(art.tag, x + 20, y + 30);
-                
-                // Status Badge
-                ctx.save();
-                ctx.translate(x + cardW - 10, y + 10);
-                ctx.rotate(5 * Math.PI / 180);
-                ctx.fillStyle = PALETTE.accent;
-                ctx.fillRect(-80, 0, 80, 20);
-                ctx.fillStyle = '#fff';
-                ctx.font = "bold 10px Arial";
-                ctx.fillText(art.status, -75, 14);
-                ctx.restore();
-
-                // Título (Wrap manual simple)
-                ctx.fillStyle = i === 2 ? '#fff' : PALETTE.ink;
-                wrapText(art.title, x + 20, y + 80, cardW - 40, 30, FONTS.display);
-
-                // Botón Fake Leer
-                ctx.font = FONTS.body.replace('{s}', 14);
-                ctx.fillText("LEER ARTÍCULO ->", x + 20, y + cardH - 20);
-
-                // Botón real funcionalidad (imprimir poster de este artículo)
-                clickables.push({
-                    x, y, w: cardW, h: cardH, fixed: false,
-                    action: () => alert(`Abriendo: ${art.title}`)
-                });
+            // Slogan
+            y += 60;
+            ctx.font = `400 ${vmin(2.5)}px Space Grotesk`;
+            const lines = ["Be different,", "not indifferent."];
+            lines.forEach((l, i) => {
+                ctx.fillText(l, 40, y + (i * vmin(3)));
             });
 
-            return cursorY + Math.ceil(articles.length/cols) * (cardH + 20) + 100;
-        }
-
-        function renderIdentity() {
-            let cursorY = 180;
-            ctx.fillStyle = PALETTE.ink;
-            
-            // WHO AM I
-            ctx.font = FONTS.display.replace('{s}', 100);
-            ctx.fillText("WHO", 50, cursorY);
-            cursorY += 90;
-            ctx.fillText("AM I?", 50, cursorY);
-            cursorY += 80;
-
-            // Bloque de Texto
-            const text = "No encajo en el molde. Mientras otros memorizan para el examen, yo intento entender el código fuente del cuerpo humano. Tengo 17 años. Mi objetivo no es un título, es una caja de herramientas.";
-            
-            // Highlighter effect background
-            const lines = wrapText(text, 50, cursorY, Math.min(600, STATE.width - 60), 24, FONTS.body, true); // true = dry run
-            
-            // Dibujar subrallado para cada línea
-            ctx.fillStyle = PALETTE.accentLight;
-            lines.forEach(line => {
-                ctx.fillRect(50, cursorY + (line.index * 35) - 20, ctx.measureText(line.text).width, 30);
-            });
-
-            // Dibujar texto real
-            ctx.fillStyle = PALETTE.ink;
-            wrapText(text, 50, cursorY, Math.min(600, STATE.width - 60), 35, FONTS.body);
-
-            cursorY += lines.length * 35 + 50;
-
-            // Bloques de Atributos
-            const attrs = [
-                { l: "ORIGEN", v: "Outsider Competente" },
-                { l: "DESTINO", v: "ETH Zúrich / UZH" },
-                { l: "FILOSOFÍA", v: "Teardown everything" }
-            ];
-
-            attrs.forEach(a => {
-                ctx.fillStyle = PALETTE.ink;
-                ctx.fillRect(50, cursorY, 5, 50);
-                
-                ctx.font = FONTS.display.replace('{s}', 16);
-                ctx.fillText(a.l, 70, cursorY + 15);
-                
-                ctx.font = FONTS.body.replace('{s}', 20);
-                ctx.fillText(a.v, 70, cursorY + 40);
-                
-                cursorY += 70;
-            });
-
-            return cursorY + 100;
-        }
-
-        function renderFunding() {
-            let cursorY = 180;
-            
-            ctx.fillStyle = PALETTE.ink;
-            ctx.font = FONTS.display.replace('{s}', 50);
-            ctx.fillText("THE NEXT STEP", 50, cursorY);
-            cursorY += 60;
-
-            // Caja LIYSF
-            const boxW = Math.min(600, STATE.width - 60);
-            const boxH = 150;
-            
-            // Sombra
-            ctx.fillStyle = '#ccc';
-            ctx.fillRect(58, cursorY + 8, boxW, boxH);
-            // Caja
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(50, cursorY, boxW, boxH);
-            ctx.strokeStyle = PALETTE.ink;
-            ctx.strokeRect(50, cursorY, boxW, boxH);
-
-            // Contenido Caja
-            ctx.fillStyle = PALETTE.ink;
-            ctx.font = FONTS.display.replace('{s}', 24);
-            ctx.fillText("LIYSF (LONDON)", 70, cursorY + 40);
-
-            // Barra Progreso
-            const barW = boxW - 40;
-            const progress = 0.75; // 75%
-            
-            ctx.fillStyle = '#eee';
-            ctx.fillRect(70, cursorY + 60, barW, 30);
-            
-            ctx.fillStyle = PALETTE.accent;
-            ctx.fillRect(70, cursorY + 60, barW * progress, 30);
-            
-            // Patrón rayado en la barra
-            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-            ctx.lineWidth = 2;
-            for(let i=0; i<barW*progress; i+=10) {
-                ctx.beginPath();
-                ctx.moveTo(70 + i, cursorY + 90);
-                ctx.lineTo(70 + i + 10, cursorY + 60);
-                ctx.stroke();
-            }
-
-            ctx.fillStyle = PALETTE.ink;
-            ctx.font = FONTS.mono.replace('{s}', 14);
-            ctx.fillText("75% CONSEGUIDO", 70, cursorY + 110);
-
-            // Botón Generar Poster (Funcionalidad Extra)
-            const btnY = cursorY + 200;
-            const btnW = 250;
+            // Botón Call to Action (Zine style)
+            const btnW = 220;
             const btnH = 60;
+            const btnX = 40;
+            const btnY = y + 100;
+            const hov = hitTest(btnX, btnY, btnW, btnH);
             
-            ctx.fillStyle = PALETTE.ink;
-            ctx.fillRect(50, btnY, btnW, btnH);
-            ctx.fillStyle = '#fff';
-            ctx.font = FONTS.display.replace('{s}', 14);
-            ctx.fillText("🖨️ IMPRIMIR PÁGINA (PÓSTER)", 70, btnY + 35);
+            ctx.fillStyle = hov ? THEME.ink : THEME.accent;
+            ctx.fillRect(btnX, btnY, btnW, btnH);
+            ctx.fillStyle = THEME.white;
+            ctx.font = `700 16px Space Grotesk`;
+            ctx.textAlign = 'center';
+            ctx.fillText('LEER ENSAYOS →', btnX + btnW/2, btnY + 37);
+
+            if(hov && STATE.isClicked) {
+                STATE.page = 'ESSAYS';
+                STATE.isClicked = false;
+            }
+        }
+
+        function drawEssays() {
+            let y = 200;
+            ctx.fillStyle = THEME.ink;
+            ctx.font = `800 ${vmin(6)}px Syne`;
+            ctx.fillText('ENSAYOS.', 40, y);
             
-            clickables.push({
-                x: 50, y: btnY, w: btnW, h: btnH, fixed: false,
-                action: () => {
-                    // Hack para descargar el canvas como imagen
-                    const link = document.createElement('a');
-                    link.download = 'alexander_poster.png';
-                    link.href = canvas.toDataURL();
-                    link.click();
+            y += 80;
+
+            const cardW = Math.min(vw(90), 400);
+            const cardH = 200;
+
+            CONTENT.essays.forEach((essay, i) => {
+                const cardY = y + (i * (cardH + 20));
+                const hov = hitTest(40, cardY, cardW, cardH);
+
+                // Dibujar Card
+                ctx.fillStyle = hov ? THEME.white : '#fff';
+                ctx.shadowBlur = hov ? 20 : 0;
+                ctx.shadowColor = 'rgba(0,0,0,0.1)';
+                ctx.fillRect(40, cardY, cardW, cardH);
+                ctx.shadowBlur = 0;
+
+                ctx.strokeStyle = THEME.ink;
+                ctx.lineWidth = 4;
+                ctx.strokeRect(40, cardY, cardW, cardH);
+
+                // Contenido
+                ctx.fillStyle = THEME.ink;
+                ctx.font = `700 12px Space Grotesk`;
+                ctx.fillText(essay.tag, 60, cardY + 40);
+                
+                // Badge Status
+                ctx.fillStyle = essay.color;
+                ctx.fillRect(cardW - 60, cardY + 25, 80, 20);
+                ctx.fillStyle = THEME.white;
+                ctx.font = `700 10px Space Grotesk`;
+                ctx.textAlign = 'center';
+                ctx.fillText(essay.status, cardW - 20, cardY + 39);
+
+                ctx.fillStyle = THEME.ink;
+                ctx.textAlign = 'left';
+                ctx.font = `700 24px Syne`;
+                wrapText(essay.title, 60, cardY + 80, cardW - 40, 30);
+
+                if(hov && STATE.isClicked) {
+                    alert('Accediendo al ensayo: ' + essay.title);
+                    STATE.isClicked = false;
                 }
             });
-
-            return btnY + 200;
         }
 
-        // --- UTILIDADES ---
+        function drawWho() {
+            let y = 200;
+            ctx.font = `800 ${vmin(8)}px Syne`;
+            ctx.fillStyle = THEME.ink;
+            ctx.fillText('WHO AM I?', 40, y);
+            
+            y += 100;
+            ctx.font = `400 ${vmin(3)}px Space Grotesk`;
+            wrapText(CONTENT.bio, 40, y, vw(80), vmin(4.5));
 
-        // Helper para texto multilínea
-        function wrapText(text, x, y, maxWidth, lineHeight, font, dryRun = false) {
-            ctx.font = font.replace('{s}', lineHeight * 0.8); // Ajuste tamaño vs linea
+            // Metáfora Geométrica
+            const centerX = STATE.width * 0.7;
+            const centerY = y + 100;
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(STATE.animFrame * 0.01);
+            ctx.strokeStyle = THEME.accent;
+            ctx.lineWidth = 10;
+            ctx.strokeRect(-80, -80, 160, 160);
+            ctx.rotate(-STATE.animFrame * 0.02);
+            ctx.strokeStyle = THEME.secondary;
+            ctx.beginPath();
+            ctx.arc(0, 0, 100, 0, Math.PI*2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawGoal() {
+            let y = 200;
+            ctx.font = `800 ${vmin(6)}px Syne`;
+            ctx.fillStyle = THEME.ink;
+            ctx.fillText('TARGET: SCIENCE.', 40, y);
+            
+            y += 100;
+
+            CONTENT.funding.forEach(item => {
+                ctx.fillStyle = THEME.ink;
+                ctx.font = `700 20px Space Grotesk`;
+                ctx.fillText(item.goal, 40, y);
+                
+                // Barra
+                const barW = vw(80);
+                const barH = 40;
+                ctx.strokeStyle = THEME.ink;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(40, y + 20, barW, barH);
+                
+                const progress = item.current / item.total;
+                ctx.fillStyle = THEME.secondary;
+                ctx.fillRect(40, y + 20, barW * progress, barH);
+                
+                ctx.fillStyle = THEME.ink;
+                ctx.font = `700 14px Space Grotesk`;
+                ctx.fillText(`${item.current}${item.unit} / ${item.total}${item.unit}`, 40 + barW + 10, y + 45);
+
+                y += 120;
+            });
+
+            // Botón GoFundMe
+            const bX = 40, bY = y, bW = 300, bH = 60;
+            const h = hitTest(bX, bY, bW, bH);
+            ctx.fillStyle = h ? THEME.ink : THEME.accent;
+            ctx.fillRect(bX, bY, bW, bH);
+            ctx.fillStyle = THEME.white;
+            ctx.textAlign = 'center';
+            ctx.fillText('APOYAR EN GOFUNDME', bX + bW/2, bY + 37);
+        }
+
+        // --- HELPERS ---
+
+        function hitTest(x, y, w, h, fixed = false) {
+            const my = fixed ? STATE.mouseY : STATE.mouseY + STATE.scrollY;
+            return STATE.mouseX >= x && STATE.mouseX <= x + w && my >= y && my <= y + h;
+        }
+
+        function wrapText(text, x, y, maxWidth, lineHeight) {
             const words = text.split(' ');
             let line = '';
-            let lines = [];
-            let currentY = y;
-            let lineIndex = 0;
-
-            for(let n = 0; n < words.length; n++) {
-                const testLine = line + words[n] + ' ';
-                const metrics = ctx.measureText(testLine);
-                const testWidth = metrics.width;
+            for (let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = ctx.measureText(testLine);
+                let testWidth = metrics.width;
                 if (testWidth > maxWidth && n > 0) {
-                    if (!dryRun) ctx.fillText(line, x, currentY);
-                    lines.push({ text: line, index: lineIndex++ });
+                    ctx.fillText(line, x, y);
                     line = words[n] + ' ';
-                    currentY += lineHeight;
+                    y += lineHeight;
                 } else {
                     line = testLine;
                 }
             }
-            if (!dryRun) ctx.fillText(line, x, currentY);
-            lines.push({ text: line, index: lineIndex++ });
-            
-            return dryRun ? lines : currentY;
+            ctx.fillText(line, x, y);
         }
 
-        // Detector de colisiones
-        function hitTest(rect) {
-            // Si es fixed (UI), usa coords directas. Si no, suma el scroll.
-            const mouseY = rect.fixed ? STATE.mouseY : STATE.mouseY + STATE.scrollY;
-            return (
-                STATE.mouseX >= rect.x &&
-                STATE.mouseX <= rect.x + rect.w &&
-                mouseY >= rect.y &&
-                mouseY <= rect.y + rect.h
-            );
-        }
-
-        // --- ARRANQUE ---
-        resize();
-        initShapes();
-        requestAnimationFrame(draw);
+        // --- START ---
+        window.onload = init;
 
     </script>
 </body>
