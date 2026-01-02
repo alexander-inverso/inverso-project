@@ -1,354 +1,279 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALEXANDER // THINK 4D</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --alex-purple: #5E546C;
-            --alex-purple-soft: #DAD5E0;
-            --bg-light: #F9F9F9;
-            --ink: #1A1A1A;
-        }
+import React, { useState, useEffect } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { CheckCircle2, Circle, Heart, MessageSquare, Send, Zap, Info, Share2, DollarSign, Award } from 'lucide-react';
 
-        body {
-            background-color: var(--bg-light);
-            color: var(--ink);
-            font-family: 'Space Grotesk', sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
+// --- CONFIGURACIÓN DE INFRAESTRUCTURA ---
+const firebaseConfig = JSON.parse(__firebase_config);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        h1, h2, h3, .poster-font {
-            font-family: 'Syne', sans-serif;
-            line-height: 0.9;
-        }
+// Colores Alexander
+const COLORS = {
+  purple: '#5E546C',
+  purpleSoft: '#DAD5E0',
+  ink: '#1A1A1A',
+  bg: '#F9F9F9'
+};
 
-        /* CANVA-STYLE POSTER CONTAINERS */
-        .poster-card {
-            background: white;
-            border: 2px solid var(--ink);
-            padding: 3rem;
-            position: relative;
-            box-shadow: 10px 10px 0px var(--alex-purple);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+const App = () => {
+  const [user, setUser] = useState(null);
+  const [activePage, setActivePage] = useState('home');
+  const [tasks, setTasks] = useState({
+    readEssays: false,
+    doSurvey: false,
+    shareAxiom: false,
+    communityPost: false
+  });
+  const [stats, setStats] = useState({ likes: 0, totalRaised: 1840, userContribution: 0 });
+  const [surveyStep, setSurveyStep] = useState(0);
+  const [communityPosts, setCommunityPosts] = useState([]);
 
-        .poster-card:hover {
-            transform: translate(-5px, -5px);
-            box-shadow: 15px 15px 0px var(--ink);
-        }
+  // --- PERSISTENCIA Y AUTH ---
+  useEffect(() => {
+    const init = async () => {
+      // 1. Auth Anónima (Sin login manual)
+      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+        // await signInWithCustomToken(auth, __initial_auth_token); // No disponible en este entorno
+      } else {
+        await signInAnonymously(auth);
+      }
+    };
+    init();
 
-        /* CUSTOM UNDERLINES */
-        .bold-underline {
-            text-decoration: none;
-            background-image: linear-gradient(var(--alex-purple-soft), var(--alex-purple-soft));
-            background-position: 0% 90%;
-            background-repeat: no-repeat;
-            background-size: 100% 30%;
-            transition: background-size 0.3s;
-        }
-        .bold-underline:hover {
-            background-size: 100% 100%;
-        }
+    const unsubAuth = onAuthStateChanged(auth, (u) => {
+      if (u) {
+        setUser(u);
+        // Cargar tareas locales
+        const savedTasks = localStorage.getItem(`tasks_${u.uid}`);
+        if (savedTasks) setTasks(JSON.parse(savedTasks));
+      }
+    });
 
-        /* BUTTONS */
-        .btn-action {
-            background: var(--alex-purple);
-            color: white;
-            padding: 1rem 2rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border: 2px solid var(--ink);
-            box-shadow: 4px 4px 0px var(--ink);
-            transition: all 0.2s;
-        }
-        .btn-action:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0px var(--ink);
-            background: var(--ink);
-        }
+    return () => unsubAuth();
+  }, []);
 
-        /* PRINT / SCREENSHOT MODE */
-        @media print {
-            .no-print { display: none !important; }
-            .poster-card { box-shadow: none; border: 4px solid black; }
-        }
+  // --- REAL-TIME DATA (FIRESTORE) ---
+  useEffect(() => {
+    if (!user) return;
 
-        /* ANIMATIONS */
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-up { animation: slideUp 0.6s ease-out forwards; }
+    // Escuchar posts de la comunidad (Públicos)
+    const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'posts'));
+    const unsubPosts = onSnapshot(q, (snapshot) => {
+      const p = [];
+      snapshot.forEach(doc => p.push({ id: doc.id, ...doc.data() }));
+      setCommunityPosts(p);
+    }, (err) => console.error("Firestore Error:", err));
 
-        .survey-option:hover {
-            background-color: var(--alex-purple-soft);
-            border-color: var(--alex-purple);
-        }
-    </style>
-</head>
-<body class="p-4 md:p-8 lg:p-12 min-h-screen">
+    // Escuchar Global Funding
+    const unsubGlobal = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'funding'), (doc) => {
+      if (doc.exists()) setStats(prev => ({ ...prev, ...doc.data() }));
+    }, (err) => console.error("Global Stats Error:", err));
 
-    <!-- HUD / NAV -->
-    <nav class="no-print mb-12 flex justify-between items-center max-w-7xl mx-auto">
-        <div class="text-3xl font-black uppercase tracking-tighter poster-font">
-            ALEXANDER<span class="text-[var(--alex-purple)]">.</span>
+    return () => { unsubPosts(); unsubGlobal(); };
+  }, [user]);
+
+  // --- LÓGICA DE MONETIZACIÓN SIMULADA ---
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStats(prev => ({
+        ...prev,
+        userContribution: prev.userContribution + 0.0005 // Incremento por tiempo de sesión
+      }));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // --- ACCIONES ---
+  const toggleTask = (key) => {
+    const newTasks = { ...tasks, [key]: !tasks[key] };
+    setTasks(newTasks);
+    if (user) localStorage.setItem(`tasks_${user.uid}`, JSON.stringify(newTasks));
+  };
+
+  const handleLike = async () => {
+    if (!user) return;
+    const globalRef = doc(db, 'artifacts', appId, 'public', 'data', 'funding');
+    await updateDoc(globalRef, { likes: increment(1) });
+  };
+
+  const submitPostDraft = (e) => {
+    e.preventDefault();
+    toggleTask('communityPost');
+    // En una app real, aquí enviaríamos el draft a Firestore para validación de Alexander
+    alert("Borrador enviado a Alexander para revisión.");
+  };
+
+  // --- UI COMPONENTS ---
+  const Sidebar = () => (
+    <div className="w-80 border-l-4 border-black p-6 bg-white flex flex-col gap-8 h-screen sticky top-0 overflow-y-auto">
+      <div>
+        <h3 className="font-bold text-xs uppercase tracking-widest text-gray-400 mb-4">Agenda Pendiente</h3>
+        <div className="space-y-4">
+          <TaskItem 
+            label="Explorar Biblioteca" 
+            done={tasks.readEssays} 
+            onClick={() => toggleTask('readEssays')} 
+          />
+          <TaskItem 
+            label="Realizar Reflexión" 
+            done={tasks.doSurvey} 
+            onClick={() => toggleTask('doSurvey')} 
+          />
+          <TaskItem 
+            label="Compartir Axioma" 
+            done={tasks.shareAxiom} 
+            onClick={() => toggleTask('shareAxiom')} 
+          />
+          <TaskItem 
+            label="Enviar Post Comunidad" 
+            done={tasks.communityPost} 
+            onClick={() => toggleTask('communityPost')} 
+          />
         </div>
-        <div class="flex gap-4">
-            <button onclick="showSection('home')" class="font-bold text-sm uppercase tracking-widest hover:text-[var(--alex-purple)] transition-colors">Inicio</button>
-            <button onclick="showSection('essays')" class="font-bold text-sm uppercase tracking-widest hover:text-[var(--alex-purple)] transition-colors">Ensayos</button>
-            <button onclick="showSection('identity')" class="font-bold text-sm uppercase tracking-widest hover:text-[var(--alex-purple)] transition-colors">Origen</button>
-            <button onclick="showSection('funding')" class="bg-black text-white px-4 py-2 font-bold text-xs uppercase tracking-widest hover:bg-[var(--alex-purple)] transition-all">Support</button>
-        </div>
-    </nav>
+      </div>
 
-    <!-- SECTION: HOME (THE PORTAL) -->
-    <section id="home" class="max-w-7xl mx-auto space-y-16 animate-up">
+      <div className="bg-[#5E546C] text-white p-5 border-2 border-black shadow-[6px_6px_0px_#1a1a1a]">
+        <h3 className="font-black text-lg uppercase leading-none mb-2">Impacto Real</h3>
+        <p className="text-[10px] uppercase opacity-70 mb-4">Tu sesión está financiando el futuro</p>
+        <div className="text-3xl font-bold flex items-center gap-2">
+          <DollarSign size={20} className="text-white" />
+          {stats.userContribution.toFixed(4)}€
+        </div>
+        <div className="mt-4 pt-4 border-t border-white/20">
+          <p className="text-[10px] uppercase">Fondo Global: <span className="font-bold">{stats.totalRaised}€</span></p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+         <button className="flex items-center gap-2 text-xs font-bold uppercase hover:text-[#5E546C]" onClick={handleLike}>
+          <Heart size={16} fill={stats.likes > 0 ? '#5E546C' : 'none'} /> {stats.likes} Personas apoyan esto
+        </button>
+      </div>
+    </div>
+  );
+
+  const TaskItem = ({ label, done, onClick }) => (
+    <button 
+      onClick={onClick}
+      className={`flex items-center gap-3 w-full text-left transition-all ${done ? 'opacity-50 line-through' : ''}`}
+    >
+      {done ? <CheckCircle2 size={18} className="text-[#5E546C]" /> : <Circle size={18} />}
+      <span className="text-sm font-bold uppercase tracking-tighter">{label}</span>
+    </button>
+  );
+
+  return (
+    <div className="flex min-h-screen bg-[#F9F9F9] text-[#1A1A1A] font-['Space_Grotesk']">
+      
+      {/* NAVEGACIÓN IZQUIERDA (VERTICAL) */}
+      <div className="w-20 border-r-4 border-black flex flex-col items-center py-8 gap-12 sticky top-0 h-screen bg-white">
+        <div className="font-black text-2xl -rotate-90 origin-center translate-y-12">ALEXANDER.</div>
+        <div className="mt-auto flex flex-col gap-6">
+          <NavIcon icon={<Zap size={24} />} active={activePage === 'home'} onClick={() => setActivePage('home')} />
+          <NavIcon icon={<Award size={24} />} active={activePage === 'funding'} onClick={() => setActivePage('funding')} />
+          <NavIcon icon={<MessageSquare size={24} />} active={activePage === 'community'} onClick={() => setActivePage('community')} />
+        </div>
+      </div>
+
+      {/* CONTENIDO PRINCIPAL */}
+      <div className="flex-grow p-12 overflow-y-auto">
         
-        <!-- GREETING BOX (GEMINI STYLE) -->
-        <div class="space-y-6">
-            <h1 class="text-6xl md:text-9xl font-black uppercase tracking-tight">
-                HOLA,<br><span class="text-[var(--alex-purple)]">¿QUÉ HACEMOS HOY?</span>
-            </h1>
-            <p class="text-xl md:text-2xl font-medium max-w-2xl text-gray-500">
-                Bienvenido a mi repositorio público. Aquí, las ideas no se filtran, se ejecutan. <span class="text-black font-bold">Think 4D.</span>
-            </p>
-            <div class="flex flex-wrap gap-4 pt-4 no-print">
-                <button onclick="showSection('essays')" class="btn-action">Leer un ensayo</button>
-                <button onclick="startSurvey()" class="border-2 border-black px-8 py-4 font-bold uppercase hover:bg-white transition-all">Hacer una reflexión</button>
-                <button onclick="showSection('funding')" class="underline font-bold uppercase tracking-widest text-sm hover:text-[var(--alex-purple)]">Donar al futuro</button>
-            </div>
-        </div>
+        {activePage === 'home' && (
+          <div className="space-y-16 max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <header className="space-y-4">
+              <h1 className="text-8xl font-black uppercase leading-[0.85] tracking-tighter">
+                THINK<br /><span className="text-[#5E546C]">4D.</span>
+              </h1>
+              <p className="text-2xl font-medium text-gray-500 max-w-2xl">
+                ¿Qué hacemos hoy? La inercia es el fallo. Elige una ruta y contribuye a la infraestructura de la longevidad.
+              </p>
+            </header>
 
-        <!-- PREVIEW GRID -->
-        <div class="grid md:grid-cols-2 gap-8 mt-12">
-            <div class="poster-card flex flex-col justify-between">
-                <div>
-                    <span class="text-xs font-bold uppercase tracking-widest text-gray-400">Último Ensayo</span>
-                    <h2 class="text-4xl font-bold mt-2 mb-4 leading-none">La Muerte como Fallo de Software</h2>
-                    <p class="text-sm text-gray-600 mb-6">Un análisis sobre por qué aceptamos la senescencia como algo "natural" en lugar de un bug crítico en el código genético.</p>
-                </div>
-                <button onclick="showSection('essays')" class="text-left font-bold border-b-2 border-black inline-block w-fit hover:text-[var(--alex-purple)]">Previsualizar contenido</button>
+            <div className="grid grid-cols-2 gap-8">
+              <div className="border-4 border-black p-8 bg-white shadow-[12px_12px_0px_#5E546C]">
+                <h2 className="text-4xl font-black uppercase mb-4">El Oráculo</h2>
+                <p className="mb-6 font-medium">¿Te gustaría vivir hasta los 120 años? Participa en la reflexión interactiva.</p>
+                <button onClick={() => setActivePage('survey')} className="bg-[#5E546C] text-white px-6 py-3 font-bold uppercase border-2 border-black">Iniciar Test</button>
+              </div>
+              <div className="border-4 border-black p-8 bg-black text-white shadow-[12px_12px_0px_#DAD5E0]">
+                <h2 className="text-4xl font-black uppercase mb-4">Biblioteca</h2>
+                <p className="mb-6 opacity-70">"La Muerte como Fallo de Software". Lee el último ensayo revisado.</p>
+                <button onClick={() => toggleTask('readEssays')} className="bg-white text-black px-6 py-3 font-bold uppercase border-2 border-white">Leer Ahora</button>
+              </div>
             </div>
+
+            <div className="bg-[#DAD5E0] p-12 border-4 border-black">
+              <h3 className="text-2xl font-bold uppercase mb-4 italic">"Be different, not indifferent."</h3>
+              <p className="font-mono text-xs uppercase tracking-widest opacity-60">Axioma de Continuidad #01</p>
+            </div>
+          </div>
+        )}
+
+        {activePage === 'community' && (
+          <div className="max-w-4xl space-y-12 animate-in fade-in slide-in-from-right-4 duration-500">
+            <h2 className="text-7xl font-black uppercase">Comunidad<span className="text-[#5E546C]">.</span></h2>
             
-            <div class="poster-card flex flex-col justify-between border-dashed">
-                <div>
-                    <span class="text-xs font-bold uppercase tracking-widest text-gray-400">Axioma 04</span>
-                    <h2 class="text-4xl font-bold mt-2 mb-4 leading-none">Be Different, Not Indifferent.</h2>
-                    <p class="text-sm text-gray-600 mb-6">La indiferencia es la forma más letal de inercia civilizatoria. Si no estás intentando arreglarlo, eres parte del problema.</p>
-                </div>
-                <span class="text-xs font-mono uppercase text-gray-400">Printable Poster Available</span>
-            </div>
-        </div>
-    </section>
+            <form onSubmit={submitPostDraft} className="border-4 border-black p-8 bg-white space-y-4">
+              <h3 className="font-bold uppercase tracking-widest text-xs">Aportar una reflexión</h3>
+              <textarea 
+                className="w-full h-32 border-2 border-black p-4 font-['Space_Grotesk'] text-lg focus:outline-none focus:ring-4 ring-[#5E546C]/20"
+                placeholder="Escribe tu mensaje... Alexander lo revisará y publicará."
+              ></textarea>
+              <button type="submit" className="bg-[#5E546C] text-white px-8 py-4 font-bold uppercase flex items-center gap-2">
+                <Send size={18} /> Enviar a Alexander
+              </button>
+            </form>
 
-    <!-- SECTION: ESSAYS (PREVIEW MODE) -->
-    <section id="essays" class="max-w-7xl mx-auto hidden animate-up">
-        <h2 class="text-7xl font-black uppercase mb-12">ENSAYOS<span class="text-[var(--alex-purple)]">.</span></h2>
+            <div className="space-y-6">
+              {communityPosts.length === 0 ? (
+                <p className="text-gray-400 font-bold uppercase text-center py-12 border-2 border-dashed border-gray-300">No hay hilos activos todavía.</p>
+              ) : (
+                communityPosts.map(post => (
+                  <div key={post.id} className="border-2 border-black p-6 bg-white flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-lg">"{post.content}"</p>
+                      <span className="text-xs font-mono uppercase opacity-50">— {post.author}</span>
+                    </div>
+                    <Heart size={20} className="text-[#5E546C]" />
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ... Otras páginas (Funding, Survey) se renderizarían aquí ... */}
+
+      </div>
+
+      {/* SIDEBAR DERECHO */}
+      <Sidebar />
+
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700;800&family=Syne:wght@700;800&display=swap');
         
-        <div class="grid md:grid-cols-3 gap-6">
-            <!-- PREVIEW CARD 1 -->
-            <div class="poster-card p-6 flex flex-col bg-white">
-                <div class="h-40 bg-gray-100 mb-4 overflow-hidden border-2 border-black flex items-center justify-center">
-                    <span class="text-6xl font-black text-gray-200">#01</span>
-                </div>
-                <h3 class="text-2xl font-bold mb-2">Ingeniería Inversa del 10</h3>
-                <p class="text-sm text-gray-600 mb-4 line-clamp-3">Cómo estoy mecanizando el proceso de resolución de problemas para eliminar el "miedo" a las matemáticas de la EBAU y asegurar el resultado perfecto...</p>
-                <button class="mt-auto text-sm font-bold uppercase text-[var(--alex-purple)] hover:underline">Leer Sinopsis Completa</button>
-            </div>
+        body { font-family: 'Space Grotesk', sans-serif; }
+        h1, h2, h3 { font-family: 'Syne', sans-serif; }
+        
+        .no-print { @media print { display: none; } }
+      `}</style>
+    </div>
+  );
+};
 
-            <!-- PREVIEW CARD 2 -->
-            <div class="poster-card p-6 flex flex-col bg-white">
-                <div class="h-40 bg-[var(--alex-purple)] mb-4 overflow-hidden border-2 border-black flex items-center justify-center">
-                    <span class="text-6xl font-black text-white/20">#02</span>
-                </div>
-                <h3 class="text-2xl font-bold mb-2">One Take: Transparencia</h3>
-                <p class="text-sm text-gray-600 mb-4 line-clamp-3">La perfección está en mostrar el error. Por qué voy a grabar mi proceso científico sin cortes, mostrando cada fallo de compilación biológica...</p>
-                <button class="mt-auto text-sm font-bold uppercase text-[var(--alex-purple)] hover:underline">Ver Previsualización</button>
-            </div>
-            
-            <!-- ADD MORE AS NEEDED -->
-            <div class="poster-card p-6 border-dashed flex flex-col items-center justify-center text-center">
-                <p class="font-bold text-gray-400">¿Tienes un tema interesante?</p>
-                <button class="mt-2 text-xs font-bold uppercase underline">Sugerir Ensayo</button>
-            </div>
-        </div>
-    </section>
+const NavIcon = ({ icon, active, onClick }) => (
+  <button 
+    onClick={onClick}
+    className={`p-3 border-2 border-black transition-all ${active ? 'bg-[#5E546C] text-white -translate-x-2' : 'bg-white text-black hover:bg-gray-100'}`}
+  >
+    {icon}
+  </button>
+);
 
-    <!-- SECTION: THE ORACLE (SURVEYS) -->
-    <section id="survey" class="max-w-4xl mx-auto hidden animate-up py-20">
-        <div class="poster-card p-12 text-center space-y-8" id="survey-box">
-            <!-- Dynamic Content -->
-        </div>
-    </section>
-
-    <!-- SECTION: IDENTITY -->
-    <section id="identity" class="max-w-7xl mx-auto hidden animate-up space-y-12">
-        <h2 class="text-8xl font-black uppercase mb-8">Origen<br>& Destino.</h2>
-        <div class="grid md:grid-cols-2 gap-12">
-            <div class="poster-card">
-                <h3 class="text-2xl font-bold mb-4 uppercase tracking-wider">¿Quién soy?</h3>
-                <p class="text-xl leading-relaxed">
-                    Soy un <span class="bold-underline">Outsider Competente</span>. Un estudiante de 17 años que entiende que la medicina actual es un sistema reactivo y yo busco la proactividad absoluta.
-                </p>
-                <p class="mt-4 text-gray-500">
-                    Vengo del "Laboratorio" y del "Archivo". Mi realidad es dual, pero mi propósito es único: Hackear el tiempo.
-                </p>
-            </div>
-            <div class="poster-card bg-black text-white">
-                <h3 class="text-2xl font-bold mb-4 uppercase tracking-wider text-[var(--alex-purple-soft)]">Motivaciones</h3>
-                <p class="text-xl">
-                    No acepto el "no lo sé" como respuesta. Si el sistema biológico falla, es porque no entendemos el código. Mi motivación es el <span class="text-[var(--alex-purple-soft)] font-bold italic">Aprendizaje Infinito</span>.
-                </p>
-                <div class="mt-8 border-t border-gray-700 pt-4">
-                    <span class="text-xs uppercase font-mono tracking-widest text-gray-400">Next stop: UC3M -> ETH Zúrich</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECTION: FUNDING -->
-    <section id="funding" class="max-w-7xl mx-auto hidden animate-up space-y-12">
-        <div class="poster-card border-dashed">
-            <h2 class="text-6xl font-black mb-8">Rocket Fuel.</h2>
-            <p class="text-2xl mb-12">Para llegar al <span class="font-bold">LIYSF</span> en Londres y al <span class="font-bold">BIYSC</span> en Barcelona, necesito acelerar el capital.</p>
-            
-            <div class="space-y-8">
-                <div>
-                    <div class="flex justify-between font-bold mb-2">
-                        <span>LIYSF (LONDRES)</span>
-                        <span class="text-[var(--alex-purple)]">75%</span>
-                    </div>
-                    <div class="w-full h-8 bg-gray-200 border-2 border-black p-1">
-                        <div class="h-full bg-[var(--alex-purple)]" style="width: 75%"></div>
-                    </div>
-                </div>
-                <div>
-                    <div class="flex justify-between font-bold mb-2">
-                        <span>BIYSC (BARCELONA)</span>
-                        <span class="text-[var(--alex-purple)]">20%</span>
-                    </div>
-                    <div class="w-full h-8 bg-gray-200 border-2 border-black p-1">
-                        <div class="h-full bg-[var(--alex-purple)]" style="width: 20%"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mt-12 text-center">
-                <a href="#" class="btn-action text-2xl px-12 inline-block">IR A GOFUNDME</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- FOOTER -->
-    <footer class="mt-32 border-t-4 border-black pt-12 pb-20 max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-8 no-print">
-        <div class="poster-font text-5xl md:text-7xl font-black">
-            THINK<br><span class="text-[var(--alex-purple)]">4D.</span>
-        </div>
-        <div class="space-y-4 md:text-right">
-            <p class="font-bold text-xl uppercase tracking-tighter italic">"No planet, No people, No future."</p>
-            <p class="text-gray-400 font-mono text-sm">Alexander Bio-Sistemas // 2026</p>
-            <div class="flex md:justify-end gap-4">
-                <button onclick="window.print()" class="text-xs font-bold uppercase border-2 border-black px-4 py-2 hover:bg-black hover:text-white transition-all">Exportar como Póster</button>
-            </div>
-        </div>
-    </footer>
-
-    <!-- SCRIPTING -->
-    <script>
-        // --- ROUTING SYSTEM ---
-        function showSection(id) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // --- SURVEY ENGINE ---
-        const surveySteps = [
-            {
-                q: "¿Te gustaría vivir hasta los 120 años?",
-                options: [
-                    { t: "Sí, es el máximo biológico actual.", next: 1 },
-                    { t: "No, me parece demasiado.", next: 'end_no' }
-                ]
-            },
-            {
-                q: "¿Y si pudieras vivirlos con la vitalidad de un joven de 20?",
-                options: [
-                    { t: "Entonces sí, sin duda.", next: 2 },
-                    { t: "Sigue siendo mucho tiempo.", next: 3 }
-                ]
-            },
-            {
-                q: "¿Qué harías con ese tiempo extra?",
-                options: [
-                    { t: "Aprendería 5 carreras más.", next: 3 },
-                    { t: "Viajaría y descansaría.", next: 3 }
-                ]
-            },
-            {
-                q: "Bajemos el límite: ¿Te gustaría vivir 'solo' hasta los 90?",
-                options: [
-                    { t: "Claro, es una edad digna.", next: 4 },
-                    { t: "Es poco, quiero más.", next: 4 }
-                ]
-            },
-            {
-                q: "¿Crees que estás aprovechando tu tiempo actual?",
-                options: [
-                    { t: "Podría mejorar mi eficiencia.", next: 'end_reflex' },
-                    { t: "Estoy al máximo rendimiento.", next: 'end_reflex' }
-                ]
-            }
-        ];
-
-        function startSurvey() {
-            showSection('survey');
-            renderStep(0);
-        }
-
-        function renderStep(index) {
-            const box = document.getElementById('survey-box');
-            if (index === 'end_no') {
-                box.innerHTML = `
-                    <h2 class="text-4xl font-black uppercase mb-4">Interesante.</h2>
-                    <p class="text-xl">Aceptas el límite biológico como una frontera infranqueable. ¿Es por miedo al aburrimiento o por respeto a la naturaleza?</p>
-                    <button onclick="showSection('home')" class="btn-action mt-8">Volver al inicio</button>
-                `;
-                return;
-            }
-            if (index === 'end_reflex') {
-                box.innerHTML = `
-                    <h2 class="text-4xl font-black uppercase mb-4">Diagnóstico: Mente Inquieta.</h2>
-                    <p class="text-xl">Tu percepción del tiempo dictará tu éxito. No importa cuánto vivas, sino cuánta vida metes en tus años.</p>
-                    <button onclick="showSection('home')" class="btn-action mt-8">Finalizar Reflexión</button>
-                `;
-                return;
-            }
-
-            const step = surveySteps[index];
-            box.innerHTML = `
-                <h2 class="text-4xl font-black uppercase mb-8">${step.q}</h2>
-                <div class="grid gap-4 max-w-md mx-auto">
-                    ${step.options.map(opt => `
-                        <button onclick="renderStep('${opt.next}')" class="survey-option border-2 border-black p-4 font-bold uppercase text-sm transition-all text-center">
-                            ${opt.t}
-                        </button>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        // Initial Load
-        window.onload = () => {
-            console.log("System Alexander Online.");
-        };
-    </script>
-
-</body>
-</html>
+export default App;
 
