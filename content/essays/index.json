@@ -1,0 +1,40 @@
+{
+  "essays": [
+    {
+      "id": "muerte-software",
+      "title": "La Muerte como Fallo de Software",
+      "synopsis": "[SINOPSIS PROVISIONAL] Un análisis de por qué el envejecimiento debería tratarse como un bug en el código biológico, no como una característica inevitable.",
+      "file": "muerte-software.md",
+      "date": "2026-01-03",
+      "tags": ["longevidad", "biología", "filosofía"],
+      "featured": true
+    },
+    {
+      "id": "ensayo-2",
+      "title": "[Título del segundo ensayo]",
+      "synopsis": "[Sinopsis provisional del segundo ensayo]",
+      "file": "ensayo-2.md",
+      "date": "2026-01-03",
+      "tags": [],
+      "featured": false
+    },
+    {
+      "id": "ensayo-3",
+      "title": "[Título del tercer ensayo]",
+      "synopsis": "[Sinopsis provisional del tercer ensayo]",
+      "file": "ensayo-3.md",
+      "date": "2026-01-03",
+      "tags": [],
+      "featured": false
+    },
+    {
+      "id": "ensayo-4",
+      "title": "[Título del cuarto ensayo]",
+      "synopsis": "[Sinopsis provisional del cuarto ensayo]",
+      "file": "ensayo-4.md",
+      "date": "2026-01-03",
+      "tags": [],
+      "featured": false
+    }
+  ]
+}

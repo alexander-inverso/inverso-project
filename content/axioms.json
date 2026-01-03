@@ -1,0 +1,39 @@
+{
+  "axioms": [
+    {
+      "id": 1,
+      "text": "Think 4D",
+      "category": "core"
+    },
+    {
+      "id": 2,
+      "text": "Be different, not indifferent",
+      "category": "core"
+    },
+    {
+      "id": 3,
+      "text": "No planet, no people, no future",
+      "category": "core"
+    },
+    {
+      "id": 4,
+      "text": "La muerte es un fallo de software",
+      "category": "longevity"
+    },
+    {
+      "id": 5,
+      "text": "El cuerpo humano es código sin documentar",
+      "category": "longevity"
+    },
+    {
+      "id": 6,
+      "text": "Predecir es la nueva medicina",
+      "category": "longevity"
+    },
+    {
+      "id": 7,
+      "text": "La inercia es el fallo",
+      "category": "action"
+    }
+  ]
+}
