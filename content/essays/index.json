@@ -3,37 +3,46 @@
     {
       "id": "muerte-software",
       "title": "La Muerte como Fallo de Software",
-      "synopsis": "[SINOPSIS PROVISIONAL] Un análisis de por qué el envejecimiento debería tratarse como un bug en el código biológico, no como una característica inevitable.",
+      "synopsis": "Un análisis de por qué el envejecimiento debería tratarse como un bug en el código biológico, no como una característica inevitable del sistema.",
       "file": "muerte-software.md",
       "date": "2026-01-03",
       "tags": ["longevidad", "biología", "filosofía"],
       "featured": true
     },
     {
-      "id": "ensayo-2",
-      "title": "[Título del segundo ensayo]",
-      "synopsis": "[Sinopsis provisional del segundo ensayo]",
-      "file": "ensayo-2.md",
-      "date": "2026-01-03",
-      "tags": [],
+      "id": "elegancia-complejidad",
+      "title": "La Elegancia de la Complejidad",
+      "synopsis": "Desde un bolígrafo hasta un procesador ejecutando billones de operaciones por segundo. Una apreciación por la infraestructura invisible que sostiene nuestra civilización.",
+      "file": "elegancia-complejidad.md",
+      "date": "2026-01-02",
+      "tags": ["tecnología", "filosofía", "infraestructura"],
       "featured": false
     },
     {
-      "id": "ensayo-3",
-      "title": "[Título del tercer ensayo]",
-      "synopsis": "[Sinopsis provisional del tercer ensayo]",
-      "file": "ensayo-3.md",
-      "date": "2026-01-03",
-      "tags": [],
+      "id": "quien-merece-inmortalidad",
+      "title": "¿Quién Merece Ser Inmortal?",
+      "synopsis": "Si la cura para la muerte existiera, ¿sería un derecho universal o un privilegio merecido? Explorando la ética de la longevidad selectiva.",
+      "file": "quien-merece-inmortalidad.md",
+      "date": "2026-01-01",
+      "tags": ["ética", "longevidad", "sociedad"],
       "featured": false
     },
     {
-      "id": "ensayo-4",
-      "title": "[Título del cuarto ensayo]",
-      "synopsis": "[Sinopsis provisional del cuarto ensayo]",
-      "file": "ensayo-4.md",
-      "date": "2026-01-03",
-      "tags": [],
+      "id": "humano-analogico",
+      "title": "El Ser Humano Analógico",
+      "synopsis": "Vivimos en cuerpos que no entendemos. Enfermedades idiopáticas, procesos desconocidos, y la promesa de la superinteligencia biológica para decodificar el sistema.",
+      "file": "humano-analogico.md",
+      "date": "2025-12-28",
+      "tags": ["biología", "IA", "medicina"],
+      "featured": false
+    },
+    {
+      "id": "valor-artificial",
+      "title": "El Valor Artificial",
+      "synopsis": "Por qué lloramos cuando muere una mascota pero aceptamos la muerte de miles de desconocidos. Sobre el valor intrínseco, el valor asignado, y el desapego como herramienta.",
+      "file": "valor-artificial.md",
+      "date": "2025-12-25",
+      "tags": ["psicología", "filosofía", "valores"],
       "featured": false
     }
   ]
