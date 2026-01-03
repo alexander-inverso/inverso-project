@@ -1,0 +1,59 @@
+{
+  "id": "test-120",
+  "title": "El Test de los 120 Años",
+  "description": "Una reflexión interactiva sobre la longevidad y tus expectativas de vida",
+  "questions": [
+    {
+      "id": 1,
+      "text": "¿Te gustaría vivir hasta los 120 años?",
+      "type": "yes_no"
+    },
+    {
+      "id": 2,
+      "text": "¿Sabes qué quieres hacer con tu vida?",
+      "type": "scale",
+      "scale_min": 1,
+      "scale_max": 5,
+      "scale_labels": ["No tengo ni idea", "Tengo una idea clara"]
+    },
+    {
+      "id": 3,
+      "text": "¿Te gustaría vivir hasta los 90 años?",
+      "type": "yes_no"
+    },
+    {
+      "id": 4,
+      "text": "¿Estás contento con lo que has conseguido hasta ahora?",
+      "type": "scale",
+      "scale_min": 1,
+      "scale_max": 5,
+      "scale_labels": ["Para nada", "Completamente"]
+    },
+    {
+      "id": 5,
+      "text": "¿Te gustaría vivir hasta los 70 años?",
+      "type": "yes_no"
+    },
+    {
+      "id": 6,
+      "text": "¿Te gustaría vivir hasta los 50 años?",
+      "type": "yes_no"
+    }
+  ],
+  "results": {
+    "profiles": [
+      {
+        "id": "eternal_optimist",
+        "name": "Optimista Eterno",
+        "description": "[Descripción del perfil]",
+        "condition": "[Lógica para asignar este perfil]"
+      },
+      {
+        "id": "pragmatic",
+        "name": "Pragmático",
+        "description": "[Descripción del perfil]",
+        "condition": "[Lógica para asignar este perfil]"
+      }
+    ]
+  }
+}

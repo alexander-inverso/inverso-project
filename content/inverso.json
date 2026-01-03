@@ -1,0 +1,28 @@
+{
+  "name": "Inverso Project",
+  "tagline": "Atacando el envejecimiento desde el código fuente",
+  "mission": "[Describe la misión de Inverso Project]",
+  "sections": [
+    {
+      "id": "problema",
+      "title": "El Problema",
+      "content": "[Describe el problema: envejecimiento, enfermedades idiopáticas, los vacíos en la ciencia, el 'no lo sabemos'...]"
+    },
+    {
+      "id": "solucion",
+      "title": "La Solución",
+      "content": "[Describe tu enfoque: superinteligencia biológica, simuladores, método inductivo vs deductivo...]"
+    },
+    {
+      "id": "vision",
+      "title": "La Visión",
+      "content": "[Describe el futuro: 'que los científicos se queden sin trabajo', simuladores que prueban fármacos, sistemas biológicos predecibles...]"
+    },
+    {
+      "id": "filosofia",
+      "title": "Cuestiones Filosóficas",
+      "content": "[Reflexiones sobre: ¿qué es la vida?, ¿cuándo deja de serlo?, brain-computer interfaces, copiar la mente...]"
+    }
+  ],
+  "provocative_slogan": "Que los científicos se queden sin trabajo"
+}

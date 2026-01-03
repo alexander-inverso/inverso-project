@@ -1,0 +1,37 @@
+{
+  "name": "Alexander",
+  "tagline": "[Tu tagline personal]",
+  "sections": [
+    {
+      "id": "pasado",
+      "title": "Mi Pasado",
+      "content": "[Escribe aquí sobre tu infancia, de dónde vienes, experiencias formativas...]"
+    },
+    {
+      "id": "presente",
+      "title": "Qué Hago Ahora",
+      "content": "[Escribe aquí sobre tu situación actual: 2º de Bachillerato, preparación para Suecia, proyectos...]"
+    },
+    {
+      "id": "gustos",
+      "title": "Mis Gustos",
+      "content": "[Escribe aquí sobre tus intereses, hobbies, lo que te apasiona...]"
+    },
+    {
+      "id": "ambicion",
+      "title": "Mi Ambición",
+      "content": "[Escribe aquí sobre tus objetivos: Karolinska, Biomedicina, acabar con el envejecimiento...]"
+    },
+    {
+      "id": "futuro",
+      "title": "Mi Proyección del Futuro",
+      "content": "[Escribe aquí sobre cómo te ves en 5, 10, 20 años...]"
+    }
+  ],
+  "university": {
+    "name": "Karolinska Institutet",
+    "location": "Estocolmo, Suecia",
+    "program_bsc": "Biomedicina",
+    "program_msc": "Bioestadística / Data Science (por decidir)"
+  }
+}

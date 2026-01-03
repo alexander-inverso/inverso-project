@@ -1,279 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { CheckCircle2, Circle, Heart, MessageSquare, Send, Zap, Info, Share2, DollarSign, Award } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Inverso Project - Atacando el envejecimiento desde el código fuente de la vida">
+  <meta name="author" content="Alexander">
 
-// --- CONFIGURACIÓN DE INFRAESTRUCTURA ---
-const firebaseConfig = JSON.parse(__firebase_config);
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+  <title>Inverso Project</title>
 
-// Colores Alexander
-const COLORS = {
-  purple: '#5E546C',
-  purpleSoft: '#DAD5E0',
-  ink: '#1A1A1A',
-  bg: '#F9F9F9'
-};
+  <!-- Favicon (placeholder) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>∞</text></svg>">
 
-const App = () => {
-  const [user, setUser] = useState(null);
-  const [activePage, setActivePage] = useState('home');
-  const [tasks, setTasks] = useState({
-    readEssays: false,
-    doSurvey: false,
-    shareAxiom: false,
-    communityPost: false
-  });
-  const [stats, setStats] = useState({ likes: 0, totalRaised: 1840, userContribution: 0 });
-  const [surveyStep, setSurveyStep] = useState(0);
-  const [communityPosts, setCommunityPosts] = useState([]);
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 
-  // --- PERSISTENCIA Y AUTH ---
-  useEffect(() => {
-    const init = async () => {
-      // 1. Auth Anónima (Sin login manual)
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        // await signInWithCustomToken(auth, __initial_auth_token); // No disponible en este entorno
-      } else {
-        await signInAnonymously(auth);
-      }
-    };
-    init();
+  <!-- Styles -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Particles Background -->
+  <div id="particles-js"></div>
 
-    const unsubAuth = onAuthStateChanged(auth, (u) => {
-      if (u) {
-        setUser(u);
-        // Cargar tareas locales
-        const savedTasks = localStorage.getItem(`tasks_${u.uid}`);
-        if (savedTasks) setTasks(JSON.parse(savedTasks));
-      }
-    });
+  <!-- Main App Container -->
+  <div class="app-container">
 
-    return () => unsubAuth();
-  }, []);
-
-  // --- REAL-TIME DATA (FIRESTORE) ---
-  useEffect(() => {
-    if (!user) return;
-
-    // Escuchar posts de la comunidad (Públicos)
-    const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'posts'));
-    const unsubPosts = onSnapshot(q, (snapshot) => {
-      const p = [];
-      snapshot.forEach(doc => p.push({ id: doc.id, ...doc.data() }));
-      setCommunityPosts(p);
-    }, (err) => console.error("Firestore Error:", err));
-
-    // Escuchar Global Funding
-    const unsubGlobal = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'funding'), (doc) => {
-      if (doc.exists()) setStats(prev => ({ ...prev, ...doc.data() }));
-    }, (err) => console.error("Global Stats Error:", err));
-
-    return () => { unsubPosts(); unsubGlobal(); };
-  }, [user]);
-
-  // --- LÓGICA DE MONETIZACIÓN SIMULADA ---
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setStats(prev => ({
-        ...prev,
-        userContribution: prev.userContribution + 0.0005 // Incremento por tiempo de sesión
-      }));
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // --- ACCIONES ---
-  const toggleTask = (key) => {
-    const newTasks = { ...tasks, [key]: !tasks[key] };
-    setTasks(newTasks);
-    if (user) localStorage.setItem(`tasks_${user.uid}`, JSON.stringify(newTasks));
-  };
-
-  const handleLike = async () => {
-    if (!user) return;
-    const globalRef = doc(db, 'artifacts', appId, 'public', 'data', 'funding');
-    await updateDoc(globalRef, { likes: increment(1) });
-  };
-
-  const submitPostDraft = (e) => {
-    e.preventDefault();
-    toggleTask('communityPost');
-    // En una app real, aquí enviaríamos el draft a Firestore para validación de Alexander
-    alert("Borrador enviado a Alexander para revisión.");
-  };
-
-  // --- UI COMPONENTS ---
-  const Sidebar = () => (
-    <div className="w-80 border-l-4 border-black p-6 bg-white flex flex-col gap-8 h-screen sticky top-0 overflow-y-auto">
-      <div>
-        <h3 className="font-bold text-xs uppercase tracking-widest text-gray-400 mb-4">Agenda Pendiente</h3>
-        <div className="space-y-4">
-          <TaskItem 
-            label="Explorar Biblioteca" 
-            done={tasks.readEssays} 
-            onClick={() => toggleTask('readEssays')} 
-          />
-          <TaskItem 
-            label="Realizar Reflexión" 
-            done={tasks.doSurvey} 
-            onClick={() => toggleTask('doSurvey')} 
-          />
-          <TaskItem 
-            label="Compartir Axioma" 
-            done={tasks.shareAxiom} 
-            onClick={() => toggleTask('shareAxiom')} 
-          />
-          <TaskItem 
-            label="Enviar Post Comunidad" 
-            done={tasks.communityPost} 
-            onClick={() => toggleTask('communityPost')} 
-          />
-        </div>
+    <!-- Left Navigation -->
+    <nav class="nav-sidebar">
+      <div class="nav-logo">INVERSO.</div>
+      <div class="nav-links" id="nav-links">
+        <!-- Populated by JS -->
       </div>
+    </nav>
 
-      <div className="bg-[#5E546C] text-white p-5 border-2 border-black shadow-[6px_6px_0px_#1a1a1a]">
-        <h3 className="font-black text-lg uppercase leading-none mb-2">Impacto Real</h3>
-        <p className="text-[10px] uppercase opacity-70 mb-4">Tu sesión está financiando el futuro</p>
-        <div className="text-3xl font-bold flex items-center gap-2">
-          <DollarSign size={20} className="text-white" />
-          {stats.userContribution.toFixed(4)}€
-        </div>
-        <div className="mt-4 pt-4 border-t border-white/20">
-          <p className="text-[10px] uppercase">Fondo Global: <span className="font-bold">{stats.totalRaised}€</span></p>
-        </div>
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+      <!-- Pages rendered here by JS -->
+      <div class="page active">
+        <h1 class="display-title">Cargando<span class="accent">...</span></h1>
       </div>
+    </main>
 
-      <div className="flex flex-col gap-2">
-         <button className="flex items-center gap-2 text-xs font-bold uppercase hover:text-[#5E546C]" onClick={handleLike}>
-          <Heart size={16} fill={stats.likes > 0 ? '#5E546C' : 'none'} /> {stats.likes} Personas apoyan esto
-        </button>
-      </div>
+    <!-- Right Sidebar (Tasks) -->
+    <aside class="tasks-sidebar" id="tasks-sidebar">
+      <!-- Populated by JS -->
+    </aside>
+
+  </div>
+
+  <!-- Cookie Banner -->
+  <div class="cookie-banner" id="cookie-banner">
+    <p>
+      Esta web usa cookies para guardar tu progreso y preferencias.
+      <a href="/privacy.html">Más información</a>
+    </p>
+    <div class="cookie-buttons">
+      <button class="btn btn-secondary" onclick="rejectCookies()">Rechazar</button>
+      <button class="btn btn-primary" onclick="acceptCookies()">Aceptar</button>
     </div>
-  );
+  </div>
 
-  const TaskItem = ({ label, done, onClick }) => (
-    <button 
-      onClick={onClick}
-      className={`flex items-center gap-3 w-full text-left transition-all ${done ? 'opacity-50 line-through' : ''}`}
-    >
-      {done ? <CheckCircle2 size={18} className="text-[#5E546C]" /> : <Circle size={18} />}
-      <span className="text-sm font-bold uppercase tracking-tighter">{label}</span>
-    </button>
-  );
-
-  return (
-    <div className="flex min-h-screen bg-[#F9F9F9] text-[#1A1A1A] font-['Space_Grotesk']">
-      
-      {/* NAVEGACIÓN IZQUIERDA (VERTICAL) */}
-      <div className="w-20 border-r-4 border-black flex flex-col items-center py-8 gap-12 sticky top-0 h-screen bg-white">
-        <div className="font-black text-2xl -rotate-90 origin-center translate-y-12">ALEXANDER.</div>
-        <div className="mt-auto flex flex-col gap-6">
-          <NavIcon icon={<Zap size={24} />} active={activePage === 'home'} onClick={() => setActivePage('home')} />
-          <NavIcon icon={<Award size={24} />} active={activePage === 'funding'} onClick={() => setActivePage('funding')} />
-          <NavIcon icon={<MessageSquare size={24} />} active={activePage === 'community'} onClick={() => setActivePage('community')} />
-        </div>
-      </div>
-
-      {/* CONTENIDO PRINCIPAL */}
-      <div className="flex-grow p-12 overflow-y-auto">
-        
-        {activePage === 'home' && (
-          <div className="space-y-16 max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <header className="space-y-4">
-              <h1 className="text-8xl font-black uppercase leading-[0.85] tracking-tighter">
-                THINK<br /><span className="text-[#5E546C]">4D.</span>
-              </h1>
-              <p className="text-2xl font-medium text-gray-500 max-w-2xl">
-                ¿Qué hacemos hoy? La inercia es el fallo. Elige una ruta y contribuye a la infraestructura de la longevidad.
-              </p>
-            </header>
-
-            <div className="grid grid-cols-2 gap-8">
-              <div className="border-4 border-black p-8 bg-white shadow-[12px_12px_0px_#5E546C]">
-                <h2 className="text-4xl font-black uppercase mb-4">El Oráculo</h2>
-                <p className="mb-6 font-medium">¿Te gustaría vivir hasta los 120 años? Participa en la reflexión interactiva.</p>
-                <button onClick={() => setActivePage('survey')} className="bg-[#5E546C] text-white px-6 py-3 font-bold uppercase border-2 border-black">Iniciar Test</button>
-              </div>
-              <div className="border-4 border-black p-8 bg-black text-white shadow-[12px_12px_0px_#DAD5E0]">
-                <h2 className="text-4xl font-black uppercase mb-4">Biblioteca</h2>
-                <p className="mb-6 opacity-70">"La Muerte como Fallo de Software". Lee el último ensayo revisado.</p>
-                <button onClick={() => toggleTask('readEssays')} className="bg-white text-black px-6 py-3 font-bold uppercase border-2 border-white">Leer Ahora</button>
-              </div>
-            </div>
-
-            <div className="bg-[#DAD5E0] p-12 border-4 border-black">
-              <h3 className="text-2xl font-bold uppercase mb-4 italic">"Be different, not indifferent."</h3>
-              <p className="font-mono text-xs uppercase tracking-widest opacity-60">Axioma de Continuidad #01</p>
-            </div>
-          </div>
-        )}
-
-        {activePage === 'community' && (
-          <div className="max-w-4xl space-y-12 animate-in fade-in slide-in-from-right-4 duration-500">
-            <h2 className="text-7xl font-black uppercase">Comunidad<span className="text-[#5E546C]">.</span></h2>
-            
-            <form onSubmit={submitPostDraft} className="border-4 border-black p-8 bg-white space-y-4">
-              <h3 className="font-bold uppercase tracking-widest text-xs">Aportar una reflexión</h3>
-              <textarea 
-                className="w-full h-32 border-2 border-black p-4 font-['Space_Grotesk'] text-lg focus:outline-none focus:ring-4 ring-[#5E546C]/20"
-                placeholder="Escribe tu mensaje... Alexander lo revisará y publicará."
-              ></textarea>
-              <button type="submit" className="bg-[#5E546C] text-white px-8 py-4 font-bold uppercase flex items-center gap-2">
-                <Send size={18} /> Enviar a Alexander
-              </button>
-            </form>
-
-            <div className="space-y-6">
-              {communityPosts.length === 0 ? (
-                <p className="text-gray-400 font-bold uppercase text-center py-12 border-2 border-dashed border-gray-300">No hay hilos activos todavía.</p>
-              ) : (
-                communityPosts.map(post => (
-                  <div key={post.id} className="border-2 border-black p-6 bg-white flex justify-between items-center">
-                    <div>
-                      <p className="font-bold text-lg">"{post.content}"</p>
-                      <span className="text-xs font-mono uppercase opacity-50">— {post.author}</span>
-                    </div>
-                    <Heart size={20} className="text-[#5E546C]" />
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ... Otras páginas (Funding, Survey) se renderizarían aquí ... */}
-
-      </div>
-
-      {/* SIDEBAR DERECHO */}
-      <Sidebar />
-
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700;800&family=Syne:wght@700;800&display=swap');
-        
-        body { font-family: 'Space Grotesk', sans-serif; }
-        h1, h2, h3 { font-family: 'Syne', sans-serif; }
-        
-        .no-print { @media print { display: none; } }
-      `}</style>
-    </div>
-  );
-};
-
-const NavIcon = ({ icon, active, onClick }) => (
-  <button 
-    onClick={onClick}
-    className={`p-3 border-2 border-black transition-all ${active ? 'bg-[#5E546C] text-white -translate-x-2' : 'bg-white text-black hover:bg-gray-100'}`}
-  >
-    {icon}
-  </button>
-);
-
-export default App;
-
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <script src="/js/particles-config.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
