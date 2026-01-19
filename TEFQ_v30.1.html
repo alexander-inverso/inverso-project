@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEFQ VIEWER v30.1</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* LEFT NAV */
+        .nav {
+            border-right: 1px solid #fff;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        .nav-header {
+            padding: 20px;
+            border-bottom: 1px solid #fff;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 3px;
+        }
+
+        .nav-list {
+            list-style: none;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 18px 20px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.1s;
+            background: #000;
+            color: #fff;
+        }
+
+        .nav-item:hover {
+            background: #111;
+        }
+
+        .nav-item.active {
+            background: #FFD700;
+            color: #000;
+            font-weight: 700;
+        }
+
+        .nav-item-id {
+            display: block;
+            font-size: 10px;
+            opacity: 0.6;
+            margin-bottom: 6px;
+        }
+
+        .nav-item-title {
+            display: block;
+            font-weight: 700;
+        }
+
+        /* MAIN CANVAS */
+        .canvas {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            background: #000;
+        }
+
+        .canvas-content {
+            max-width: 100%;
+            max-height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* MEDIA ELEMENTS */
+        video, img {
+            display: block;
+            border: 1px solid #fff;
+            background: #000;
+        }
+
+        video {
+            max-width: 85vw;
+            max-height: 75vh;
+            object-fit: contain;
+        }
+
+        img {
+            max-width: 85vw;
+            max-height: 75vh;
+            object-fit: contain;
+        }
+
+        /* LAYOUT VARIANTS */
+        .layout-vertical video,
+        .layout-vertical img {
+            max-height: 85vh;
+            width: auto;
+        }
+
+        .layout-superwide video,
+        .layout-superwide img {
+            width: calc(100vw - 320px - 80px);
+            height: auto;
+            max-height: 70vh;
+        }
+
+        .layout-4-3 video,
+        .layout-4-3 img {
+            aspect-ratio: 4/3;
+            max-width: 70vw;
+            max-height: 70vh;
+        }
+
+        .layout-hero video,
+        .layout-hero img {
+            max-width: 80vw;
+            max-height: 80vh;
+        }
+
+        /* CLASSIFIED STATE */
+        .classified-box {
+            width: 650px;
+            height: 450px;
+            border: 2px solid #ff0000;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px;
+            text-align: center;
+            animation: dangerFlicker 0.6s infinite;
+        }
+
+        @keyframes dangerFlicker {
+            0%, 100% {
+                border-color: #ff0000;
+                box-shadow: inset 0 0 30px rgba(255, 0, 0, 0.4);
+            }
+            50% {
+                border-color: #ff4444;
+                box-shadow: inset 0 0 50px rgba(255, 0, 0, 0.7);
+            }
+        }
+
+        .classified-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ff0000;
+            margin-bottom: 30px;
+            letter-spacing: 5px;
+        }
+
+        .classified-text {
+            font-size: 15px;
+            color: #ff4444;
+            line-height: 1.8;
+        }
+
+        /* METADATA OVERLAY */
+        .metadata {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid #fff;
+            padding: 14px 18px;
+            font-size: 11px;
+            max-width: 450px;
+            z-index: 100;
+        }
+
+        .metadata-title {
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .metadata-desc {
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        /* GLITCH EFFECT - INVERTED COLOR */
+        .glitch-invert {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 9999;
+            filter: invert(1);
+            background: #000;
+            animation: invertFlash 0.05s;
+        }
+
+        @keyframes invertFlash {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* CONTROLS */
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid #fff;
+            padding: 10px 14px;
+            font-size: 10px;
+            opacity: 0.6;
+        }
+
+        /* HERO BADGE */
+        .hero-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #FFD700;
+            color: #000;
+            border: 1px solid #000;
+            padding: 8px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- LEFT NAV -->
+    <nav class="nav">
+        <div class="nav-header">TEFQ ARCHIVE v30.1</div>
+        <ul class="nav-list" id="nav-list"></ul>
+    </nav>
+
+    <!-- MAIN CANVAS -->
+    <main class="canvas" id="canvas">
+        <div class="canvas-content" id="canvas-content"></div>
+        <div class="metadata" id="metadata" style="display: none;">
+            <div class="metadata-title" id="metadata-title"></div>
+            <div class="metadata-desc" id="metadata-desc"></div>
+        </div>
+        <div class="controls">↑/↓ NAVIGATE</div>
+    </main>
+</div>
+
+<!-- GLITCH OVERLAY -->
+<div class="glitch-invert" id="glitch"></div>
+
+<script>
+// STRICT MEDIA MANIFEST (8 ENTRIES)
+const MEDIA_MANIFEST = [
+    {
+        id: "01",
+        title: "RAINBOW FLAMES",
+        file: "./TEFQ Media/01_Fire/rainbow_flame.mp4",
+        type: "video",
+        layout: "default",
+        desc: "Protocol: Recovery from spill."
+    },
+    {
+        id: "02",
+        title: "LEIDENFROST EFFECT",
+        file: "./TEFQ Media/03_Spill/leidenfrost.mp4",
+        type: "video",
+        layout: "default",
+        desc: "Heat management."
+    },
+    {
+        id: "03",
+        title: "FOAM BOMB",
+        file: "./TEFQ Media/04_Foam/foam_bomb.mp4",
+        type: "video",
+        layout: "default",
+        desc: "Exothermic expansion."
+    },
+    {
+        id: "04",
+        title: "TEAM OPS",
+        file: "./TEFQ Media/05_Food/mug_cake.webp",
+        type: "image",
+        layout: "vertical"
+    },
+    {
+        id: "05",
+        title: "THE CHAIR GAP",
+        file: "./TEFQ Media/06_Chairs/chair_boom.mp4",
+        type: "video",
+        layout: "hero",
+        hero: true
+    },
+    {
+        id: "06",
+        title: "FEATURED CONTENT",
+        file: "./TEFQ Media/07_Clout/class_wide.webp",
+        type: "image",
+        layout: "superwide"
+    },
+    {
+        id: "07",
+        title: "SOLUTION PREP",
+        file: "./TEFQ Media/08_Evidence/naoh_lab.webp",
+        type: "image",
+        layout: "4-3"
+    },
+    {
+        id: "08",
+        title: "SCISSOR BUBBLES",
+        file: null,
+        type: "classified",
+        layout: "default",
+        status: "CLASSIFIED"
+    }
+];
+
+// STATE
+let currentIndex = 0;
+
+// INIT
+function init() {
+    renderNav();
+    loadMedia(currentIndex);
+}
+
+// RENDER NAV
+function renderNav() {
+    const navList = document.getElementById('nav-list');
+    navList.innerHTML = '';
+
+    MEDIA_MANIFEST.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.className = 'nav-item';
+        if (index === currentIndex) li.classList.add('active');
+
+        li.innerHTML = `
+            <span class="nav-item-id">${item.id}. ${item.type.toUpperCase()}</span>
+            <span class="nav-item-title">${item.title}</span>
+        `;
+
+        li.addEventListener('click', () => {
+            navigate(index);
+        });
+
+        navList.appendChild(li);
+    });
+}
+
+// NAVIGATE
+function navigate(index) {
+    if (index === currentIndex) return;
+    if (index < 0 || index >= MEDIA_MANIFEST.length) return;
+
+    currentIndex = index;
+
+    // Glitch effect - inverted color flash (50ms)
+    const glitch = document.getElementById('glitch');
+    glitch.style.animation = 'none';
+    setTimeout(() => {
+        glitch.style.animation = 'invertFlash 0.05s';
+    }, 10);
+
+    // Update nav
+    document.querySelectorAll('.nav-item').forEach((item, i) => {
+        item.classList.toggle('active', i === index);
+    });
+
+    // Load media
+    loadMedia(index);
+}
+
+// LOAD MEDIA
+function loadMedia(index) {
+    const item = MEDIA_MANIFEST[index];
+    const content = document.getElementById('canvas-content');
+    const metadata = document.getElementById('metadata');
+    const metadataTitle = document.getElementById('metadata-title');
+    const metadataDesc = document.getElementById('metadata-desc');
+
+    // Clear content
+    content.innerHTML = '';
+    content.className = 'canvas-content';
+
+    // Remove any existing hero badge
+    const existingBadge = document.querySelector('.hero-badge');
+    if (existingBadge) existingBadge.remove();
+
+    // Handle classified
+    if (item.type === 'classified') {
+        const classifiedBox = document.createElement('div');
+        classifiedBox.className = 'classified-box';
+        classifiedBox.innerHTML = `
+            <div class="classified-title">ACCESS RESTRICTED</div>
+            <div class="classified-text">
+                DANGER: CRITICAL EXPOSURE<br><br>
+                AUTHORIZATION LEVEL: RESTRICTED<br>
+                CLEARANCE REQUIRED
+            </div>
+        `;
+        content.appendChild(classifiedBox);
+        metadata.style.display = 'none';
+        return;
+    }
+
+    // Apply layout
+    content.classList.add(`layout-${item.layout}`);
+
+    // Add hero badge if hero
+    if (item.hero) {
+        const badge = document.createElement('div');
+        badge.className = 'hero-badge';
+        badge.textContent = 'HERO ASSET';
+        document.getElementById('canvas').appendChild(badge);
+    }
+
+    // Load video
+    if (item.type === 'video') {
+        const video = document.createElement('video');
+        video.src = item.file;
+        video.muted = true;
+        video.autoplay = true;
+        video.loop = true;
+        video.controls = false;
+
+        video.onerror = () => {
+            content.innerHTML = `<div style="color: #ff0000; padding: 20px; border: 1px solid #ff0000; font-size: 12px;">ERROR: FILE NOT FOUND<br><br>${item.file}</div>`;
+        };
+
+        content.appendChild(video);
+    }
+
+    // Load image
+    if (item.type === 'image') {
+        const img = document.createElement('img');
+        img.src = item.file;
+        img.alt = item.title;
+
+        img.onerror = () => {
+            content.innerHTML = `<div style="color: #ff0000; padding: 20px; border: 1px solid #ff0000; font-size: 12px;">ERROR: FILE NOT FOUND<br><br>${item.file}</div>`;
+        };
+
+        content.appendChild(img);
+    }
+
+    // Metadata
+    if (item.desc) {
+        metadata.style.display = 'block';
+        metadataTitle.textContent = item.title;
+        metadataDesc.textContent = item.desc;
+    } else {
+        metadata.style.display = 'none';
+    }
+}
+
+// KEYBOARD NAV
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        navigate((currentIndex + 1) % MEDIA_MANIFEST.length);
+    }
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        navigate((currentIndex - 1 + MEDIA_MANIFEST.length) % MEDIA_MANIFEST.length);
+    }
+});
+
+// START
+init();
+</script>
+
+</body>
+</html>
