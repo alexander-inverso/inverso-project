@@ -182,7 +182,28 @@
         .zoom-thumb { width: 80px; height: 80px; border: 2px solid #333; background: #111; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #666; cursor: pointer; transition: all 0.2s; }
         .zoom-thumb.active { border-color: var(--accent-color); color: white; background: #222; transform: scale(1.05); box-shadow: 4px 4px 0px var(--accent-color); }
 
-        .zoom-content { flex-grow: 1; max-width: 1200px; aspect-ratio: 16/9; background: #111; border: 4px solid var(--accent-color); position: relative; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 100px rgba(250, 204, 21, 0.1); }
+        .zoom-content {
+            flex-grow: 1;
+            max-width: 1200px;
+            max-height: 80vh;
+            background: #111;
+            border: 4px solid var(--accent-color);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 100px rgba(250, 204, 21, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .zoom-content video,
+        .zoom-content img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            display: block;
+        }
         
         /* Winner UI */
         .winner-banner { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 5000; align-items: center; justify-content: center; }
@@ -455,11 +476,11 @@
                 </div>
                 <img id="zoom-img" src="" class="w-full h-full object-contain hidden relative z-0" onerror="this.style.display='none'; document.getElementById('zoom-video-ui').style.display='flex';">
 
-                <!-- File-specific metadata overlay -->
-                <div class="absolute bottom-20 left-8 right-8 bg-black bg-opacity-90 border-2 border-yellow-400 p-6 font-mono text-white z-50" id="zoom-metadata" style="display: none;">
-                    <div class="text-yellow-400 font-bold text-lg mb-3" id="zoom-file-title">FILE TITLE</div>
-                    <ul class="list-none space-y-2" id="zoom-file-bullets">
-                        <li class="flex items-start"><span class="text-yellow-400 mr-2">>></span><span>Bullet point 1</span></li>
+                <!-- File-specific metadata overlay - positioned dynamically -->
+                <div class="absolute bg-black bg-opacity-95 border-2 border-yellow-400 p-4 font-mono text-white z-50" id="zoom-metadata" style="display: none; max-width: 400px; transition: all 0.3s ease;">
+                    <div class="text-yellow-400 font-bold text-sm mb-2" id="zoom-file-title">FILE TITLE</div>
+                    <ul class="list-none space-y-1 text-xs" id="zoom-file-bullets">
+                        <li class="flex items-start"><span class="text-yellow-400 mr-2">>></span><span>Bullet 1</span></li>
                     </ul>
                 </div>
             </div>
@@ -634,15 +655,44 @@
                     </div>
                 </section>
 
-                <section id="slide-8" class="slide future" data-progress="100" data-thread="Victory" data-narrative="Press Tab to celebrate. Confetti protocol activated.">
-                    <h1 class="text-9xl font-black mb-8 animate-pulse text-yellow-400" id="verdict-header">THE DATA IS CLEAR</h1>
-                    <div class="p-12 border-8 border-yellow-400 bg-black text-white shadow-[12px_12px_0px_#facc15] max-w-3xl text-center interactive-item active-focus">
-                        <p class="text-4xl font-bold text-yellow-400 mb-6">PRESS TO CONFIRM</p>
-                        <div class="defeat-btn bg-white text-black font-black text-6xl p-6 border-4 border-yellow-400 cursor-pointer hover:scale-105 transition" id="defeat-btn" onclick="triggerVerdict()">
-                            [ CONFIRM TRUTH ]
+                <section id="slide-8" class="slide future" data-progress="100" data-thread="The Verdict" data-narrative="While others theorized, we dominated. Results are undeniable.">
+                    <div class="w-full max-w-5xl">
+                        <h1 class="text-8xl font-black mb-6 text-center" id="verdict-header">
+                            <span class="text-yellow-400">TEFQ:</span> SUPREMACY PROVEN
+                        </h1>
+
+                        <div class="grid grid-cols-3 gap-4 mb-8 font-mono text-sm">
+                            <div class="p-4 border-2 border-yellow-400 bg-black text-yellow-400 text-center">
+                                <div class="text-4xl font-black">17</div>
+                                <div class="text-xs opacity-80">EVIDENCE FILES</div>
+                            </div>
+                            <div class="p-4 border-2 border-yellow-400 bg-black text-yellow-400 text-center">
+                                <div class="text-4xl font-black">20x</div>
+                                <div class="text-xs opacity-80">EFFICIENCY RATIO</div>
+                            </div>
+                            <div class="p-4 border-2 border-yellow-400 bg-black text-yellow-400 text-center">
+                                <div class="text-4xl font-black">100%</div>
+                                <div class="text-xs opacity-80">PROOF DELIVERED</div>
+                            </div>
                         </div>
-                        <div id="valentin-victory" style="display: none; margin-top: 2rem;">
-                            <img src="./TEFQ Media/06_Valentin/dabbing.jpg" style="max-width: 300px; border: 4px solid var(--accent-color); margin: 0 auto; display: block;" alt="Valentín Victory">
+
+                        <div class="p-8 border-4 border-yellow-400 bg-black text-white shadow-[12px_12px_0px_#facc15] text-center">
+                            <p class="text-2xl font-bold text-yellow-400 mb-4">THE VERDICT:</p>
+                            <p class="text-lg mb-6 font-mono leading-relaxed">
+                                While IT students memorize syntax,<br>
+                                while PE students run laps,<br>
+                                while French students conjugate verbs,<br>
+                                <span class="text-yellow-400 font-black text-2xl">WE CREATE, EXPERIMENT, AND DOMINATE.</span>
+                            </p>
+
+                            <div class="defeat-btn bg-yellow-400 text-black font-black text-5xl p-6 border-4 border-white cursor-pointer hover:scale-105 transition interactive-item active-focus" id="defeat-btn" onclick="triggerVerdict()">
+                                [ ACKNOWLEDGE SUPREMACY ]
+                            </div>
+
+                            <div id="valentin-victory" style="display: none; margin-top: 2rem;">
+                                <img src="./TEFQ Media/06_Valentin/dabbing.jpg" style="max-width: 300px; border: 4px solid var(--accent-color); margin: 0 auto; display: block;" alt="Valentín Victory">
+                                <p class="text-yellow-400 font-black text-xl mt-4">EVEN VALENTÍN KNOWS.</p>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -889,34 +939,20 @@
         }
 
         function updateZoomDisplay() {
-            const videoUI = document.getElementById('zoom-video-ui');
-            const imgUI = document.getElementById('zoom-img');
+            const zoomFrame = document.getElementById('zoom-frame');
             const thumbsContainer = document.getElementById('zoom-thumbs');
             const zoomText = document.getElementById('zoom-text');
             const zoomCover = document.getElementById('zoom-cover');
             const zoomCoverEmoji = document.getElementById('zoom-cover-emoji');
-            const bar = document.getElementById('zoom-bar');
             const zoomMetadata = document.getElementById('zoom-metadata');
             const zoomFileTitle = document.getElementById('zoom-file-title');
             const zoomFileBullets = document.getElementById('zoom-file-bullets');
 
-            // Reset Timeline
-            bar.style.transition = 'none';
-            bar.style.width = '0%';
-
             // ERROR STATE
             if (!currentConfig || currentGallery.length === 0) {
-                videoUI.style.display = 'flex'; imgUI.style.display = 'none';
-                document.getElementById('zoom-icon').innerText = '🚫';
-                zoomText.innerText = "ERROR: EVIDENCE REDACTED";
-                zoomText.className = "absolute top-4 left-4 font-mono text-red-500 text-xl bg-black px-2 blink-text";
-                thumbsContainer.innerHTML = '';
+                zoomFrame.innerHTML = '<div style="color: #ff0000; padding: 20px; border: 1px solid #ff0000; font-size: 12px;">ERROR: EVIDENCE REDACTED</div>';
                 zoomMetadata.style.display = 'none';
-
-                // Placeholder Logic
-                zoomCover.classList.remove('hidden');
-                zoomCoverEmoji.innerText = "🚫";
-                zoomCover.onclick = null; // Disable Play
+                thumbsContainer.innerHTML = '';
                 currentMediaElement = null;
                 return;
             }
@@ -926,10 +962,8 @@
             const fileName = currentFileObj.name;
             const filePath = `${MEDIA_ROOT}/${currentConfig.folder}/${fileName}`;
 
-            // Re-show Cover on slide change
-            zoomCover.classList.remove('hidden');
-            zoomCoverEmoji.innerText = "▶️";
-            zoomCover.onclick = playMedia; // Re-enable Play
+            // Clear current content
+            zoomFrame.innerHTML = '';
 
             // Update thumbnails
             thumbsContainer.innerHTML = '';
@@ -945,34 +979,101 @@
                 thumbsContainer.appendChild(thumb);
             });
 
-            // Update metadata overlay
+            // Update top text
+            zoomText.className = "absolute top-4 left-4 font-mono text-white text-sm bg-black px-2 z-10";
+            zoomText.textContent = currentFileObj.title;
+
+            // Update metadata overlay with shorter bullets
             zoomFileTitle.textContent = currentFileObj.title;
             zoomFileBullets.innerHTML = '';
-            currentFileObj.bullets.forEach(bullet => {
+            currentFileObj.bullets.slice(0, 3).forEach(bullet => { // Only show first 3 bullets
                 const li = document.createElement('li');
                 li.className = 'flex items-start';
-                li.innerHTML = `<span class="text-yellow-400 mr-2">>></span><span>${bullet}</span>`;
+                // Shorten bullets if too long
+                const shortBullet = bullet.length > 60 ? bullet.substring(0, 57) + '...' : bullet;
+                li.innerHTML = `<span class="text-yellow-400 mr-2">>></span><span>${shortBullet}</span>`;
                 zoomFileBullets.appendChild(li);
             });
-            zoomMetadata.style.display = 'block';
-
-            // Update top text
-            zoomText.className = "absolute top-4 left-4 font-mono text-white text-xl bg-black px-2 z-10";
-            zoomText.textContent = currentFileObj.title;
 
             // Handle media type
             if (fileName.endsWith('.mp4')) {
-                videoUI.style.display = 'flex'; imgUI.style.display = 'none';
-                document.getElementById('zoom-icon').innerText = '▶';
+                // Create actual video element
+                const video = document.createElement('video');
+                video.src = filePath;
+                video.muted = true;
+                video.loop = true;
+                video.controls = true;
+                video.autoplay = true;
+                video.style.maxWidth = '100%';
+                video.style.maxHeight = '100%';
+                video.style.border = '1px solid var(--accent-color)';
 
-                // Mock Video Player logic
-                currentMediaElement = document.createElement('video'); // Virtual element for logic
+                video.onerror = () => {
+                    zoomFrame.innerHTML = `<div style="color: #ff0000; padding: 20px;">VIDEO LOAD ERROR<br>${filePath}</div>`;
+                };
+
+                video.onloadedmetadata = () => {
+                    const aspectRatio = video.videoWidth / video.videoHeight;
+                    const isVertical = aspectRatio < 1;
+
+                    // Position metadata based on aspect ratio
+                    if (isVertical) {
+                        // Vertical video: metadata on the right
+                        zoomMetadata.style.right = '20px';
+                        zoomMetadata.style.top = '50%';
+                        zoomMetadata.style.transform = 'translateY(-50%)';
+                        zoomMetadata.style.bottom = 'auto';
+                        zoomMetadata.style.left = 'auto';
+                    } else {
+                        // Horizontal video: metadata at bottom
+                        zoomMetadata.style.bottom = '60px';
+                        zoomMetadata.style.left = '20px';
+                        zoomMetadata.style.right = '20px';
+                        zoomMetadata.style.top = 'auto';
+                        zoomMetadata.style.transform = 'none';
+                    }
+                    zoomMetadata.style.display = 'block';
+                };
+
+                zoomFrame.appendChild(video);
+                currentMediaElement = video;
             } else {
-                videoUI.style.display = 'none'; imgUI.style.display = 'block';
-                imgUI.src = filePath;
+                // Image
+                const img = document.createElement('img');
+                img.src = filePath;
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '100%';
+                img.style.border = '1px solid var(--accent-color)';
+
+                img.onerror = () => {
+                    zoomFrame.innerHTML = `<div style="color: #ff0000; padding: 20px;">IMAGE LOAD ERROR<br>${filePath}</div>`;
+                };
+
+                img.onload = () => {
+                    const aspectRatio = img.naturalWidth / img.naturalHeight;
+                    const isVertical = aspectRatio < 1;
+
+                    // Position metadata based on aspect ratio
+                    if (isVertical) {
+                        // Vertical image: metadata on the right
+                        zoomMetadata.style.right = '20px';
+                        zoomMetadata.style.top = '50%';
+                        zoomMetadata.style.transform = 'translateY(-50%)';
+                        zoomMetadata.style.bottom = 'auto';
+                        zoomMetadata.style.left = 'auto';
+                    } else {
+                        // Horizontal image: metadata at bottom
+                        zoomMetadata.style.bottom = '60px';
+                        zoomMetadata.style.left = '20px';
+                        zoomMetadata.style.right = '20px';
+                        zoomMetadata.style.top = 'auto';
+                        zoomMetadata.style.transform = 'none';
+                    }
+                    zoomMetadata.style.display = 'block';
+                };
+
+                zoomFrame.appendChild(img);
                 currentMediaElement = null;
-                // If image, clicking cover just reveals it
-                zoomCover.onclick = () => zoomCover.classList.add('hidden');
             }
         }
 
@@ -1045,24 +1146,14 @@
                 root.classList.add('crt-on');
                 systemOn = true;
             } else {
-                // TURN OFF with animation, then restart
+                // TURN OFF (no auto-restart)
                 blackout.classList.remove('hidden-layer');
                 root.classList.remove('crt-on');
 
                 // Force Reflow
                 void root.offsetWidth;
                 root.classList.add('crt-off');
-
-                // Wait for shutdown animation to complete (600ms), then turn back on
-                setTimeout(() => {
-                    // Turn back on automatically
-                    blackout.classList.add('hidden-layer');
-                    root.classList.remove('crt-off');
-
-                    // Force reflow
-                    void root.offsetWidth;
-                    root.classList.add('crt-on');
-                }, 650); // 600ms animation + 50ms buffer
+                systemOn = false;
             }
         }
 
