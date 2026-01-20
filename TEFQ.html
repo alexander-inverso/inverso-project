@@ -447,22 +447,16 @@
         
         <div id="zoom-modal" class="zoom-overlay">
             <div id="zoom-thumbs"></div>
-            <div class="zoom-content" id="zoom-frame">
-                <div id="zoom-cover" class="zoom-cover" onclick="playMedia()">
-                    <div id="zoom-cover-emoji" class="zoom-cover-emoji">▶️</div>
-                </div>
 
-                <div id="zoom-video-ui" class="flex flex-col items-center w-full h-full justify-center">
-                    <div id="zoom-icon" class="play-indicator opacity-20">▶</div>
-                    <div id="zoom-text" class="absolute top-4 left-4 font-mono text-white text-xl bg-black px-2 z-10">PLAYING FILE</div>
-                    <div class="absolute bottom-0 left-0 h-2 bg-gray-800 w-full z-10">
-                        <div class="h-full bg-yellow-400 w-0" id="zoom-bar"></div>
-                    </div>
-                </div>
-                <img id="zoom-img" src="" class="w-full h-full object-contain hidden relative z-0" onerror="this.style.display='none'; document.getElementById('zoom-video-ui').style.display='flex';">
+            <div style="position: relative; flex-grow: 1; max-width: 1200px; max-height: 80vh;">
+                <!-- Top title bar -->
+                <div id="zoom-text" class="absolute top-4 left-4 font-mono text-white text-sm bg-black px-2 z-50 border border-yellow-400">LOADING...</div>
+
+                <!-- Main content frame - ONLY contains media -->
+                <div class="zoom-content" id="zoom-frame"></div>
             </div>
 
-            <!-- File-specific metadata overlay - positioned dynamically - MOVED OUTSIDE ZOOM-FRAME -->
+            <!-- File-specific metadata overlay - positioned dynamically -->
             <div class="fixed bg-black bg-opacity-95 border-2 border-yellow-400 p-4 font-mono text-white z-50" id="zoom-metadata" style="display: none; max-width: 400px; transition: all 0.3s ease; pointer-events: none;">
                 <div class="text-yellow-400 font-bold text-sm mb-2" id="zoom-file-title">FILE TITLE</div>
                 <ul class="list-none space-y-1 text-xs" id="zoom-file-bullets">
@@ -903,17 +897,6 @@
         }
 
         // --- MEDIA PLAYER LOGIC ---
-        function playMedia() {
-            document.getElementById('zoom-cover').classList.add('hidden');
-            if (currentMediaElement && currentMediaElement.tagName === 'VIDEO') {
-                currentMediaElement.play();
-                // Timeline anim
-                const bar = document.getElementById('zoom-bar');
-                bar.style.transition = 'width 5s linear'; // Fake timeline speed
-                bar.style.width = '100%';
-            }
-        }
-
         let currentConfig = null; // Store config for metadata access
 
         function triggerZoom(mediaArray, config) {
@@ -928,16 +911,18 @@
             const zoomFrame = document.getElementById('zoom-frame');
             const thumbsContainer = document.getElementById('zoom-thumbs');
             const zoomText = document.getElementById('zoom-text');
-            const zoomCover = document.getElementById('zoom-cover');
-            const zoomCoverEmoji = document.getElementById('zoom-cover-emoji');
             const zoomMetadata = document.getElementById('zoom-metadata');
             const zoomFileTitle = document.getElementById('zoom-file-title');
             const zoomFileBullets = document.getElementById('zoom-file-bullets');
 
+            console.log('updateZoomDisplay called', {currentMediaIndex, galleryLength: currentGallery.length});
+
             // ERROR STATE
             if (!currentConfig || currentGallery.length === 0) {
-                zoomFrame.innerHTML = '<div style="color: #ff0000; padding: 20px; border: 1px solid #ff0000; font-size: 12px;">ERROR: EVIDENCE REDACTED</div>';
+                console.error('No config or empty gallery');
+                zoomFrame.innerHTML = '<div style="color: #ff0000; padding: 20px; font-family: monospace; border: 2px solid #ff0000; text-align: center;"><div style="font-weight: bold; margin-bottom: 10px;">ERROR: NO MEDIA FILES</div><div style="font-size: 12px;">Gallery is empty or not loaded</div></div>';
                 zoomMetadata.style.display = 'none';
+                zoomText.textContent = 'ERROR';
                 thumbsContainer.innerHTML = '';
                 currentMediaElement = null;
                 return;
@@ -948,8 +933,16 @@
             const fileName = currentFileObj.name;
             const filePath = `${MEDIA_ROOT}/${currentConfig.folder}/${fileName}`;
 
-            // Clear current content
+            console.log('Loading file:', filePath);
+
+            // Clear current content (only media, UI stays intact)
             zoomFrame.innerHTML = '';
+
+            // Stop any current media
+            if (currentMediaElement && currentMediaElement.pause) {
+                currentMediaElement.pause();
+            }
+            currentMediaElement = null;
 
             // Update thumbnails
             thumbsContainer.innerHTML = '';
@@ -966,7 +959,6 @@
             });
 
             // Update top text
-            zoomText.className = "absolute top-4 left-4 font-mono text-white text-sm bg-black px-2 z-10";
             zoomText.textContent = currentFileObj.title;
 
             // Update metadata overlay
@@ -991,31 +983,32 @@
                 video.style.maxWidth = '100%';
                 video.style.maxHeight = '100%';
                 video.style.objectFit = 'contain';
+                video.style.display = 'block';
 
                 video.onerror = (e) => {
                     console.error('Video load error:', filePath, e);
-                    zoomFrame.innerHTML = `<div style="color: #ff0000; padding: 20px; font-family: monospace; border: 2px solid #ff0000;">
-                        <div style="font-weight: bold; margin-bottom: 10px;">VIDEO LOAD ERROR</div>
+                    zoomFrame.innerHTML = `<div style="color: #ff0000; padding: 20px; font-family: monospace; border: 2px solid #ff0000; text-align: center;">
+                        <div style="font-weight: bold; margin-bottom: 10px;">⚠ VIDEO LOAD ERROR</div>
+                        <div style="font-size: 12px; margin-bottom: 5px;">File: ${fileName}</div>
                         <div style="font-size: 12px;">Path: ${filePath}</div>
-                        <div style="font-size: 12px; margin-top: 10px;">Check file location and format</div>
+                        <div style="font-size: 11px; margin-top: 10px; opacity: 0.7;">Check browser console for details</div>
                     </div>`;
                     zoomMetadata.style.display = 'none';
                 };
 
                 video.onloadedmetadata = () => {
+                    console.log('Video loaded:', fileName, 'Size:', video.videoWidth, 'x', video.videoHeight);
                     const aspectRatio = video.videoWidth / video.videoHeight;
                     const isVertical = aspectRatio < 1;
 
                     // Position metadata based on aspect ratio
                     if (isVertical) {
-                        // Vertical video: metadata on the right
                         zoomMetadata.style.right = '20px';
                         zoomMetadata.style.top = '50%';
                         zoomMetadata.style.transform = 'translateY(-50%)';
                         zoomMetadata.style.bottom = 'auto';
                         zoomMetadata.style.left = 'auto';
                     } else {
-                        // Horizontal video: metadata at bottom
                         zoomMetadata.style.bottom = '60px';
                         zoomMetadata.style.left = '20px';
                         zoomMetadata.style.right = '20px';
@@ -1034,31 +1027,32 @@
                 img.style.maxWidth = '100%';
                 img.style.maxHeight = '100%';
                 img.style.objectFit = 'contain';
+                img.style.display = 'block';
 
                 img.onerror = (e) => {
                     console.error('Image load error:', filePath, e);
-                    zoomFrame.innerHTML = `<div style="color: #ff0000; padding: 20px; font-family: monospace; border: 2px solid #ff0000;">
-                        <div style="font-weight: bold; margin-bottom: 10px;">IMAGE LOAD ERROR</div>
+                    zoomFrame.innerHTML = `<div style="color: #ff0000; padding: 20px; font-family: monospace; border: 2px solid #ff0000; text-align: center;">
+                        <div style="font-weight: bold; margin-bottom: 10px;">⚠ IMAGE LOAD ERROR</div>
+                        <div style="font-size: 12px; margin-bottom: 5px;">File: ${fileName}</div>
                         <div style="font-size: 12px;">Path: ${filePath}</div>
-                        <div style="font-size: 12px; margin-top: 10px;">Check file location and format</div>
+                        <div style="font-size: 11px; margin-top: 10px; opacity: 0.7;">Check browser console for details</div>
                     </div>`;
                     zoomMetadata.style.display = 'none';
                 };
 
                 img.onload = () => {
+                    console.log('Image loaded:', fileName, 'Size:', img.naturalWidth, 'x', img.naturalHeight);
                     const aspectRatio = img.naturalWidth / img.naturalHeight;
                     const isVertical = aspectRatio < 1;
 
                     // Position metadata based on aspect ratio
                     if (isVertical) {
-                        // Vertical image: metadata on the right
                         zoomMetadata.style.right = '20px';
                         zoomMetadata.style.top = '50%';
                         zoomMetadata.style.transform = 'translateY(-50%)';
                         zoomMetadata.style.bottom = 'auto';
                         zoomMetadata.style.left = 'auto';
                     } else {
-                        // Horizontal image: metadata at bottom
                         zoomMetadata.style.bottom = '60px';
                         zoomMetadata.style.left = '20px';
                         zoomMetadata.style.right = '20px';
@@ -1069,14 +1063,36 @@
                 };
 
                 zoomFrame.appendChild(img);
-                currentMediaElement = null;
+                currentMediaElement = img;
             }
         }
 
-        function closeZoom() { 
-            document.getElementById('zoom-modal').classList.remove('active'); 
-            // Pause any logic
-            if(currentMediaElement) currentMediaElement = null;
+        function closeZoom() {
+            console.log('Closing theater mode');
+
+            // Stop and cleanup current media
+            if (currentMediaElement) {
+                if (currentMediaElement.pause) {
+                    currentMediaElement.pause();
+                }
+                currentMediaElement = null;
+            }
+
+            // Hide metadata
+            const zoomMetadata = document.getElementById('zoom-metadata');
+            if (zoomMetadata) zoomMetadata.style.display = 'none';
+
+            // Clear frame
+            const zoomFrame = document.getElementById('zoom-frame');
+            if (zoomFrame) zoomFrame.innerHTML = '';
+
+            // Hide modal
+            document.getElementById('zoom-modal').classList.remove('active');
+
+            // Reset state for next opening
+            currentGallery = [];
+            currentMediaIndex = 0;
+            currentConfig = null;
         }
 
         function cycleGallery(direction) {
