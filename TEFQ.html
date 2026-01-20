@@ -225,11 +225,206 @@
         // --- MANIFEST CONFIG ---
         const MEDIA_ROOT = "./TEFQ Media";
         const MEDIA_MANIFEST = {
-            "ignition": { folder: "01_Ignition", files: ["alcohol_fire.mp4", "leidenfrost.mp4"], title: "IGNITION PROTOCOL" },
-            "halloween": { folder: "02_Halloween", files: ["foam_bomb.mp4", "class_halloween.jpg", "gummies.jpg"], title: "HALLOWEEN CHAOS" },
-            "christmas": { folder: "03_Christmas", files: ["tree.jpg", "valentin_mixing.mp4", "class_christmas.jpg", "alex_cake.jpg", "overflow_cake.jpg", "valentin_ingredients.jpg", "valentin_sipping.jpg"], title: "CHRISTMAS PROTOCOL" },
-            "naoh": { folder: "04_NaOH", files: ["alex_pancho_naoh.jpg", "valentin_hugging.jpg", "valentin_beaker.jpg", "valentin_dropper.jpg"], title: "LIQUID DANGER" },
-            "chair": { folder: "05_Chair", files: ["exploding_chair.mp4"], title: "INFRASTRUCTURE" }
+            "ignition": {
+                folder: "01_Ignition",
+                title: "IGNITION PROTOCOL",
+                files: [
+                    {
+                        name: "alcohol_fire.mp4",
+                        title: "ALCOHOL SPILL CONTAINMENT",
+                        bullets: [
+                            "Real-time risk assessment during active combustion event",
+                            "Data collection protocol maintained under pressure",
+                            "Theory students read case studies. We create them.",
+                            "Risk mitigation through practical experience, not memorization"
+                        ]
+                    },
+                    {
+                        name: "leidenfrost.mp4",
+                        title: "LEIDENFROST DISCOVERY",
+                        bullets: [
+                            "Accidental physics discovery during routine cleanup",
+                            "In PE, a water spill is clumsy. In TEFQ, it's thermodynamics.",
+                            "We turned an accident into empirical observation",
+                            "Failure = learning opportunity. This is our advantage."
+                        ]
+                    }
+                ]
+            },
+            "halloween": {
+                folder: "02_Halloween",
+                title: "HALLOWEEN CHAOS",
+                files: [
+                    {
+                        name: "foam_bomb.mp4",
+                        title: "FOAM BOMB: EXOTHERMIC EXPANSION",
+                        bullets: [
+                            "While others carved pumpkins, we pressurized one with hydrogen peroxide",
+                            "Eyes → mouth → total coverage: Pressure dynamics in real-time",
+                            "French students conjugate verbs. We catalyze reactions.",
+                            "This is why TEFQ wins: We apply, not memorize"
+                        ]
+                    },
+                    {
+                        name: "class_halloween.jpg",
+                        title: "POST-CHAOS DOCUMENTATION",
+                        bullets: [
+                            "Entire class present for high-energy experiments",
+                            "Team cohesion under chemical chaos",
+                            "IT students work alone on computers. We work together on reactions.",
+                            "Social + scientific skill development simultaneously"
+                        ]
+                    },
+                    {
+                        name: "gummies.jpg",
+                        title: "TEACHER OLGA'S CONTRIBUTION",
+                        bullets: [
+                            "Teacher Olga brought gummies as glucose supplementation",
+                            "We ate them in the lab (safety protocols maintained)",
+                            "Comfort during hard work = sustained focus",
+                            "TEFQ culture: rigorous + human"
+                        ]
+                    }
+                ]
+            },
+            "christmas": {
+                folder: "03_Christmas",
+                title: "CHRISTMAS PROTOCOL",
+                files: [
+                    {
+                        name: "tree.jpg",
+                        title: "CHEMICAL CHRISTMAS TREE",
+                        bullets: [
+                            "Test tubes filled with colored compounds held by lab equipment",
+                            "Watered with the tears of non-TEFQ students (metaphorically)",
+                            "Art meets science: We don't separate creativity from chemistry",
+                            "Psych students have wooden chairs. We have chemical trees."
+                        ]
+                    },
+                    {
+                        name: "valentin_mixing.mp4",
+                        title: "VALENTÍN: MIXING PROTOCOL",
+                        bullets: [
+                            "Lab mascot Valentín assists in stoichiometric batter preparation",
+                            "Even our mascot understands molar ratios",
+                            "Hands-on learning for all participants (including primates)",
+                            "We don't cook with love. We cook with calculations."
+                        ]
+                    },
+                    {
+                        name: "class_christmas.jpg",
+                        title: "TEAM SUCCESS DOCUMENTATION",
+                        bullets: [
+                            "Entire class + Valentín after successful mug cake synthesis",
+                            "Collaborative learning environment",
+                            "PE students run laps. We run experiments.",
+                            "TEFQ builds both technical + teamwork skills"
+                        ]
+                    },
+                    {
+                        name: "alex_cake.jpg",
+                        title: "EXPECTATION: PERFECT EXECUTION",
+                        bullets: [
+                            "Precise stoichiometric calculations result in perfect mug cake",
+                            "Height exactly at mug rim = correct molar ratios",
+                            "This is what happens when chemistry is applied correctly",
+                            "Theory works when you understand it deeply"
+                        ]
+                    },
+                    {
+                        name: "overflow_cake.jpg",
+                        title: "REALITY: CALCULATION ERROR",
+                        bullets: [
+                            "Volumetric miscalculation leads to 'nuclear mushroom'",
+                            "Foam rises 3x above container = excess CO2 generation",
+                            "Failure teaches more than success: This is empirical learning",
+                            "IT students get syntax errors. We get edible ones."
+                        ]
+                    },
+                    {
+                        name: "valentin_ingredients.jpg",
+                        title: "PRE-PROTOCOL STAGING",
+                        bullets: [
+                            "Valentín positioned among raw ingredients before synthesis",
+                            "Ingredient preparation = experimental protocol rigor",
+                            "We treat cooking like chemistry because it IS chemistry",
+                            "Mise en place applied to science education"
+                        ]
+                    },
+                    {
+                        name: "valentin_sipping.jpg",
+                        title: "QUALITY CONTROL: PRE-BAKE",
+                        bullets: [
+                            "Valentín 'sipping' raw batter for quality assurance",
+                            "Even pre-bake testing follows protocol",
+                            "Humor + rigor coexist in TEFQ lab environment",
+                            "We take science seriously without taking ourselves seriously"
+                        ]
+                    }
+                ]
+            },
+            "naoh": {
+                folder: "04_NaOH",
+                title: "LIQUID DANGER",
+                files: [
+                    {
+                        name: "alex_pancho_naoh.jpg",
+                        title: "1M NaOH SOLUTION PREPARATION",
+                        bullets: [
+                            "Alex & Pancho holding 1 Molar sodium hydroxide (pH ~14)",
+                            "Dissolves organic matter. Cleans fingerprints. Requires precision.",
+                            "French students handle textbooks. We handle corrosive bases.",
+                            "We are trusted with lethal substances = earned competence"
+                        ]
+                    },
+                    {
+                        name: "valentin_hugging.jpg",
+                        title: "VALENTÍN BEFRIENDS DANGER",
+                        bullets: [
+                            "Valentín hugging NaOH bottle (they're the same size)",
+                            "Safety through familiarity and respect for chemicals",
+                            "Even our mascot understands lab protocol",
+                            "TEFQ culture: Confidence without recklessness"
+                        ]
+                    },
+                    {
+                        name: "valentin_beaker.jpg",
+                        title: "EQUIPMENT FAMILIARITY TRAINING",
+                        bullets: [
+                            "Valentín inside glass beaker surrounded by droppers",
+                            "Lab equipment becomes second nature through exposure",
+                            "IT students fear hardware. We live in the lab.",
+                            "Physical comfort with scientific tools = operational advantage"
+                        ]
+                    },
+                    {
+                        name: "valentin_dropper.jpg",
+                        title: "PRECISION HANDLING PROTOCOL",
+                        bullets: [
+                            "Valentín demonstrating two-handed dropper technique",
+                            "Precision tools require precision handling",
+                            "Titration accuracy starts with equipment respect",
+                            "We train even our mascot in proper technique"
+                        ]
+                    }
+                ]
+            },
+            "chair": {
+                folder: "05_Chair",
+                title: "INFRASTRUCTURE",
+                files: [
+                    {
+                        name: "exploding_chair.mp4",
+                        title: "STRUCTURAL FAILURE ANALYSIS",
+                        bullets: [
+                            "Chair levitates then explodes from knowledge density",
+                            "Psych students sit on wooden planks. We earned cushioned seats.",
+                            "Comfort is not assigned. It's earned through hard work.",
+                            "Some chairs hold students. Ours hold material limits."
+                        ]
+                    }
+                ]
+            }
         };
     </script>
 
@@ -250,7 +445,7 @@
                 <div id="zoom-cover" class="zoom-cover" onclick="playMedia()">
                     <div id="zoom-cover-emoji" class="zoom-cover-emoji">▶️</div>
                 </div>
-                
+
                 <div id="zoom-video-ui" class="flex flex-col items-center w-full h-full justify-center">
                     <div id="zoom-icon" class="play-indicator opacity-20">▶</div>
                     <div id="zoom-text" class="absolute top-4 left-4 font-mono text-white text-xl bg-black px-2 z-10">PLAYING FILE</div>
@@ -259,6 +454,14 @@
                     </div>
                 </div>
                 <img id="zoom-img" src="" class="w-full h-full object-contain hidden relative z-0" onerror="this.style.display='none'; document.getElementById('zoom-video-ui').style.display='flex';">
+
+                <!-- File-specific metadata overlay -->
+                <div class="absolute bottom-20 left-8 right-8 bg-black bg-opacity-90 border-2 border-yellow-400 p-6 font-mono text-white z-50" id="zoom-metadata" style="display: none;">
+                    <div class="text-yellow-400 font-bold text-lg mb-3" id="zoom-file-title">FILE TITLE</div>
+                    <ul class="list-none space-y-2" id="zoom-file-bullets">
+                        <li class="flex items-start"><span class="text-yellow-400 mr-2">>></span><span>Bullet point 1</span></li>
+                    </ul>
+                </div>
             </div>
             <div class="fixed bottom-10 text-white font-mono text-sm bg-black px-4 py-2 border border-white">
                 [↑/↓] NEXT FILE &nbsp;|&nbsp; [TAB] CLOSE
@@ -294,10 +497,11 @@
                         <div class="grid grid-cols-2 gap-8 font-mono text-sm">
                             <div class="p-4 border-l-8 border-black bg-gray-50"><strong>01. IGNITION</strong><br>Real risk, real data collection.</div>
                             <div class="p-4 border-l-8 border-black bg-gray-50"><strong>02. HALLOWEEN</strong><br>Exothermic chaos protocol.</div>
-                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>03. CHRISTMAS</strong><br>Edible stoichiometry.</div>
-                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>04. LIQUID DANGER</strong><br>1M NaOH capability.</div>
-                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>05. THE CHAIR GAP</strong><br>Infrastructure superiority.</div>
-                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>06. VERDICT</strong><br>Confetti protocol.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>03. ACADEMIC ROI</strong><br>20x efficiency proof.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>04. CHRISTMAS</strong><br>Edible stoichiometry.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>05. LIQUID DANGER</strong><br>1M NaOH capability.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>06. THE CHAIR GAP</strong><br>Infrastructure superiority.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>07. VERDICT</strong><br>Confetti protocol.</div>
                         </div>
                     </div>
                 </section>
@@ -342,7 +546,35 @@
                     </div>
                 </section>
 
-                <section id="slide-4" class="slide future" data-progress="60" data-thread="Module 03" data-narrative="We don't cook with love. We cook with stoichiometry.">
+                <section id="slide-4" class="slide future" data-progress="52" data-thread="Academic Proof" data-narrative="Numbers don't lie. 20x efficiency advantage.">
+                    <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
+                        <div class="col-span-4">
+                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">ACADEMIC ROI</h3>
+                            <ul class="bullet-list space-y-4 mb-8">
+                                <li><strong>Empirical Efficiency:</strong> Real reactions, real results.</li>
+                                <li><strong>Hands-On Mastery:</strong> Mixing acid, not theory.</li>
+                                <li><strong>Grade Dominance:</strong> 20x efficiency ratio.</li>
+                            </ul>
+                            <div class="interactive-group flex flex-col gap-2">
+                                <div class="victim-btn active interactive-item" id="btn-it">IT STUDENT</div>
+                                <div class="victim-btn interactive-item" id="btn-pe">PE STUDENT</div>
+                                <div class="victim-btn interactive-item" id="btn-psych">PSYCH STUDENT</div>
+                                <div class="victim-btn interactive-item" id="btn-french">FRENCH STUDENT</div>
+                            </div>
+                        </div>
+                        <div class="col-span-8 flex flex-col gap-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="roi-panel"><div class="roi-label">TEFQ EFFICIENCY</div><div class="roi-value" id="tefq-roi">20.0x</div></div>
+                                <div class="roi-panel victim" id="victim-panel"><div class="roi-label" id="victim-label">IT EFFICIENCY</div><div class="roi-value text-white" id="victim-roi">0.7x</div></div>
+                            </div>
+                            <div class="border-4 border-black bg-white p-4 shadow-[12px_12px_0px_#e5e7eb] h-[400px]">
+                                <canvas id="dataChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="slide-5" class="slide future" data-progress="68" data-thread="Module 03" data-narrative="We don't cook with love. We cook with stoichiometry.">
                     <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                         <div class="col-span-5 flex flex-col justify-center h-full">
                             <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">EDIBLE ENGINEERING</h3>
@@ -362,7 +594,7 @@
                     </div>
                 </section>
 
-                <section id="slide-5" class="slide future" data-progress="75" data-thread="Module 04" data-narrative="We handle lethal substances. Casually.">
+                <section id="slide-6" class="slide future" data-progress="80" data-thread="Module 04" data-narrative="We handle lethal substances. Casually.">
                     <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                         <div class="col-span-5 flex flex-col justify-center h-full">
                             <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">1M NaOH: LIQUID DANGER</h3>
@@ -382,7 +614,7 @@
                     </div>
                 </section>
 
-                <section id="slide-6" class="slide future" data-progress="90" data-thread="Module 05" data-narrative="Some chairs hold students. Ours hold knowledge density.">
+                <section id="slide-7" class="slide future" data-progress="90" data-thread="Module 05" data-narrative="Some chairs hold students. Ours hold knowledge density.">
                     <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                         <div class="col-span-5 flex flex-col justify-center h-full">
                             <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">SUPERIOR INFRASTRUCTURE</h3>
@@ -402,7 +634,7 @@
                     </div>
                 </section>
 
-                <section id="slide-7" class="slide future" data-progress="100" data-thread="Victory" data-narrative="Press Tab to celebrate. Confetti protocol activated.">
+                <section id="slide-8" class="slide future" data-progress="100" data-thread="Victory" data-narrative="Press Tab to celebrate. Confetti protocol activated.">
                     <h1 class="text-9xl font-black mb-8 animate-pulse text-yellow-400" id="verdict-header">THE DATA IS CLEAR</h1>
                     <div class="p-12 border-8 border-yellow-400 bg-black text-white shadow-[12px_12px_0px_#facc15] max-w-3xl text-center interactive-item active-focus">
                         <p class="text-4xl font-bold text-yellow-400 mb-6">PRESS TO CONFIRM</p>
@@ -419,11 +651,23 @@
     </div>
 
     <script>
+        // --- DATA ---
+        const studentProfiles = {
+            it: { name: 'IT STUDENT', label: 'IT EFFICIENCY', suffering: 9, dignity: 2, grade: 5 },
+            pe: { name: 'PE STUDENT', label: 'PE EFFICIENCY', suffering: 10, dignity: 4, grade: 8 },
+            psych: { name: 'PSYCH STUDENT', label: 'PSYCH EFFICIENCY', suffering: 7, dignity: 5, grade: 6 },
+            french: { name: 'FRENCH STUDENT', label: 'FRENCH EFFICIENCY', suffering: 8, dignity: 0, grade: 4 }
+        };
+        const victimKeys = ['it', 'pe', 'psych', 'french'];
+        const tefqStats = { suffering: 1, dignity: 10, grade: 10 };
+
         // --- STATE ---
         let systemOn = false; // Starts OFF
         let currentSlideIndex = 0;
-        const totalSlides = 8;
+        const totalSlides = 9; // Updated to 9 slides
         let interactionIndex = 0;
+        let chartInstance = null;
+        let currentVictimIndex = 0;
 
         let currentGallery = [];
         let currentMediaIndex = 0;
@@ -446,16 +690,16 @@
                 const config = MEDIA_MANIFEST[key];
                 if (!config) return;
 
-                const fullPaths = config.files.map(f => `${MEDIA_ROOT}/${config.folder}/${f}`);
-                const fileCount = fullPaths.length;
+                const fileCount = config.files.length;
 
                 if (fileCount === 0) {
                     card.classList.add('is-empty');
                     card.querySelector('.card-content span').innerHTML = "EVIDENCE MISSING";
                     card.querySelector('.card-content span').className = "text-red-500 font-bold blink-text";
-                    card.onclick = () => triggerZoom([], 'REDACTED');
+                    card.onclick = () => triggerZoom([], config);
                 } else {
-                    card.onclick = () => triggerZoom(fullPaths, config.title);
+                    // Pass the entire config object with file metadata
+                    card.onclick = () => triggerZoom(config.files, config);
                     if (fileCount > 1) {
                         const badge = document.createElement('div');
                         badge.className = 'multi-indicator';
@@ -488,6 +732,9 @@
             const activeSlide = document.getElementById(`slide-${index}`);
             const progress = parseFloat(activeSlide.getAttribute('data-progress'));
             updateJealousy(progress);
+
+            // Initialize chart on slide 4
+            if (index === 4) setTimeout(() => initChart(), 500);
         }
 
         function updateNarrative(index) {
@@ -567,6 +814,58 @@
             document.getElementById('valentin-victory').style.display = 'block';
         }
 
+        // --- CHART LOGIC ---
+        function initChart() {
+            const ctx = document.getElementById('dataChart');
+            if (!ctx || chartInstance) return;
+            Chart.defaults.font.family = 'JetBrains Mono';
+            Chart.defaults.font.size = 14;
+            Chart.defaults.color = '#000';
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['SUFFERING', 'DIGNITY', 'GRADE'],
+                    datasets: [
+                        { label: 'TEFQ', data: [tefqStats.suffering, tefqStats.dignity, tefqStats.grade], backgroundColor: '#facc15', borderWidth: 3, borderColor: 'black' },
+                        { label: studentProfiles['it'].name, data: [studentProfiles['it'].suffering, studentProfiles['it'].dignity, studentProfiles['it'].grade], backgroundColor: '#000000', borderWidth: 0 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top', labels: { font: { weight: 'bold' } } } },
+                    scales: { y: { beginAtZero: true, max: 10, grid: { color: '#f3f4f6' } }, x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } } },
+                    animation: { duration: 1000, easing: 'easeOutElastic' }
+                }
+            });
+            document.getElementById('tefq-roi').innerText = calculateROI(tefqStats) + "x";
+            document.getElementById('victim-roi').innerText = calculateROI(studentProfiles['it']) + "x";
+        }
+
+        function calculateROI(stats) {
+            return ((stats.grade + stats.dignity) / stats.suffering).toFixed(1);
+        }
+
+        function updateVictimChart(victimId) {
+            document.querySelectorAll('.victim-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${victimId}`).classList.add('active');
+            const btn = document.getElementById(`btn-${victimId}`);
+            btn.classList.add('active-press');
+            setTimeout(() => btn.classList.remove('active-press'), 100);
+
+            const victim = studentProfiles[victimId];
+            if (!chartInstance) initChart();
+            else {
+                chartInstance.data.datasets[1].label = victim.name;
+                chartInstance.data.datasets[1].data = [victim.suffering, victim.dignity, victim.grade];
+                chartInstance.update();
+            }
+            const victimROI = calculateROI(victim);
+            document.getElementById('victim-label').innerText = victim.label;
+            document.getElementById('victim-roi').innerText = victimROI + "x";
+            document.getElementById('victim-panel').classList.add('border-red-500');
+            setTimeout(() => document.getElementById('victim-panel').classList.remove('border-red-500'), 300);
+        }
+
         // --- MEDIA PLAYER LOGIC ---
         function playMedia() {
             document.getElementById('zoom-cover').classList.add('hidden');
@@ -579,14 +878,17 @@
             }
         }
 
-        function triggerZoom(mediaArray, title) {
+        let currentConfig = null; // Store config for metadata access
+
+        function triggerZoom(mediaArray, config) {
             currentGallery = mediaArray;
+            currentConfig = config;
             currentMediaIndex = 0;
-            updateZoomDisplay(title);
+            updateZoomDisplay();
             document.getElementById('zoom-modal').classList.add('active');
         }
 
-        function updateZoomDisplay(title) {
+        function updateZoomDisplay() {
             const videoUI = document.getElementById('zoom-video-ui');
             const imgUI = document.getElementById('zoom-img');
             const thumbsContainer = document.getElementById('zoom-thumbs');
@@ -594,19 +896,23 @@
             const zoomCover = document.getElementById('zoom-cover');
             const zoomCoverEmoji = document.getElementById('zoom-cover-emoji');
             const bar = document.getElementById('zoom-bar');
+            const zoomMetadata = document.getElementById('zoom-metadata');
+            const zoomFileTitle = document.getElementById('zoom-file-title');
+            const zoomFileBullets = document.getElementById('zoom-file-bullets');
 
             // Reset Timeline
             bar.style.transition = 'none';
             bar.style.width = '0%';
 
             // ERROR STATE
-            if (title === 'REDACTED' || currentGallery.length === 0) {
+            if (!currentConfig || currentGallery.length === 0) {
                 videoUI.style.display = 'flex'; imgUI.style.display = 'none';
                 document.getElementById('zoom-icon').innerText = '🚫';
                 zoomText.innerText = "ERROR: EVIDENCE REDACTED";
                 zoomText.className = "absolute top-4 left-4 font-mono text-red-500 text-xl bg-black px-2 blink-text";
                 thumbsContainer.innerHTML = '';
-                
+                zoomMetadata.style.display = 'none';
+
                 // Placeholder Logic
                 zoomCover.classList.remove('hidden');
                 zoomCoverEmoji.innerText = "🚫";
@@ -616,34 +922,54 @@
             }
 
             // NORMAL STATE
-            const currentFile = currentGallery[currentMediaIndex];
-            
+            const currentFileObj = currentGallery[currentMediaIndex];
+            const fileName = currentFileObj.name;
+            const filePath = `${MEDIA_ROOT}/${currentConfig.folder}/${fileName}`;
+
             // Re-show Cover on slide change
             zoomCover.classList.remove('hidden');
             zoomCoverEmoji.innerText = "▶️";
             zoomCover.onclick = playMedia; // Re-enable Play
 
+            // Update thumbnails
             thumbsContainer.innerHTML = '';
             currentGallery.forEach((file, idx) => {
                 const thumb = document.createElement('div');
                 thumb.className = 'zoom-thumb';
                 thumb.innerText = idx + 1;
                 if (idx === currentMediaIndex) thumb.classList.add('active');
+                thumb.onclick = () => {
+                    currentMediaIndex = idx;
+                    updateZoomDisplay();
+                };
                 thumbsContainer.appendChild(thumb);
             });
 
-            zoomText.className = "absolute top-4 left-4 font-mono text-white text-xl bg-black px-2";
+            // Update metadata overlay
+            zoomFileTitle.textContent = currentFileObj.title;
+            zoomFileBullets.innerHTML = '';
+            currentFileObj.bullets.forEach(bullet => {
+                const li = document.createElement('li');
+                li.className = 'flex items-start';
+                li.innerHTML = `<span class="text-yellow-400 mr-2">>></span><span>${bullet}</span>`;
+                zoomFileBullets.appendChild(li);
+            });
+            zoomMetadata.style.display = 'block';
 
-            if (currentFile.endsWith('.mp4')) {
+            // Update top text
+            zoomText.className = "absolute top-4 left-4 font-mono text-white text-xl bg-black px-2 z-10";
+            zoomText.textContent = currentFileObj.title;
+
+            // Handle media type
+            if (fileName.endsWith('.mp4')) {
                 videoUI.style.display = 'flex'; imgUI.style.display = 'none';
                 document.getElementById('zoom-icon').innerText = '▶';
-                zoomText.innerText = "PLAYING: " + (title || "FILE") + " (" + (currentMediaIndex+1) + "/" + currentGallery.length + ")";
-                
+
                 // Mock Video Player logic
                 currentMediaElement = document.createElement('video'); // Virtual element for logic
             } else {
                 videoUI.style.display = 'none'; imgUI.style.display = 'block';
-                imgUI.src = currentFile;
+                imgUI.src = filePath;
                 currentMediaElement = null;
                 // If image, clicking cover just reveals it
                 zoomCover.onclick = () => zoomCover.classList.add('hidden');
@@ -665,7 +991,15 @@
 
         // --- GLOBAL INTERACTIONS ---
         function triggerAction() {
-            if (currentSlideIndex === 7) {
+            // Slide 4: Chart comparison cycling
+            if (currentSlideIndex === 4) {
+                currentVictimIndex = (currentVictimIndex + 1) % victimKeys.length;
+                updateVictimChart(victimKeys[currentVictimIndex]);
+                return;
+            }
+
+            // Slide 8: Verdict
+            if (currentSlideIndex === 8) {
                 const btn = document.getElementById('defeat-btn');
                 btn.classList.add('active-press');
                 setTimeout(() => btn.classList.remove('active-press'), 150);
@@ -711,14 +1045,24 @@
                 root.classList.add('crt-on');
                 systemOn = true;
             } else {
-                // TURN OFF
+                // TURN OFF with animation, then restart
                 blackout.classList.remove('hidden-layer');
                 root.classList.remove('crt-on');
-                
+
                 // Force Reflow
-                void root.offsetWidth; 
+                void root.offsetWidth;
                 root.classList.add('crt-off');
-                systemOn = false;
+
+                // Wait for shutdown animation to complete (600ms), then turn back on
+                setTimeout(() => {
+                    // Turn back on automatically
+                    blackout.classList.add('hidden-layer');
+                    root.classList.remove('crt-off');
+
+                    // Force reflow
+                    void root.offsetWidth;
+                    root.classList.add('crt-on');
+                }, 650); // 600ms animation + 50ms buffer
             }
         }
 
