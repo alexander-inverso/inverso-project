@@ -475,15 +475,16 @@
                     </div>
                 </div>
                 <img id="zoom-img" src="" class="w-full h-full object-contain hidden relative z-0" onerror="this.style.display='none'; document.getElementById('zoom-video-ui').style.display='flex';">
-
-                <!-- File-specific metadata overlay - positioned dynamically -->
-                <div class="absolute bg-black bg-opacity-95 border-2 border-yellow-400 p-4 font-mono text-white z-50" id="zoom-metadata" style="display: none; max-width: 400px; transition: all 0.3s ease;">
-                    <div class="text-yellow-400 font-bold text-sm mb-2" id="zoom-file-title">FILE TITLE</div>
-                    <ul class="list-none space-y-1 text-xs" id="zoom-file-bullets">
-                        <li class="flex items-start"><span class="text-yellow-400 mr-2">>></span><span>Bullet 1</span></li>
-                    </ul>
-                </div>
             </div>
+
+            <!-- File-specific metadata overlay - positioned dynamically - MOVED OUTSIDE ZOOM-FRAME -->
+            <div class="fixed bg-black bg-opacity-95 border-2 border-yellow-400 p-4 font-mono text-white z-50" id="zoom-metadata" style="display: none; max-width: 400px; transition: all 0.3s ease; pointer-events: none;">
+                <div class="text-yellow-400 font-bold text-sm mb-2" id="zoom-file-title">FILE TITLE</div>
+                <ul class="list-none space-y-1 text-xs" id="zoom-file-bullets">
+                    <li class="flex items-start"><span class="text-yellow-400 mr-2">>></span><span>Bullet 1</span></li>
+                </ul>
+            </div>
+
             <div class="fixed bottom-10 text-white font-mono text-sm bg-black px-4 py-2 border border-white">
                 [↑/↓] NEXT FILE &nbsp;|&nbsp; [TAB] CLOSE
             </div>
@@ -657,41 +658,41 @@
 
                 <section id="slide-8" class="slide future" data-progress="100" data-thread="The Verdict" data-narrative="While others theorized, we dominated. Results are undeniable.">
                     <div class="w-full max-w-5xl">
-                        <h1 class="text-8xl font-black mb-6 text-center" id="verdict-header">
+                        <h1 class="text-7xl font-black mb-4 text-center" id="verdict-header">
                             <span class="text-yellow-400">TEFQ:</span> SUPREMACY PROVEN
                         </h1>
 
-                        <div class="grid grid-cols-3 gap-4 mb-8 font-mono text-sm">
-                            <div class="p-4 border-2 border-yellow-400 bg-black text-yellow-400 text-center">
-                                <div class="text-4xl font-black">17</div>
+                        <div class="grid grid-cols-3 gap-4 mb-6 font-mono text-sm">
+                            <div class="p-3 border-2 border-yellow-400 bg-black text-yellow-400 text-center">
+                                <div class="text-3xl font-black">17</div>
                                 <div class="text-xs opacity-80">EVIDENCE FILES</div>
                             </div>
-                            <div class="p-4 border-2 border-yellow-400 bg-black text-yellow-400 text-center">
-                                <div class="text-4xl font-black">20x</div>
+                            <div class="p-3 border-2 border-yellow-400 bg-black text-yellow-400 text-center">
+                                <div class="text-3xl font-black">20x</div>
                                 <div class="text-xs opacity-80">EFFICIENCY RATIO</div>
                             </div>
-                            <div class="p-4 border-2 border-yellow-400 bg-black text-yellow-400 text-center">
-                                <div class="text-4xl font-black">100%</div>
+                            <div class="p-3 border-2 border-yellow-400 bg-black text-yellow-400 text-center">
+                                <div class="text-3xl font-black">100%</div>
                                 <div class="text-xs opacity-80">PROOF DELIVERED</div>
                             </div>
                         </div>
 
-                        <div class="p-8 border-4 border-yellow-400 bg-black text-white shadow-[12px_12px_0px_#facc15] text-center">
-                            <p class="text-2xl font-bold text-yellow-400 mb-4">THE VERDICT:</p>
-                            <p class="text-lg mb-6 font-mono leading-relaxed">
+                        <div class="p-6 border-4 border-yellow-400 bg-black text-white shadow-[12px_12px_0px_#facc15] text-center">
+                            <p class="text-xl font-bold text-yellow-400 mb-3">THE VERDICT:</p>
+                            <p class="text-base mb-4 font-mono leading-relaxed">
                                 While IT students memorize syntax,<br>
                                 while PE students run laps,<br>
                                 while French students conjugate verbs,<br>
-                                <span class="text-yellow-400 font-black text-2xl">WE CREATE, EXPERIMENT, AND DOMINATE.</span>
+                                <span class="text-yellow-400 font-black text-xl">WE CREATE, EXPERIMENT, AND DOMINATE.</span>
                             </p>
 
-                            <div class="defeat-btn bg-yellow-400 text-black font-black text-5xl p-6 border-4 border-white cursor-pointer hover:scale-105 transition interactive-item active-focus" id="defeat-btn" onclick="triggerVerdict()">
+                            <div class="defeat-btn bg-yellow-400 text-black font-black text-4xl p-5 border-4 border-white cursor-pointer hover:scale-105 transition interactive-item active-focus" id="defeat-btn" onclick="triggerVerdict()">
                                 [ ACKNOWLEDGE SUPREMACY ]
                             </div>
 
-                            <div id="valentin-victory" style="display: none; margin-top: 2rem;">
-                                <img src="./TEFQ Media/06_Valentin/dabbing.jpg" style="max-width: 300px; border: 4px solid var(--accent-color); margin: 0 auto; display: block;" alt="Valentín Victory">
-                                <p class="text-yellow-400 font-black text-xl mt-4">EVEN VALENTÍN KNOWS.</p>
+                            <div id="valentin-victory" style="display: none; margin-top: 1.5rem;">
+                                <img src="./TEFQ Media/06_Valentin/dabbing.jpg" style="max-width: 280px; max-height: 280px; object-fit: contain; border: 4px solid var(--accent-color); margin: 0 auto; display: block;" alt="Valentín Victory">
+                                <p class="text-yellow-400 font-black text-lg mt-3">EVEN VALENTÍN KNOWS.</p>
                             </div>
                         </div>
                     </div>
