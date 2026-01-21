@@ -280,7 +280,7 @@
                         name: "foam_bomb.mp4",
                         title: "PUMPKIN FOAM BOMB",
                         bullets: [
-                            "Pumpkin goes nuclear",
+                            "Pumpkin used as reaction vessel",
                             "Eyes → mouth → total destruction",
                             "Exothermic violence"
                         ]
@@ -430,7 +430,13 @@
 
     <div id="blackout-layer">
         <div class="text-white font-black text-6xl mb-4">TEFQ WINS</div>
-        <div class="text-white font-black text-4xl animate-pulse">[ PRESS B TO BEGIN ]</div>
+        <div id="preload-container" style="width: 400px; margin-top: 2rem;">
+            <div style="background: #333; height: 30px; border: 2px solid #facc15; position: relative;">
+                <div id="preload-bar" style="height: 100%; width: 0%; background: #facc15; transition: width 0.3s;"></div>
+                <div id="preload-text" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-family: monospace; color: white; font-weight: bold;">LOADING MEDIA... 0%</div>
+            </div>
+        </div>
+        <div id="start-prompt" class="text-white font-black text-4xl animate-pulse" style="display: none; margin-top: 2rem;">[ PRESS B TO BEGIN ]</div>
     </div>
 
     <div id="system-root">
@@ -447,7 +453,7 @@
             </div>
 
             <!-- File-specific metadata overlay - positioned dynamically -->
-            <div class="fixed bg-black bg-opacity-95 border-2 border-yellow-400 p-4 font-mono text-white z-50" id="zoom-metadata" style="display: none; max-width: 400px; transition: all 0.3s ease; pointer-events: none;">
+            <div class="fixed bg-black bg-opacity-95 border-2 border-yellow-400 p-4 font-mono text-white z-50" id="zoom-metadata" style="display: none; max-width: 350px; transition: all 0.3s ease; pointer-events: none;">
                 <div class="text-yellow-400 font-bold text-sm mb-2" id="zoom-file-title">FILE TITLE</div>
                 <ul class="list-none space-y-1 text-xs" id="zoom-file-bullets">
                     <li class="flex items-start"><span class="text-yellow-400 mr-2">>></span><span>Bullet 1</span></li>
@@ -482,9 +488,9 @@
                     <div class="mt-16 font-mono text-sm text-gray-400 animate-bounce">[PRESS DOWN TO BEGIN]</div>
                 </section>
 
-                <section id="slide-1" class="slide future" data-progress="8" data-thread="Disclaimer" data-narrative="There are others. We acknowledge them. We'll ignore them.">
+                <section id="slide-1" class="slide future" data-progress="8" data-thread="Fine Print" data-narrative="There are others. We acknowledge them. We'll ignore them.">
                     <div class="w-full max-w-4xl">
-                        <h3 class="text-7xl font-black mb-8 text-center border-b-8 border-black pb-6">DISCLAIMER</h3>
+                        <h3 class="text-7xl font-black mb-8 text-center border-b-8 border-black pb-6">FINE PRINT</h3>
                         <div class="p-10 border-4 border-black bg-gray-50 shadow-[16px_16px_0px_#000]">
                             <p class="text-2xl font-bold mb-6 font-mono text-center">
                                 YES, THERE ARE OTHER PEOPLE WHO <span class="bg-yellow-400 px-2 py-1 font-black">TEFQ</span> WITH US.
@@ -501,25 +507,25 @@
                     </div>
                 </section>
 
-                <section id="slide-2" class="slide future" data-progress="15" data-thread="The Roadmap" data-narrative="Evidence categorized into 6 proof modules.">
+                <section id="slide-2" class="slide future" data-progress="15" data-thread="The Charges" data-narrative="Evidence categorized into 6 proof modules.">
                     <div class="w-full max-w-5xl">
-                        <h3 class="text-6xl font-black mb-12 border-b-4 border-black pb-4">EVIDENCE LOCKER</h3>
+                        <h3 class="text-6xl font-black mb-12 border-b-4 border-black pb-4">THE CHARGES</h3>
                         <div class="grid grid-cols-2 gap-8 font-mono text-sm">
-                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>01. IGNITION</strong><br>Real risk, real data collection.</div>
-                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>02. HALLOWEEN</strong><br>Exothermic chaos protocol.</div>
-                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>03. ACADEMIC ROI</strong><br>20x efficiency proof.</div>
-                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>04. CHRISTMAS</strong><br>Edible stoichiometry.</div>
-                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>05. LIQUID DANGER</strong><br>1M NaOH capability.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>01. ARSON</strong><br>Real risk, real data collection.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>02. BIOHAZARD</strong><br>Exothermic chaos protocol.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>03. THE MATH</strong><br>20x efficiency proof.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>04. CONTROLLED SUBSTANCE</strong><br>Edible stoichiometry.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>05. HAZMAT</strong><br>1M NaOH capability.</div>
                             <div class="p-4 border-l-8 border-black bg-gray-50"><strong>06. THE CHAIR GAP</strong><br>Infrastructure superiority.</div>
-                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>07. VERDICT</strong><br>Confetti protocol.</div>
+                            <div class="p-4 border-l-8 border-black bg-gray-50"><strong>07. GUILTY</strong><br>Confetti protocol.</div>
                         </div>
                     </div>
                 </section>
 
-                <section id="slide-3" class="slide future" data-progress="30" data-thread="Module 01" data-narrative="Real combustion. Real data. No textbooks.">
+                <section id="slide-3" class="slide future" data-progress="30" data-thread="Arson" data-narrative="Real combustion. Real data. No textbooks.">
                     <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                         <div class="col-span-5 flex flex-col justify-center h-full">
-                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">APPLIED CHAOS</h3>
+                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">ARSON</h3>
                             <ul class="bullet-list space-y-4">
                                 <li><strong>Real Combustion:</strong> Not textbook diagrams.</li>
                                 <li><strong>Risk Mitigation:</strong> We didn't panic. We collected data.</li>
@@ -536,12 +542,12 @@
                     </div>
                 </section>
 
-                <section id="slide-4" class="slide future" data-progress="45" data-thread="Module 02" data-narrative="While others carved pumpkins, we pressurized one.">
+                <section id="slide-4" class="slide future" data-progress="45" data-thread="Biohazard" data-narrative="Pumpkin used as carcass. Foam everywhere.">
                     <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                         <div class="col-span-5 flex flex-col justify-center h-full">
-                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">EXOTHERMIC ABOMINATIONS</h3>
+                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">BIOHAZARD</h3>
                             <ul class="bullet-list space-y-4">
-                                <li><strong>While others carved pumpkins,</strong> we pressurized one.</li>
+                                <li><strong>Pumpkin as carcass:</strong> Used as reaction vessel.</li>
                                 <li><strong>Foam Protocol:</strong> Eyes first, then mouth, total coverage.</li>
                                 <li><strong>Teacher Olga brought gummies.</strong> We ate them in the lab.</li>
                                 <li><strong>Exothermic expansion</strong> in organic matter.</li>
@@ -556,10 +562,10 @@
                     </div>
                 </section>
 
-                <section id="slide-5" class="slide future" data-progress="52" data-thread="Academic Proof" data-narrative="Numbers don't lie. 20x efficiency advantage.">
+                <section id="slide-5" class="slide future" data-progress="52" data-thread="The Math" data-narrative="Numbers don't lie. 20x efficiency advantage.">
                     <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                         <div class="col-span-4">
-                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">ACADEMIC ROI</h3>
+                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">THE MATH</h3>
                             <ul class="bullet-list space-y-4 mb-8">
                                 <li><strong>Empirical Efficiency:</strong> Real reactions, real results.</li>
                                 <li><strong>Hands-On Mastery:</strong> Mixing acid, not theory.</li>
@@ -584,10 +590,10 @@
                     </div>
                 </section>
 
-                <section id="slide-6" class="slide future" data-progress="68" data-thread="Module 03" data-narrative="We don't cook with love. We cook with stoichiometry.">
+                <section id="slide-6" class="slide future" data-progress="68" data-thread="Controlled Substance" data-narrative="We don't cook with love. We cook with stoichiometry.">
                     <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                         <div class="col-span-5 flex flex-col justify-center h-full">
-                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">EDIBLE ENGINEERING</h3>
+                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">CONTROLLED SUBSTANCE</h3>
                             <ul class="bullet-list space-y-4">
                                 <li><strong>Christmas tree watered</strong> with the tears of non-TEFQ students.</li>
                                 <li><strong>Valentín:</strong> Lab mascot and baking assistant.</li>
@@ -604,10 +610,10 @@
                     </div>
                 </section>
 
-                <section id="slide-7" class="slide future" data-progress="80" data-thread="Module 04" data-narrative="We handle lethal substances. Casually.">
+                <section id="slide-7" class="slide future" data-progress="80" data-thread="Hazmat" data-narrative="We handle lethal substances. Casually.">
                     <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                         <div class="col-span-5 flex flex-col justify-center h-full">
-                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">1M NaOH: LIQUID DANGER</h3>
+                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">HAZMAT</h3>
                             <ul class="bullet-list space-y-4">
                                 <li><strong>Dissolves organic matter.</strong> Cleans fingerprints.</li>
                                 <li><strong>Valentín befriends the bottle</strong> (they're the same size).</li>
@@ -624,10 +630,10 @@
                     </div>
                 </section>
 
-                <section id="slide-8" class="slide future" data-progress="90" data-thread="Module 05" data-narrative="Some chairs hold students. Ours hold knowledge density.">
+                <section id="slide-8" class="slide future" data-progress="90" data-thread="The Chair Gap" data-narrative="Some chairs hold students. Ours hold knowledge density.">
                     <div class="w-full max-w-7xl grid grid-cols-12 gap-8 h-full items-center">
                         <div class="col-span-5 flex flex-col justify-center h-full">
-                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">SUPERIOR INFRASTRUCTURE</h3>
+                            <h3 class="text-5xl font-black mb-6 border-l-8 border-yellow-400 pl-4">THE CHAIR GAP</h3>
                             <ul class="bullet-list space-y-4">
                                 <li><strong>The Chair Gap:</strong> A study in comfort economics.</li>
                                 <li><strong>Earned through hard work,</strong> not assigned by schedule.</li>
@@ -644,10 +650,10 @@
                     </div>
                 </section>
 
-                <section id="slide-9" class="slide future" data-progress="100" data-thread="The Verdict" data-narrative="While others theorized, we dominated. Results are undeniable.">
+                <section id="slide-9" class="slide future" data-progress="100" data-thread="Guilty" data-narrative="While others theorized, we dominated. Results are undeniable.">
                     <div class="w-full max-w-5xl">
-                        <h1 class="text-7xl font-black mb-4 text-center" id="verdict-header">
-                            <span class="text-yellow-400">TEFQ:</span> SUPREMACY PROVEN
+                        <h1 class="text-8xl font-black mb-6 text-center" id="verdict-header">
+                            <span class="text-yellow-400">GUILTY</span>
                         </h1>
 
                         <div class="grid grid-cols-3 gap-4 mb-6 font-mono text-sm">
@@ -665,6 +671,11 @@
                             </div>
                         </div>
 
+                        <div id="valentin-victory" style="display: none; margin-bottom: 2rem;">
+                            <img src="./TEFQ Media/06_Valentin/dabbing.jpg" style="max-width: 500px; max-height: 500px; object-fit: contain; border: 6px solid var(--accent-color); margin: 0 auto; display: block; box-shadow: 0 0 40px rgba(250, 204, 21, 0.6);" alt="Valentín Victory">
+                            <p class="text-yellow-400 font-black text-3xl mt-6 text-center">EVEN VALENTÍN KNOWS.</p>
+                        </div>
+
                         <div class="p-6 border-4 border-yellow-400 bg-black text-white shadow-[12px_12px_0px_#facc15] text-center">
                             <p class="text-xl font-bold text-yellow-400 mb-3">THE VERDICT:</p>
                             <p class="text-base mb-4 font-mono leading-relaxed">
@@ -676,11 +687,6 @@
 
                             <div class="defeat-btn bg-yellow-400 text-black font-black text-4xl p-5 border-4 border-white cursor-pointer hover:scale-105 transition interactive-item active-focus" id="defeat-btn" onclick="triggerVerdict()">
                                 [ ACKNOWLEDGE SUPREMACY ]
-                            </div>
-
-                            <div id="valentin-victory" style="display: none; margin-top: 1.5rem;">
-                                <img src="./TEFQ Media/06_Valentin/dabbing.jpg" style="max-width: 280px; max-height: 280px; object-fit: contain; border: 4px solid var(--accent-color); margin: 0 auto; display: block;" alt="Valentín Victory">
-                                <p class="text-yellow-400 font-black text-lg mt-3">EVEN VALENTÍN KNOWS.</p>
                             </div>
                         </div>
                     </div>
@@ -714,13 +720,72 @@
         
         // --- INIT ---
         window.onload = function() {
-            initMediaSystem();
+            preloadMediaFiles();
+        };
 
-            // Start Monitor
+        function preloadMediaFiles() {
+            const allFiles = [];
+
+            // Collect all media file paths
+            Object.keys(MEDIA_MANIFEST).forEach(key => {
+                const config = MEDIA_MANIFEST[key];
+                config.files.forEach(file => {
+                    allFiles.push(`${MEDIA_ROOT}/${config.folder}/${file.name}`);
+                });
+            });
+
+            let loaded = 0;
+            const total = allFiles.length;
+            const preloadBar = document.getElementById('preload-bar');
+            const preloadText = document.getElementById('preload-text');
+            const startPrompt = document.getElementById('start-prompt');
+            const preloadContainer = document.getElementById('preload-container');
+
+            console.log(`Preloading ${total} media files...`);
+
+            function updateProgress() {
+                loaded++;
+                const percent = Math.round((loaded / total) * 100);
+                preloadBar.style.width = percent + '%';
+                preloadText.textContent = `LOADING MEDIA... ${percent}%`;
+
+                if (loaded === total) {
+                    console.log('All media files preloaded');
+                    setTimeout(() => {
+                        preloadContainer.style.display = 'none';
+                        startPrompt.style.display = 'block';
+                    }, 300);
+                }
+            }
+
+            // Preload each file
+            allFiles.forEach(filePath => {
+                if (filePath.endsWith('.mp4')) {
+                    const video = document.createElement('video');
+                    video.preload = 'auto';
+                    video.src = filePath;
+                    video.onloadeddata = updateProgress;
+                    video.onerror = () => {
+                        console.warn('Failed to preload:', filePath);
+                        updateProgress(); // Count as loaded even if error
+                    };
+                } else {
+                    const img = new Image();
+                    img.src = filePath;
+                    img.onload = updateProgress;
+                    img.onerror = () => {
+                        console.warn('Failed to preload:', filePath);
+                        updateProgress(); // Count as loaded even if error
+                    };
+                }
+            });
+
+            // Initialize systems after preload starts
+            initMediaSystem();
             setInterval(monitorJealousyColor, 100);
             updateNarrative(0);
             updatePageCounter(0);
-        };
+        }
 
         function initMediaSystem() {
             const cards = document.querySelectorAll('[data-media-id]');
@@ -1012,17 +1077,21 @@
 
                     // Position metadata based on aspect ratio
                     if (isVertical) {
-                        zoomMetadata.style.right = '20px';
+                        // Vertical: right side with safe margins
+                        zoomMetadata.style.right = '30px';
                         zoomMetadata.style.top = '50%';
                         zoomMetadata.style.transform = 'translateY(-50%)';
                         zoomMetadata.style.bottom = 'auto';
                         zoomMetadata.style.left = 'auto';
+                        zoomMetadata.style.maxWidth = '350px';
                     } else {
-                        zoomMetadata.style.bottom = '60px';
-                        zoomMetadata.style.left = '20px';
-                        zoomMetadata.style.right = '20px';
+                        // Horizontal: bottom with safe margins
+                        zoomMetadata.style.bottom = '80px';
+                        zoomMetadata.style.left = '50%';
+                        zoomMetadata.style.transform = 'translateX(-50%)';
+                        zoomMetadata.style.right = 'auto';
                         zoomMetadata.style.top = 'auto';
-                        zoomMetadata.style.transform = 'none';
+                        zoomMetadata.style.maxWidth = '600px';
                     }
                     zoomMetadata.style.display = 'block';
                 };
@@ -1056,17 +1125,21 @@
 
                     // Position metadata based on aspect ratio
                     if (isVertical) {
-                        zoomMetadata.style.right = '20px';
+                        // Vertical: right side with safe margins
+                        zoomMetadata.style.right = '30px';
                         zoomMetadata.style.top = '50%';
                         zoomMetadata.style.transform = 'translateY(-50%)';
                         zoomMetadata.style.bottom = 'auto';
                         zoomMetadata.style.left = 'auto';
+                        zoomMetadata.style.maxWidth = '350px';
                     } else {
-                        zoomMetadata.style.bottom = '60px';
-                        zoomMetadata.style.left = '20px';
-                        zoomMetadata.style.right = '20px';
+                        // Horizontal: bottom with safe margins
+                        zoomMetadata.style.bottom = '80px';
+                        zoomMetadata.style.left = '50%';
+                        zoomMetadata.style.transform = 'translateX(-50%)';
+                        zoomMetadata.style.right = 'auto';
                         zoomMetadata.style.top = 'auto';
-                        zoomMetadata.style.transform = 'none';
+                        zoomMetadata.style.maxWidth = '600px';
                     }
                     zoomMetadata.style.display = 'block';
                 };
