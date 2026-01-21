@@ -199,8 +199,8 @@
 
         .zoom-content video,
         .zoom-content img {
-            max-width: 90%;
-            max-height: 90%;
+            max-width: 100%;
+            max-height: 100%;
             width: auto;
             height: auto;
             display: block;
@@ -1054,8 +1054,10 @@
                 video.loop = true;
                 video.controls = true;
                 video.autoplay = true;
-                video.style.maxWidth = '90%';
-                video.style.maxHeight = '90%';
+                video.style.maxWidth = '100%';
+                video.style.maxHeight = '100%';
+                video.style.width = 'auto';
+                video.style.height = 'auto';
                 video.style.objectFit = 'contain';
                 video.style.display = 'block';
 
@@ -1102,8 +1104,10 @@
                 // Image
                 const img = document.createElement('img');
                 img.src = filePath;
-                img.style.maxWidth = '90%';
-                img.style.maxHeight = '90%';
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '100%';
+                img.style.width = 'auto';
+                img.style.height = 'auto';
                 img.style.objectFit = 'contain';
                 img.style.display = 'block';
 
