@@ -1,0 +1,29 @@
+export interface TransformState {
+  scale: number;
+  positionX: number;
+  positionY: number;
+  rotation: number;
+}
+
+export interface ImageFilters {
+  brightness: number; // 100 is default
+  contrast: number;   // 100 is default
+  saturation: number; // 100 is default
+  blur: number;       // 0 is default
+  grayscale: number;  // 0 is default
+}
+
+export const DEFAULT_TRANSFORM: TransformState = {
+  scale: 1,
+  positionX: 0,
+  positionY: 0,
+  rotation: 0,
+};
+
+export const DEFAULT_FILTERS: ImageFilters = {
+  brightness: 100,
+  contrast: 100,
+  saturation: 100,
+  blur: 0,
+  grayscale: 0,
+};
