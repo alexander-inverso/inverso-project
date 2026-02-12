@@ -1,29 +1,138 @@
-export interface TransformState {
-  scale: number;
-  positionX: number;
-  positionY: number;
-  rotation: number;
-}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REPORTEROS EN LA RED // SOURCE_DROP</title>
+    <style>
+        :root {
+            --bg: #e0e0e0;
+            --text: #000000;
+            --accent: #ff0000; /* Rojo de alerta técnica */
+            --border-weight: 3px;
+        }
 
-export interface ImageFilters {
-  brightness: number; // 100 is default
-  contrast: number;   // 100 is default
-  saturation: number; // 100 is default
-  blur: number;       // 0 is default
-  grayscale: number;  // 0 is default
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace; /* Tipografía monoespaciada */
+        }
 
-export const DEFAULT_TRANSFORM: TransformState = {
-  scale: 1,
-  positionX: 0,
-  positionY: 0,
-  rotation: 0,
-};
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            border: var(--border-weight) solid var(--text);
+        }
 
-export const DEFAULT_FILTERS: ImageFilters = {
-  brightness: 100,
-  contrast: 100,
-  saturation: 100,
-  blur: 0,
-  grayscale: 0,
-};
+        /* HEADER BRUTALISTA */
+        header {
+            padding: 2rem;
+            border-bottom: var(--border-weight) solid var(--text);
+            background: #fff;
+        }
+
+        h1 {
+            font-size: clamp(3rem, 10vw, 8rem);
+            text-transform: uppercase;
+            line-height: 0.9;
+            word-break: break-all;
+        }
+
+        /* ZONA DE CARGA (WAITING FOR FILE) */
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .drop-zone {
+            border: var(--border-weight) dashed var(--text);
+            width: 100%;
+            max-width: 800px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f0f0f0;
+            cursor: crosshair;
+            transition: background 0.2s;
+        }
+
+        .drop-zone:hover {
+            background: #fff;
+            border-style: solid;
+        }
+
+        .status-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            background: var(--text);
+            color: #fff;
+            padding: 0.5rem 1rem;
+        }
+
+        /* METADATA LATERAL */
+        .metadata {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            text-align: right;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        /* FOOTER / TICKET STICKER */
+        footer {
+            padding: 1rem 2rem;
+            border-top: var(--border-weight) solid var(--text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--text);
+            color: #fff;
+        }
+
+        .blink {
+            animation: blinker 1s linear infinite;
+        }
+
+        @keyframes blinker {
+            50% { opacity: 0; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>REPORTEROS<br>EN LA RED</h1>
+    </header>
+
+    <main>
+        <div class="drop-zone">
+            <p class="status-text blink">ESPERANDO ARCHIVO...</p>
+        </div>
+
+        <div class="metadata">
+            <p>STATUS: AWAITING_INPUT</p>
+            <p>PROTOCOLO: RAW_DATA_ONLY</p>
+            <p>FECHA: 2026-02-12</p>
+        </div>
+    </main>
+
+    <footer>
+        <div>SIN_FILTROS // TRANSPARENCIA_TOTAL</div>
+        <div>v1.0.42_STABLE</div>
+    </footer>
+
+</body>
+</html>
