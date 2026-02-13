@@ -5,7 +5,7 @@ import { DEFAULT_TRANSFORM, TransformState } from './types';
 
 // CONFIGURACIÓN DE LA IMAGEN
 // Para cambiar la imagen, simplemente pega la nueva URL aquí.
-const IMAGE_URL = "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=2000";
+const IMAGE_URL = "https://github.com/alexander-inverso/inverso-project/blob/479f504f6a0497445f47bb67abaa2d61671c0dfa/RELR/components/Imagen.png";
 
 export default function App() {
   const [transform, setTransform] = useState<TransformState>(DEFAULT_TRANSFORM);
