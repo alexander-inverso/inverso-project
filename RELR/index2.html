@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>El Escudo Comestible - ZenView</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              gray: {
+                750: '#2d3748',
+                850: '#1a202c',
+                950: '#0d1117',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      ::-webkit-scrollbar { width: 8px; height: 8px; }
+      ::-webkit-scrollbar-track { background: #1a202c; }
+      ::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #718096; }
+      
+      .checkerboard {
+        background-color: #1a202c;
+        background-image: 
+          linear-gradient(45deg, #2d3748 25%, transparent 25%), 
+          linear-gradient(-45deg, #2d3748 25%, transparent 25%), 
+          linear-gradient(45deg, transparent 75%, #2d3748 75%), 
+          linear-gradient(-45deg, transparent 75%, #2d3748 75%);
+        background-size: 20px 20px;
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://esm.sh/lucide-react@^0.564.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4"
+  }
+}
+</script>
+</head>
+<body class="bg-gray-950 text-white overflow-hidden antialiased">
+    <div id="root"></div>
+
+    <script type="text/babel" data-presets="react,typescript">
+      const { useState, useRef, useEffect } = React;
+
+      // -----------------------------------------------------------
+      // CONFIGURACIÓN DE LA IMAGEN
+      // -----------------------------------------------------------
+      // Pega aquí la URL de tu imagen.
+      const IMAGE_URL = "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=2000";
+      // -----------------------------------------------------------
+
+
+      // --- ICONOS (SVG Directos para no depender de librerías externas) ---
+      const ZoomIn = ({ size = 24, className = "" }) => (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+      );
+      const ZoomOut = ({ size = 24, className = "" }) => (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+      );
+      const RotateCw = ({ size = 24, className = "" }) => (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 12"/><path d="M21 3v9h-9"/></svg>
+      );
+      const Maximize = ({ size = 24, className = "" }) => (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+      );
+
+      // --- TIPOS Y CONSTANTES ---
+      const DEFAULT_TRANSFORM = {
+        scale: 1,
+        positionX: 0,
+        positionY: 0,
+        rotation: 0,
+      };
+
+      // --- COMPONENTE: ImageViewer ---
+      const ImageViewer = ({ imageSrc, transform, setTransform }) => {
+        const containerRef = useRef(null);
+        const [isDragging, setIsDragging] = useState(false);
+        const [startPan, setStartPan] = useState({ x: 0, y: 0 });
+
+        const handleWheel = (e) => {
+          e.preventDefault();
+          const scaleSensitivity = 0.001;
+          const delta = -e.deltaY * scaleSensitivity;
+          const newScale = Math.min(Math.max(0.1, transform.scale + delta), 10);
+          setTransform((prev) => ({ ...prev, scale: newScale }));
+        };
+
+        const handleMouseDown = (e) => {
+          e.preventDefault();
+          setIsDragging(true);
+          setStartPan({ x: e.clientX - transform.positionX, y: e.clientY - transform.positionY });
+        };
+
+        const handleMouseMove = (e) => {
+          if (!isDragging) return;
+          e.preventDefault();
+          const newX = e.clientX - startPan.x;
+          const newY = e.clientY - startPan.y;
+          setTransform((prev) => ({ ...prev, positionX: newX, positionY: newY }));
+        };
+
+        const handleMouseUp = () => setIsDragging(false);
+
+        return (
+          <div
+            ref={containerRef}
+            className={`relative w-full h-full overflow-hidden checkerboard flex items-center justify-center bg-gray-900/50 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+            onWheel={handleWheel}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          >
+            <div
+              style={{
+                transform: `translate(${transform.positionX}px, ${transform.positionY}px) scale(${transform.scale}) rotate(${transform.rotation}deg)`,
+                transition: isDragging ? 'none' : 'transform 0.1s ease-out',
+                transformOrigin: 'center',
+              }}
+              className="will-change-transform"
+            >
+              <img
+                src={imageSrc}
+                alt="Visor"
+                className="max-w-none shadow-2xl pointer-events-none select-none"
+                draggable={false}
+              />
+            </div>
+            <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full text-xs font-mono text-white/80 pointer-events-none select-none z-10">
+              {Math.round(transform.scale * 100)}%
+            </div>
+          </div>
+        );
+      };
+
+      // --- COMPONENTE: Toolbar ---
+      const Toolbar = ({ onZoomIn, onZoomOut, onRotate, onReset }) => {
+        const btnClass = "p-3 hover:bg-white/10 rounded-lg transition-colors text-white/90 hover:text-white active:scale-95";
+        return (
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-gray-900/80 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-2xl shadow-2xl z-50">
+            <button onClick={onZoomOut} className={btnClass} title="Reducir Zoom"><ZoomOut size={20} /></button>
+            <button onClick={onReset} className={btnClass} title="Restablecer Vista"><Maximize size={20} /></button>
+            <button onClick={onZoomIn} className={btnClass} title="Aumentar Zoom"><ZoomIn size={20} /></button>
+            <div className="w-px h-6 bg-white/10 mx-1"></div>
+            <button onClick={onRotate} className={btnClass} title="Rotar 90°"><RotateCw size={20} /></button>
+          </div>
+        );
+      };
+
+      // --- APP PRINCIPAL ---
+      const App = () => {
+        const [transform, setTransform] = useState(DEFAULT_TRANSFORM);
+
+        const zoomIn = () => setTransform(prev => ({ ...prev, scale: Math.min(prev.scale * 1.2, 10) }));
+        const zoomOut = () => setTransform(prev => ({ ...prev, scale: Math.max(prev.scale * 0.8, 0.1) }));
+        const rotate = () => setTransform(prev => ({ ...prev, rotation: prev.rotation + 90 }));
+        const reset = () => setTransform(DEFAULT_TRANSFORM);
+
+        return (
+          <div className="w-full h-screen bg-gray-950 overflow-hidden flex flex-col relative font-sans">
+            <div className="relative z-30 bg-gray-900 border-b border-white/10 p-4 shadow-lg flex-shrink-0 flex justify-between items-center">
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold text-blue-400 leading-tight">El escudo comestible</h1>
+                <p className="text-sm text-white/80 hidden md:block">Cómo la química de tu cocina puede protegerte del sol</p>
+              </div>
+              <div className="text-right text-xs text-white/60 space-y-0.5">
+                <p className="font-semibold text-white/90 text-sm">Alexander de Toro Todorov</p>
+                <p>Tutora: M.ª del Mar Inda Pérez</p>
+                <p>IES Radio Exterior, Alicante</p>
+                <p className="text-blue-400/80 uppercase tracking-wider font-medium mt-1">Reporteros en la red 2026</p>
+              </div>
+            </div>
+            <div className="flex-1 flex overflow-hidden relative">
+              <div className="flex-1 relative h-full bg-gray-950">
+                <ImageViewer imageSrc={IMAGE_URL} transform={transform} setTransform={setTransform} />
+                <Toolbar onZoomIn={zoomIn} onZoomOut={zoomOut} onRotate={rotate} onReset={reset} />
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // --- RENDERIZADO ---
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+</body>
+</html>
