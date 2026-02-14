@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrusel_Nativo_v1.0</title>
+    <title>Visor Técnico v2.0</title>
     <style>
         :root {
             --bg-color: #0a0a0a;
             --text-color: #e0e0e0;
-            --accent-color: #ff3333; /* Rojo técnico para indicadores */
-            --font-stack: 'Courier New', Courier, monospace; /* Estética terminal */
+            --accent-color: #ff3333;
+            --font-stack: 'Courier New', Courier, monospace;
+            --carousel-height: 75vh; /* Altura fija para dejar espacio a controles */
         }
 
         body {
@@ -22,132 +23,197 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            padding: 20px 0;
+            box-sizing: border-box;
         }
 
-        /* Contenedor Principal: Viewport del carrusel */
-        .carousel-viewport {
-            width: 80%;
-            max-width: 800px;
-            aspect-ratio: 16/9;
-            overflow-x: auto;
-            scroll-behavior: smooth;
-            
-            /* FÍSICA DE DESPLAZAMIENTO */
-            scroll-snap-type: x mandatory; 
-            
-            display: flex;
+        /* --- VIEWPORT DEL CARRUSEL --- */
+        .carousel-outer-container {
+            width: 95%;
+            max-width: 1200px;
             border: 1px solid #333;
+            background-color: #000;
+        }
+
+        .carousel-viewport {
+            width: 100%;
+            height: var(--carousel-height);
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            /* FÍSICA DE DESPLAZAMIENTO Y ARRASTRE NATIVO */
+            scroll-snap-type: x mandatory; 
+            display: flex;
             
-            /* Ocultar scrollbar nativa pero mantener funcionalidad */
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none;  /* IE 10+ */
+            /* Ocultar scrollbars */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
         
         .carousel-viewport::-webkit-scrollbar { 
-            display: none; /* WebKit */
+            display: none;
         }
 
-        /* Elementos individuales */
+        /* --- ITEMS INDIVIDUALES --- */
         .carousel-item {
-            flex: 0 0 100%; /* Ocupa el 100% del viewport */
-            scroll-snap-align: start; /* Punto de anclaje */
+            flex: 0 0 100%;
+            width: 100%;
+            height: 100%;
+            scroll-snap-align: center;
             position: relative;
             background-color: #1a1a1a;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            overflow: hidden; /* Contiene la imagen si se hace zoom */
+        }
+
+        /* --- IMAGEN ADAPTATIVA Y ZOOM --- */
+        .image-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+             /* Transición suave para el zoom */
+            transition: transform 0.3s ease-out;
         }
 
         .carousel-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: grayscale(100%) contrast(1.2); /* Estética industrial */
-            transition: filter 0.3s ease;
+            /* CLAVE: contain asegura que no se recorte */
+            object-fit: contain;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            /* Eliminamos filtros para visualización técnica clara */
+            filter: none;
         }
 
-        .carousel-item:hover img {
-            filter: grayscale(0%) contrast(1);
-        }
-
-        /* Overlay de datos técnicos sobre la imagen */
+        /* --- OVERLAY DE DATOS --- */
         .meta-layer {
             position: absolute;
-            bottom: 20px;
+            top: 20px;
             left: 20px;
-            background: rgba(0,0,0,0.8);
-            padding: 5px 10px;
-            border-left: 2px solid var(--accent-color);
-            font-size: 0.8rem;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 12px;
+            border-left: 3px solid var(--accent-color);
+            font-size: 0.9rem;
+            pointer-events: none; /* Permite hacer clic a través de la capa */
+            text-shadow: 1px 1px 2px #000;
         }
 
-        /* Controles de Navegación */
-        .controls {
-            margin-top: 1rem;
+        /* --- SECCIÓN DE CONTROLES INFERIOR --- */
+        .controls-section {
+            margin-top: 20px;
             display: flex;
-            gap: 20px;
+            flex-direction: column;
             align-items: center;
-        }
-
-        .btn {
-            background: transparent;
-            border: 1px solid #333;
-            color: var(--text-color);
-            padding: 10px 20px;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-family: inherit;
-            transition: all 0.2s;
-        }
-
-        .btn:hover {
-            border-color: var(--text-color);
-            background: #1a1a1a;
+            gap: 15px;
+            width: 95%;
+            max-width: 600px;
         }
 
         .status-indicator {
-            font-size: 0.9rem;
-            letter-spacing: 2px;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            font-weight: bold;
+        }
+
+        .buttons-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* --- ESTILO DE BOTONES TÉCNICOS --- */
+        .btn {
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: var(--text-color);
+            padding: 12px 24px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: inherit;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-color);
+            background: #2a2a2a;
+        }
+
+        .btn:active {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        .btn-group-separator {
+            width: 1px;
+            background: #444;
+            height: 30px;
+            align-self: center;
+            margin: 0 10px;
         }
 
     </style>
 </head>
 <body>
 
-    <div class="carousel-viewport" id="carousel">
-        
-       
-
-        <div class="carousel-item" id="item-2">
-            <img src="https://github.com/alexander-inverso/inverso-project/blob/49b679585ddb33d6452274bf43488d3ab450296a/RELR/20260203_125116.jpg?raw=true" alt="Cromatografía con capilares">
-            <div class="meta-layer">
-                <div>IMG_ID: 001</div>
-                <div>Por arrastre</div>
+    <div class="carousel-outer-container">
+        <div class="carousel-viewport" id="carousel">
+            
+            <div class="carousel-item" id="item-1">
+                <div class="image-container" id="img-cont-1">
+                    <img src="https://raw.githubusercontent.com/alexander-inverso/inverso-project/49b679585ddb33d6452274bf43488d3ab450296a/RELR/Imagen.png" alt="Escaneo Técnico 001">
+                </div>
+                <div class="meta-layer">
+                    <div>IMG_ID: 001</div>
+                    <div>COORD: N 64.20</div>
+                </div>
             </div>
-        </div>
 
-        <div class="carousel-item" id="item-3">
-            <img src="https://github.com/alexander-inverso/inverso-project/blob/49b679585ddb33d6452274bf43488d3ab450296a/RELR/20260128_162756.jpg?raw=true" alt="Cromatografía con vasos">
-            <div class="meta-layer">
-                <div>IMG_ID: 002</div>
-                <div>Por capilaridad</div>
+            <div class="carousel-item" id="item-2">
+                <div class="image-container" id="img-cont-2">
+                    <img src="https://images.unsplash.com/photo-1518544806314-5360b411d5a7?auto=format&fit=crop&w=1600&q=80" alt="Estructura Brutalista">
+                </div>
+                <div class="meta-layer">
+                    <div>IMG_ID: 002</div>
+                    <div>TYPE: REFERENCE</div>
+                </div>
             </div>
-        </div>
 
-         <div class="carousel-item" id="item-1">
-            <img src="https://github.com/alexander-inverso/inverso-project/blob/49b679585ddb33d6452274bf43488d3ab450296a/RELR/Imagen.png?raw=true" alt="Escaneo">
-            <div class="meta-layer">
-                <div>IMG_ID: 003</div>
-                <div>Escaneo</div>
+            <div class="carousel-item" id="item-3">
+                <div class="image-container" id="img-cont-3">
+                    <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1600&q=80" alt="Cyberpunk Data">
+                </div>
+                <div class="meta-layer">
+                    <div>IMG_ID: 003</div>
+                    <div>SEC: ANALYSIS</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="controls">
-        <button class="btn" onclick="scrollCarousel(-1)">[ PREV ]</button>
-        <span class="status-indicator" id="status">01 / 03</span>
-        <button class="btn" onclick="scrollCarousel(1)">[ NEXT ]</button>
+    <div class="controls-section">
+        <span class="status-indicator" id="status">FRAME: 01 / 03</span>
+        
+        <div class="buttons-row">
+            <button class="btn" onclick="scrollCarousel(-1)">← PREV</button>
+            <button class="btn" onclick="scrollCarousel(1)">NEXT →</button>
+            
+            <div class="btn-group-separator"></div>
+            
+            <button class="btn" onclick="changeZoom(-1)">- ZOOM</button>
+            <button class="btn" onclick="changeZoom(1)">+ ZOOM</button>
+        </div>
     </div>
 
     <script>
@@ -155,8 +221,18 @@
         const statusDisplay = document.getElementById('status');
         const items = document.querySelectorAll('.carousel-item');
         
-        // 1. Lógica de Desplazamiento
+        // Estado global
+        let currentActiveIndex = 1;
+        let currentZoomLevel = 1;
+        const MIN_ZOOM = 1;
+        const MAX_ZOOM = 4;
+        const ZOOM_STEP = 0.5;
+
+        // --- 1. Lógica de Navegación (Desplazamiento) ---
         function scrollCarousel(direction) {
+            // Resetear zoom al cambiar de imagen
+            resetZoom();
+            
             const scrollAmount = container.clientWidth * direction;
             container.scrollBy({
                 left: scrollAmount,
@@ -164,29 +240,71 @@
             });
         }
 
-        // 2. Observador de Intersección (Detección eficiente de la diapositiva activa)
+        // --- 2. Lógica de Zoom ---
+        function changeZoom(direction) {
+            // Calcular nuevo nivel de zoom
+            let newZoom = currentZoomLevel + (direction * ZOOM_STEP);
+            // Limitar entre MIN y MAX
+            newZoom = Math.max(MIN_ZOOM, Math.min(newZoom, MAX_ZOOM));
+
+            // Aplicar solo si hubo cambio
+            if (newZoom !== currentZoomLevel) {
+                currentZoomLevel = newZoom;
+                applyZoomToActiveItem();
+            }
+        }
+
+        function resetZoom() {
+            currentZoomLevel = 1;
+            // Resetear todos los contenedores de imagen
+            document.querySelectorAll('.image-container').forEach(imgContainer => {
+                imgContainer.style.transform = `scale(1)`;
+            });
+        }
+
+        function applyZoomToActiveItem() {
+            const activeImageContainer = document.getElementById(`img-cont-${currentActiveIndex}`);
+            if (activeImageContainer) {
+                // Aplicamos la transformación CSS scale
+                activeImageContainer.style.transform = `scale(${currentZoomLevel})`;
+                
+                // Opcional: Cambiar el cursor si está con zoom para indicar que se puede "mirar"
+                activeImageContainer.style.cursor = currentZoomLevel > 1 ? 'grab' : 'default';
+            }
+        }
+
+
+        // --- 3. Observador de Estado (Detecta qué imagen se ve) ---
         const observerOptions = {
             root: container,
-            threshold: 0.6 // Se activa cuando el 60% del item es visible
+            threshold: 0.6
         };
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    // Extraer índice del ID (formato "item-N")
-                    const index = entry.target.id.split('-')[1];
-                    updateStatus(index);
+                    // Extraer índice del ID "item-N"
+                    const index = parseInt(entry.target.id.split('-')[1]);
+                    currentActiveIndex = index;
+                    updateStatusUI(index);
+                    
+                    // Asegurar que el zoom se resetea si el usuario arrastró manualmente
+                    if(currentZoomLevel !== 1) {
+                        resetZoom();
+                    }
                 }
             });
         }, observerOptions);
 
         items.forEach(item => observer.observe(item));
 
-        // 3. Actualización de UI
-        function updateStatus(currentIndex) {
-            // Formato con ceros a la izquierda para mantener alineación
-            statusDisplay.textContent = `0${currentIndex} / 0${items.length}`;
+        function updateStatusUI(index) {
+            statusDisplay.textContent = `FRAME: 0${index} / 0${items.length}`;
         }
+
+        // Nota sobre la imagen de GitHub: 
+        // He cambiado la URL en el HTML para usar 'raw.githubusercontent.com' 
+        // ya que la URL de 'blob' suele fallar al cargarse directamente como src de imagen.
     </script>
 </body>
 </html>
