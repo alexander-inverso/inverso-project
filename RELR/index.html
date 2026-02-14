@@ -24,6 +24,7 @@
             align-items: center;
             min-height: 100vh;
             padding: 0;
+            overflow: hidden; /* Evita scroll global al hacer zoom */
         }
 
         /* --- CABECERA DEL PROYECTO --- */
@@ -36,6 +37,7 @@
             display: grid;
             grid-template-columns: 1fr auto;
             gap: 20px;
+            z-index: 100;
         }
 
         .project-title h1 {
@@ -75,14 +77,13 @@
         .carousel-viewport {
             width: 100%;
             height: var(--carousel-height);
-            overflow: hidden; /* Importante para el recorte del zoom */
+            overflow: hidden; 
             position: relative;
             display: flex;
         }
 
         /* --- ITEMS Y LÓGICA DE VISUALIZACIÓN --- */
         .carousel-item {
-            /* Posicionamiento absoluto para transiciones manuales y control total del zoom */
             position: absolute;
             top: 0;
             left: 0;
@@ -93,7 +94,7 @@
             justify-content: center;
             background-color: #0a0a0a;
             opacity: 0;
-            pointer-events: none; /* Desactiva interacción en items ocultos */
+            pointer-events: none;
             transition: opacity 0.3s ease;
             overflow: hidden;
         }
@@ -104,14 +105,13 @@
             z-index: 10;
         }
 
-        /* Contenedor transformable para la imagen */
         .transform-layer {
             width: 100%;
             height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transform-origin: 0 0; /* El origen se calculará matemáticamente */
+            transform-origin: 0 0; 
             will-change: transform;
             cursor: grab;
         }
@@ -124,7 +124,7 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-            pointer-events: none; /* Evita arrastrar el fantasma de la imagen */
+            pointer-events: none; 
             user-select: none;
         }
 
@@ -156,6 +156,7 @@
             align-items: center;
             border-top: 1px solid #333;
             padding-top: 15px;
+            z-index: 100;
         }
 
         .status-indicator {
@@ -187,12 +188,6 @@
             background: #1a1a1a;
         }
 
-        .btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            border-color: #333;
-        }
-
         .zoom-hint {
             font-size: 0.75rem;
             color: #555;
@@ -200,7 +195,6 @@
             margin-top: 5px;
         }
 
-        /* --- RESPONSIVE BASICO --- */
         @media (max-width: 768px) {
             header { grid-template-columns: 1fr; text-align: left; }
             .project-meta { text-align: left; margin-top: 10px; }
@@ -226,34 +220,34 @@
             
             <div class="carousel-item active" id="slide-0">
                 <div class="transform-layer">
-                    <img src="https://raw.githubusercontent.com/alexander-inverso/inverso-project/49b679585ddb33d6452274bf43488d3ab450296a/RELR/Imagen.png" alt="Muestra de Carotenoides">
+                    <img src="https://raw.githubusercontent.com/alexander-inverso/inverso-project/49b679585ddb33d6452274bf43488d3ab450296a/RELR/Imagen.png" alt="Muestra Carotenoides">
                 </div>
                 <div class="meta-layer">
                     <div>REF: EXP_001</div>
-                    <div>FASE: ANÁLISIS ESPECTRAL</div>
-                    <div>MUESTRA: A (SIN FILTRAR)</div>
+                    <div>DATA: RAW SCAN</div>
+                    <div>FUENTE: GITHUB_REPO</div>
                 </div>
             </div>
 
             <div class="carousel-item" id="slide-1">
                 <div class="transform-layer">
-                    <img src="https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1600&q=80" alt="Material de Laboratorio">
+                    <img src="https://images.unsplash.com/photo-1518544806314-5360b411d5a7?auto=format&fit=crop&w=1600&q=80" alt="Estructura Referencia">
                 </div>
                 <div class="meta-layer">
-                    <div>REF: LAB_002</div>
-                    <div>FASE: PREPARACIÓN</div>
-                    <div>EQUIPO: PIPETA / PROBETA</div>
+                    <div>REF: REF_002</div>
+                    <div>TIPO: ESTRUCTURA CONCRETO</div>
+                    <div>ESTADO: ARCHIVADO</div>
                 </div>
             </div>
 
             <div class="carousel-item" id="slide-2">
                 <div class="transform-layer">
-                    <img src="https://images.unsplash.com/photo-1581093458791-9f302e683057?auto=format&fit=crop&w=1600&q=80" alt="Resultados">
+                    <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1600&q=80" alt="Datos Referencia">
                 </div>
                 <div class="meta-layer">
-                    <div>REF: RES_003</div>
-                    <div>FASE: DOCUMENTACIÓN</div>
-                    <div>ESTADO: FINALIZADO</div>
+                    <div>REF: DAT_003</div>
+                    <div>TIPO: ANÁLISIS DE SEGURIDAD</div>
+                    <div>ESTADO: PROCESADO</div>
                 </div>
             </div>
 
@@ -265,92 +259,84 @@
         
         <div class="nav-buttons">
             <button class="btn" onclick="changeSlide(-1)">Anterior</button>
-            <button class="btn" onclick="resetZoom()">Centrar Vista</button>
+            <button class="btn" onclick="resetZoom()">Reset Vista</button>
             <button class="btn" onclick="changeSlide(1)">Siguiente</button>
         </div>
     </div>
     <div class="zoom-hint">Usa la rueda del ratón para Zoom · Arrastra para mover</div>
 
     <script>
-        // CONFIGURACIÓN
+        // --- CONFIGURACIÓN ---
         const slides = document.querySelectorAll('.carousel-item');
         const statusText = document.getElementById('status-text');
         let currentIndex = 0;
 
-        // VARIABLES DE ESTADO PARA ZOOM/PAN
-        // Usamos un array de estados para que cada diapositiva mantenga su posición
+        // Variables de estado independientes para cada slide
         let viewStates = Array.from({length: slides.length}, () => ({
             scale: 1,
-            panning: false,
             pointX: 0,
             pointY: 0,
+            panning: false,
             startX: 0,
             startY: 0
         }));
 
         const MIN_ZOOM = 0.5;
-        const MAX_ZOOM = 10;
+        const MAX_ZOOM = 8;
         const ZOOM_SPEED = 0.1;
 
-        // INICIALIZACIÓN
+        // --- INICIALIZACIÓN ---
         updateUI();
         attachEventListeners();
 
-        // --- LÓGICA DE NAVEGACIÓN ---
+        // --- NAVEGACIÓN ---
         function changeSlide(direction) {
-            // Ocultar actual
             slides[currentIndex].classList.remove('active');
             
-            // Calcular nuevo índice
             currentIndex += direction;
             if (currentIndex < 0) currentIndex = slides.length - 1;
             if (currentIndex >= slides.length) currentIndex = 0;
             
-            // Mostrar nueva
             slides[currentIndex].classList.add('active');
             updateUI();
         }
 
         function updateUI() {
             statusText.textContent = `MUESTRA ${currentIndex + 1} / ${slides.length}`;
-            updateTransform(currentIndex);
+            updateTransform(currentIndex); // Asegurar que se renderiza el estado guardado
         }
 
-        // --- LÓGICA DE ZOOM Y ARRASTRE (NÚCLEO) ---
-        
+        // --- ZOOM INTELIGENTE Y ARRASTRE ---
         function attachEventListeners() {
             slides.forEach((slide, index) => {
                 const layer = slide.querySelector('.transform-layer');
                 
-                // 1. ZOOM CON RUEDA (PIVOTE EN RATÓN)
+                // 1. ZOOM (Pivote en cursor)
                 slide.addEventListener('wheel', (e) => {
                     e.preventDefault();
-                    
                     const state = viewStates[index];
+                    
+                    // Coordenadas del ratón relativas a la capa transformada
                     const xs = (e.clientX - state.pointX) / state.scale;
                     const ys = (e.clientY - state.pointY) / state.scale;
                     
                     const delta = -e.deltaY;
                     
-                    // Cálculo del nuevo zoom
-                    const oldScale = state.scale;
-                    if (delta > 0) {
-                        state.scale *= (1 + ZOOM_SPEED);
-                    } else {
-                        state.scale /= (1 + ZOOM_SPEED);
-                    }
+                    // Aplicar factor de zoom
+                    if (delta > 0) state.scale *= (1 + ZOOM_SPEED);
+                    else state.scale /= (1 + ZOOM_SPEED);
                     
-                    // Límites
+                    // Limitar zoom
                     state.scale = Math.min(Math.max(state.scale, MIN_ZOOM), MAX_ZOOM);
                     
-                    // Ajustar posición para mantener el punto bajo el ratón estático
+                    // Ajustar posición para que el punto bajo el ratón no se mueva visualmente
                     state.pointX = e.clientX - xs * state.scale;
                     state.pointY = e.clientY - ys * state.scale;
 
                     updateTransform(index);
                 }, { passive: false });
 
-                // 2. INICIO DE ARRASTRE
+                // 2. ARRASTRE (PAN)
                 slide.addEventListener('mousedown', (e) => {
                     const state = viewStates[index];
                     state.panning = true;
@@ -359,8 +345,10 @@
                     layer.style.cursor = 'grabbing';
                 });
 
-                // 3. MOVIMIENTO DE ARRASTRE
                 window.addEventListener('mousemove', (e) => {
+                    // Solo afecta a la slide actual para evitar cálculos innecesarios
+                    if (index !== currentIndex) return;
+                    
                     const state = viewStates[index];
                     if (!state.panning) return;
                     
@@ -370,10 +358,11 @@
                     updateTransform(index);
                 });
 
-                // 4. FIN DE ARRASTRE
                 window.addEventListener('mouseup', () => {
-                    viewStates[index].panning = false;
-                    layer.style.cursor = 'grab';
+                    if(viewStates[index].panning) {
+                        viewStates[index].panning = false;
+                        layer.style.cursor = 'grab';
+                    }
                 });
             });
         }
@@ -381,23 +370,20 @@
         function updateTransform(index) {
             const state = viewStates[index];
             const layer = slides[index].querySelector('.transform-layer');
-            // Aplicamos la matriz de transformación: Translate + Scale
             layer.style.transform = `translate(${state.pointX}px, ${state.pointY}px) scale(${state.scale})`;
         }
 
         function resetZoom() {
-            // Resetea la diapositiva actual a estado original
             viewStates[currentIndex] = {
                 scale: 1,
-                panning: false,
                 pointX: 0,
                 pointY: 0,
+                panning: false,
                 startX: 0,
                 startY: 0
             };
             updateTransform(currentIndex);
         }
-
     </script>
 </body>
 </html>
