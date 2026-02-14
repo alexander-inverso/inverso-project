@@ -3,307 +3,400 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visor_Analítico_Fullscreen</title>
+    <title>Cromatografía: Extracción de Carotenoides | Reporteros en la Red</title>
     <style>
         :root {
-            --bg-color: #000000;
-            --text-color: #f0f0f0;
-            --accent-color: #ff3333;
+            --bg-color: #050505;
+            --panel-color: #111;
+            --text-color: #e0e0e0;
+            --accent-color: #00ff41; /* Verde laboratorio/técnico */
             --font-stack: 'Courier New', Courier, monospace;
-            --ui-bg: rgba(10, 10, 10, 0.85);
+            --carousel-height: 70vh; 
         }
 
-        body, html {
+        body {
             margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-stack);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
             padding: 0;
+        }
+
+        /* --- CABECERA DEL PROYECTO --- */
+        header {
+            width: 90%;
+            max-width: 1200px;
+            padding: 20px 0;
+            border-bottom: 1px solid #333;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+        }
+
+        .project-title h1 {
+            font-size: 1.5rem;
+            margin: 0 0 5px 0;
+            color: var(--text-color);
+            text-transform: uppercase;
+        }
+
+        .project-title h2 {
+            font-size: 0.9rem;
+            margin: 0;
+            color: #888;
+            font-weight: normal;
+        }
+
+        .project-meta {
+            text-align: right;
+            font-size: 0.8rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .project-meta strong {
+            color: var(--accent-color);
+        }
+
+        /* --- VIEWPORT PRINCIPAL --- */
+        .carousel-outer-container {
+            width: 95%;
+            max-width: 1200px;
+            background-color: #000;
+            border: 1px solid #333;
+            position: relative;
+        }
+
+        .carousel-viewport {
+            width: 100%;
+            height: var(--carousel-height);
+            overflow: hidden; /* Importante para el recorte del zoom */
+            position: relative;
+            display: flex;
+        }
+
+        /* --- ITEMS Y LÓGICA DE VISUALIZACIÓN --- */
+        .carousel-item {
+            /* Posicionamiento absoluto para transiciones manuales y control total del zoom */
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            background-color: var(--bg-color);
-            font-family: var(--font-stack);
-            overflow: hidden; /* Evita scrollbar global del body */
-        }
-
-        /* --- CONTENEDOR INFINITO --- */
-        .viewport-layer {
-            width: 100vw;
-            height: 100vh;
-            overflow-x: auto;
-            overflow-y: hidden;
-            display: flex;
-            
-            /* Física de anclaje estricta */
-            scroll-snap-type: x mandatory;
-            scroll-behavior: smooth;
-
-            /* Ocultar barras de desplazamiento visuales */
-            scrollbar-width: none; 
-            -ms-overflow-style: none;
-        }
-
-        .viewport-layer::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* --- ITEMS --- */
-        .carousel-item {
-            flex: 0 0 100vw; /* Ancho forzado a pantalla completa */
-            height: 100vh;   /* Alto forzado a pantalla completa */
-            scroll-snap-align: start;
-            position: relative;
-            
-            /* Centrado de la imagen */
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #000;
+            background-color: #0a0a0a;
+            opacity: 0;
+            pointer-events: none; /* Desactiva interacción en items ocultos */
+            transition: opacity 0.3s ease;
             overflow: hidden;
         }
 
-        /* --- IMAGEN TÉCNICA --- */
-        .img-wrapper {
+        .carousel-item.active {
+            opacity: 1;
+            pointer-events: all;
+            z-index: 10;
+        }
+
+        /* Contenedor transformable para la imagen */
+        .transform-layer {
             width: 100%;
             height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform-origin: 0 0; /* El origen se calculará matemáticamente */
             will-change: transform;
+            cursor: grab;
+        }
+
+        .transform-layer:active {
+            cursor: grabbing;
         }
 
         .carousel-item img {
             max-width: 100%;
             max-height: 100%;
-            object-fit: contain; /* La imagen nunca se recorta, se ajusta */
+            object-fit: contain;
+            pointer-events: none; /* Evita arrastrar el fantasma de la imagen */
             user-select: none;
-            -webkit-user-drag: none;
         }
 
-        /* --- DATOS FLOTANTES (Top Left) --- */
+        /* --- CAPA DE DATOS (Overlay) --- */
         .meta-layer {
             position: absolute;
-            top: 30px;
-            left: 30px;
-            color: var(--text-color);
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px;
-            border-left: 2px solid var(--accent-color);
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.85);
+            padding: 8px 12px;
+            border-left: 3px solid var(--accent-color);
             font-size: 0.85rem;
-            z-index: 10;
             pointer-events: none;
+            z-index: 20;
             backdrop-filter: blur(2px);
         }
 
-        /* --- HUD DE CONTROL (Bottom Center) --- */
-        .hud-controls {
-            position: fixed; /* Anclaje absoluto a la ventana */
-            bottom: 40px;    /* Distancia del borde inferior */
-            left: 50%;
-            transform: translateX(-50%); /* Centrado geométrico exacto */
-            z-index: 100;
-            
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            
-            width: 90%;
-            max-width: 500px;
-            padding: 15px;
-            background: var(--ui-bg);
-            border: 1px solid #333;
-            border-radius: 4px;
+        .meta-layer div {
+            margin-bottom: 2px;
         }
 
-        .status-text {
+        /* --- CONTROLES INFERIORES --- */
+        .controls-section {
+            margin-top: 15px;
+            width: 90%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #333;
+            padding-top: 15px;
+        }
+
+        .status-indicator {
             font-size: 0.9rem;
-            letter-spacing: 2px;
-            color: #888;
+            color: var(--accent-color);
             font-weight: bold;
         }
 
-        .button-cluster {
+        .nav-buttons {
             display: flex;
-            gap: 15px;
-            flex-wrap: nowrap;
+            gap: 10px;
         }
 
-        /* --- BOTONES --- */
-        button {
-            background: transparent;
-            border: 1px solid #555;
-            color: var(--text-color);
-            padding: 10px 18px;
+        .btn {
+            background: #111;
+            border: 1px solid #444;
+            color: #ddd;
+            padding: 10px 20px;
             cursor: pointer;
             font-family: inherit;
             font-size: 0.8rem;
             text-transform: uppercase;
             transition: all 0.2s;
-            min-width: 40px;
         }
 
-        button:hover {
-            background: #222;
-            border-color: var(--text-color);
-        }
-
-        button:active {
-            background: var(--accent-color);
-            color: #000;
+        .btn:hover {
             border-color: var(--accent-color);
+            color: var(--accent-color);
+            background: #1a1a1a;
         }
 
-        /* Separador vertical visual */
-        .sep {
-            width: 1px;
-            background: #444;
-            height: 100%;
-            margin: 0 5px;
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: #333;
         }
 
+        .zoom-hint {
+            font-size: 0.75rem;
+            color: #555;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        /* --- RESPONSIVE BASICO --- */
+        @media (max-width: 768px) {
+            header { grid-template-columns: 1fr; text-align: left; }
+            .project-meta { text-align: left; margin-top: 10px; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="viewport-layer" id="mainScroll">
-        
-        <div class="carousel-item" id="item-1">
-            <div class="img-wrapper" id="zoom-1">
-                <img src="https://github.com/alexander-inverso/inverso-project/blob/49b679585ddb33d6452274bf43488d3ab450296a/RELR/20260203_125116.jpg?raw=true" alt="Cromatografía con capilares">
-            </div>
-            <div class="meta-layer">
-                <div>IMG_ID: 001</div>
-                <div>METODO: ARRASTRE</div>
-            </div>
+    <header>
+        <div class="project-title">
+            <h1>Extracción de Carotenoides</h1>
+            <h2>Proyecto: Reporteros en la Red</h2>
         </div>
-
-        <div class="carousel-item" id="item-2">
-            <div class="img-wrapper" id="zoom-2">
-                <img src="https://github.com/alexander-inverso/inverso-project/blob/49b679585ddb33d6452274bf43488d3ab450296a/RELR/20260128_162756.jpg?raw=true" alt="Cromatografía con vasos">
-            </div>
-            <div class="meta-layer">
-                <div>IMG_ID: 002</div>
-                <div>METODO: CAPILARIDAD</div>
-            </div>
+        <div class="project-meta">
+            <div>Autor: <strong>Alexander de Toro Todorov</strong></div>
+            <div>Tutora: <strong>M.ª del Mar Inda Pérez</strong></div>
+            <div>Centro: IES Radio Exterior Alicante</div>
         </div>
+    </header>
 
-        <div class="carousel-item" id="item-3">
-            <div class="img-wrapper" id="zoom-3">
-                <img src="https://github.com/alexander-inverso/inverso-project/blob/49b679585ddb33d6452274bf43488d3ab450296a/RELR/Imagen.png?raw=true" alt="Escaneo">
-            </div>
-            <div class="meta-layer">
-                <div>IMG_ID: 003</div>
-                <div>METODO: ESCANEO</div>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="hud-controls">
-        <div class="status-text" id="statusLog">DATA: 01 / 03</div>
-        
-        <div class="button-cluster">
-            <button onclick="nav(-1)">&#9664;</button> <button onclick="nav(1)">&#9654;</button>  <div class="sep"></div>
+    <div class="carousel-outer-container">
+        <div class="carousel-viewport" id="viewport">
             
-            <button onclick="zoom(-1)">[-]</button>
-            <button onclick="reset()">1:1</button>
-            <button onclick="zoom(1)">[+]</button>
+            <div class="carousel-item active" id="slide-0">
+                <div class="transform-layer">
+                    <img src="https://raw.githubusercontent.com/alexander-inverso/inverso-project/49b679585ddb33d6452274bf43488d3ab450296a/RELR/Imagen.png" alt="Muestra de Carotenoides">
+                </div>
+                <div class="meta-layer">
+                    <div>REF: EXP_001</div>
+                    <div>FASE: ANÁLISIS ESPECTRAL</div>
+                    <div>MUESTRA: A (SIN FILTRAR)</div>
+                </div>
+            </div>
+
+            <div class="carousel-item" id="slide-1">
+                <div class="transform-layer">
+                    <img src="https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1600&q=80" alt="Material de Laboratorio">
+                </div>
+                <div class="meta-layer">
+                    <div>REF: LAB_002</div>
+                    <div>FASE: PREPARACIÓN</div>
+                    <div>EQUIPO: PIPETA / PROBETA</div>
+                </div>
+            </div>
+
+            <div class="carousel-item" id="slide-2">
+                <div class="transform-layer">
+                    <img src="https://images.unsplash.com/photo-1581093458791-9f302e683057?auto=format&fit=crop&w=1600&q=80" alt="Resultados">
+                </div>
+                <div class="meta-layer">
+                    <div>REF: RES_003</div>
+                    <div>FASE: DOCUMENTACIÓN</div>
+                    <div>ESTADO: FINALIZADO</div>
+                </div>
+            </div>
+
         </div>
     </div>
+
+    <div class="controls-section">
+        <div class="status-indicator" id="status-text">MUESTRA 1 / 3</div>
+        
+        <div class="nav-buttons">
+            <button class="btn" onclick="changeSlide(-1)">Anterior</button>
+            <button class="btn" onclick="resetZoom()">Centrar Vista</button>
+            <button class="btn" onclick="changeSlide(1)">Siguiente</button>
+        </div>
+    </div>
+    <div class="zoom-hint">Usa la rueda del ratón para Zoom · Arrastra para mover</div>
 
     <script>
-        const scrollContainer = document.getElementById('mainScroll');
-        const statusLog = document.getElementById('statusLog');
-        const items = document.querySelectorAll('.carousel-item');
+        // CONFIGURACIÓN
+        const slides = document.querySelectorAll('.carousel-item');
+        const statusText = document.getElementById('status-text');
+        let currentIndex = 0;
+
+        // VARIABLES DE ESTADO PARA ZOOM/PAN
+        // Usamos un array de estados para que cada diapositiva mantenga su posición
+        let viewStates = Array.from({length: slides.length}, () => ({
+            scale: 1,
+            panning: false,
+            pointX: 0,
+            pointY: 0,
+            startX: 0,
+            startY: 0
+        }));
+
+        const MIN_ZOOM = 0.5;
+        const MAX_ZOOM = 10;
+        const ZOOM_SPEED = 0.1;
+
+        // INICIALIZACIÓN
+        updateUI();
+        attachEventListeners();
+
+        // --- LÓGICA DE NAVEGACIÓN ---
+        function changeSlide(direction) {
+            // Ocultar actual
+            slides[currentIndex].classList.remove('active');
+            
+            // Calcular nuevo índice
+            currentIndex += direction;
+            if (currentIndex < 0) currentIndex = slides.length - 1;
+            if (currentIndex >= slides.length) currentIndex = 0;
+            
+            // Mostrar nueva
+            slides[currentIndex].classList.add('active');
+            updateUI();
+        }
+
+        function updateUI() {
+            statusText.textContent = `MUESTRA ${currentIndex + 1} / ${slides.length}`;
+            updateTransform(currentIndex);
+        }
+
+        // --- LÓGICA DE ZOOM Y ARRASTRE (NÚCLEO) ---
         
-        // Estado
-        let currentIdx = 1;
-        let zoomLevel = 1;
-        
-        // --- NAVEGACIÓN ---
-        function nav(direction) {
-            // Resetear zoom al cambiar para evitar desorientación
-            reset();
-            
-            // Scroll nativo (100vw * dirección)
-            const width = window.innerWidth;
-            scrollContainer.scrollBy({
-                left: width * direction,
-                behavior: 'smooth'
-            });
-        }
-
-        // --- ZOOM LÓGICO ---
-        function zoom(dir) {
-            zoomLevel += (dir * 0.5);
-            // Límites de seguridad (0.5x a 5x)
-            if (zoomLevel < 0.5) zoomLevel = 0.5;
-            if (zoomLevel > 5) zoomLevel = 5;
-            
-            applyTransform();
-        }
-
-        function reset() {
-            zoomLevel = 1;
-            applyTransform();
-        }
-
-        function applyTransform() {
-            // Aplicar solo a la imagen activa para ahorrar memoria
-            const activeWrapper = document.getElementById(`zoom-${currentIdx}`);
-            if(activeWrapper) {
-                activeWrapper.style.transform = `scale(${zoomLevel})`;
-            }
-        }
-
-        // --- OBSERVER (Detección de posición) ---
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    // Extraer índice del ID "item-X"
-                    const id = entry.target.id;
-                    currentIdx = parseInt(id.split('-')[1]);
+        function attachEventListeners() {
+            slides.forEach((slide, index) => {
+                const layer = slide.querySelector('.transform-layer');
+                
+                // 1. ZOOM CON RUEDA (PIVOTE EN RATÓN)
+                slide.addEventListener('wheel', (e) => {
+                    e.preventDefault();
                     
-                    // Actualizar HUD
-                    statusLog.innerText = `DATA: 0${currentIdx} / 0${items.length}`;
+                    const state = viewStates[index];
+                    const xs = (e.clientX - state.pointX) / state.scale;
+                    const ys = (e.clientY - state.pointY) / state.scale;
                     
-                    // Asegurar reset de zoom si el usuario hizo swipe manual
-                    if (zoomLevel !== 1) reset(); 
-                }
+                    const delta = -e.deltaY;
+                    
+                    // Cálculo del nuevo zoom
+                    const oldScale = state.scale;
+                    if (delta > 0) {
+                        state.scale *= (1 + ZOOM_SPEED);
+                    } else {
+                        state.scale /= (1 + ZOOM_SPEED);
+                    }
+                    
+                    // Límites
+                    state.scale = Math.min(Math.max(state.scale, MIN_ZOOM), MAX_ZOOM);
+                    
+                    // Ajustar posición para mantener el punto bajo el ratón estático
+                    state.pointX = e.clientX - xs * state.scale;
+                    state.pointY = e.clientY - ys * state.scale;
+
+                    updateTransform(index);
+                }, { passive: false });
+
+                // 2. INICIO DE ARRASTRE
+                slide.addEventListener('mousedown', (e) => {
+                    const state = viewStates[index];
+                    state.panning = true;
+                    state.startX = e.clientX - state.pointX;
+                    state.startY = e.clientY - state.pointY;
+                    layer.style.cursor = 'grabbing';
+                });
+
+                // 3. MOVIMIENTO DE ARRASTRE
+                window.addEventListener('mousemove', (e) => {
+                    const state = viewStates[index];
+                    if (!state.panning) return;
+                    
+                    e.preventDefault();
+                    state.pointX = e.clientX - state.startX;
+                    state.pointY = e.clientY - state.startY;
+                    updateTransform(index);
+                });
+
+                // 4. FIN DE ARRASTRE
+                window.addEventListener('mouseup', () => {
+                    viewStates[index].panning = false;
+                    layer.style.cursor = 'grab';
+                });
             });
-        }, { threshold: 0.5 }); // Detectar cuando el 50% de la imagen es visible
+        }
 
-        items.forEach(i => observer.observe(i));
+        function updateTransform(index) {
+            const state = viewStates[index];
+            const layer = slides[index].querySelector('.transform-layer');
+            // Aplicamos la matriz de transformación: Translate + Scale
+            layer.style.transform = `translate(${state.pointX}px, ${state.pointY}px) scale(${state.scale})`;
+        }
 
-        // --- ARRASTRE DE ZOOM (Básico) ---
-        // Permite mover la imagen cuando está ampliada
-        let isDragging = false;
-        let startX, startY, translateX = 0, translateY = 0;
-
-        items.forEach(item => {
-            const wrapper = item.querySelector('.img-wrapper');
-            
-            wrapper.addEventListener('mousedown', (e) => {
-                if(zoomLevel > 1) {
-                    isDragging = true;
-                    startX = e.clientX - translateX;
-                    startY = e.clientY - translateY;
-                    wrapper.style.cursor = 'grabbing';
-                }
-            });
-
-            window.addEventListener('mouseup', () => {
-                isDragging = false;
-                if(wrapper) wrapper.style.cursor = 'default';
-            });
-
-            window.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                e.preventDefault();
-                translateX = e.clientX - startX;
-                translateY = e.clientY - startY;
-                wrapper.style.transform = `scale(${zoomLevel}) translate(${translateX / zoomLevel}px, ${translateY / zoomLevel}px)`;
-            });
-        });
+        function resetZoom() {
+            // Resetea la diapositiva actual a estado original
+            viewStates[currentIndex] = {
+                scale: 1,
+                panning: false,
+                pointX: 0,
+                pointY: 0,
+                startX: 0,
+                startY: 0
+            };
+            updateTransform(currentIndex);
+        }
 
     </script>
 </body>
