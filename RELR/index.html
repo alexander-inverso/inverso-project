@@ -6,83 +6,34 @@
     <title>Cromatografía: Extracción de Carotenoides | Reporteros en la Red</title>
     <style>
         :root {
-            --bg-color: #050505;
-            --panel-color: #111;
+            --bg-color: #000000;
+            --ui-bg: rgba(0, 0, 0, 0.6); /* Fondo semitransparente para UI */
             --text-color: #e0e0e0;
-            --accent-color: #00ff41; /* Verde laboratorio/técnico */
-            --font-stack: 'Courier New', Courier, monospace;
-            --carousel-height: 70vh; 
+            --accent-color: #00ff41; /* Verde técnico */
+            --font-stack: 'Segoe UI', 'Roboto', 'Courier New', monospace;
         }
 
         body {
             margin: 0;
+            padding: 0;
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: var(--font-stack);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            padding: 0;
-            overflow: hidden; /* Evita scroll global al hacer zoom */
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; /* Sin barras de scroll del navegador */
         }
 
-        /* --- CABECERA DEL PROYECTO --- */
-        header {
-            width: 90%;
-            max-width: 1200px;
-            padding: 20px 0;
-            border-bottom: 1px solid #333;
-            margin-bottom: 20px;
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 20px;
-            z-index: 100;
-        }
-
-        .project-title h1 {
-            font-size: 1.5rem;
-            margin: 0 0 5px 0;
-            color: var(--text-color);
-            text-transform: uppercase;
-        }
-
-        .project-title h2 {
-            font-size: 0.9rem;
-            margin: 0;
-            color: #888;
-            font-weight: normal;
-        }
-
-        .project-meta {
-            text-align: right;
-            font-size: 0.8rem;
-            color: #666;
-            line-height: 1.4;
-        }
-
-        .project-meta strong {
-            color: var(--accent-color);
-        }
-
-        /* --- VIEWPORT PRINCIPAL --- */
-        .carousel-outer-container {
-            width: 95%;
-            max-width: 1200px;
-            background-color: #000;
-            border: 1px solid #333;
-            position: relative;
-        }
-
+        /* --- CAPA 1: VISOR (Fondo Z-Index 0) --- */
         .carousel-viewport {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: var(--carousel-height);
-            overflow: hidden; 
-            position: relative;
-            display: flex;
+            height: 100%;
+            z-index: 1;
         }
 
-        /* --- ITEMS Y LÓGICA DE VISUALIZACIÓN --- */
         .carousel-item {
             position: absolute;
             top: 0;
@@ -92,19 +43,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #0a0a0a;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s ease;
-            overflow: hidden;
+            transition: opacity 0.4s ease-in-out;
         }
 
         .carousel-item.active {
             opacity: 1;
             pointer-events: all;
-            z-index: 10;
         }
 
+        /* Capa de transformación para Zoom/Pan */
         .transform-layer {
             width: 100%;
             height: 100%;
@@ -121,255 +70,302 @@
         }
 
         .carousel-item img {
+            /* LÓGICA DE DIMENSIONES: */
             max-width: 100%;
             max-height: 100%;
-            object-fit: contain;
-            pointer-events: none; 
+            width: auto;
+            height: auto;
+            object-fit: contain; /* NUNCA RECORTAR */
             user-select: none;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8); /* Sombra para separar del fondo negro */
         }
 
-        /* --- CAPA DE DATOS (Overlay) --- */
-        .meta-layer {
+        /* --- CAPA 2: INTERFAZ (HUD Z-Index 100) --- */
+        
+        /* HEADER FLOTANTE */
+        header {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.85);
-            padding: 8px 12px;
-            border-left: 3px solid var(--accent-color);
-            font-size: 0.85rem;
-            pointer-events: none;
-            z-index: 20;
-            backdrop-filter: blur(2px);
-        }
-
-        .meta-layer div {
-            margin-bottom: 2px;
-        }
-
-        /* --- CONTROLES INFERIORES --- */
-        .controls-section {
-            margin-top: 15px;
-            width: 90%;
-            max-width: 1200px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            box-sizing: border-box;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            border-top: 1px solid #333;
-            padding-top: 15px;
+            align-items: flex-start;
             z-index: 100;
+            pointer-events: none; /* Dejar pasar clics en zonas vacías */
         }
 
-        .status-indicator {
+        .project-info {
+            pointer-events: auto; /* Reactivar clics en el texto */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .project-info h1 {
+            font-size: 1.2rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+
+        .project-info h2 {
             font-size: 0.9rem;
+            margin: 5px 0 0 0;
             color: var(--accent-color);
-            font-weight: bold;
+            font-weight: normal;
         }
 
-        .nav-buttons {
+        .meta-data {
+            text-align: right;
+            font-size: 0.8rem;
+            color: #aaa;
+            pointer-events: auto;
+        }
+
+        /* ETIQUETA DE DATOS (Overlay en la imagen) */
+        .image-label {
+            position: absolute;
+            bottom: 100px; /* Encima de los controles */
+            left: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            border-left: 2px solid var(--accent-color);
+            padding: 10px 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-width: 400px;
+            z-index: 90;
+            backdrop-filter: blur(4px);
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .carousel-item.active .image-label {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* BARRA DE CONTROL INFERIOR */
+        .controls-bar {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--ui-bg);
+            padding: 10px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
             display: flex;
-            gap: 10px;
+            align-items: center;
+            gap: 20px;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .btn {
-            background: #111;
-            border: 1px solid #444;
-            color: #ddd;
-            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            color: #fff;
             cursor: pointer;
-            font-family: inherit;
-            font-size: 0.8rem;
+            font-size: 1rem;
+            font-weight: bold;
             text-transform: uppercase;
-            transition: all 0.2s;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background 0.2s, color 0.2s;
         }
 
         .btn:hover {
-            border-color: var(--accent-color);
+            background: rgba(255,255,255,0.1);
             color: var(--accent-color);
-            background: #1a1a1a;
         }
 
-        .zoom-hint {
-            font-size: 0.75rem;
-            color: #555;
-            text-align: center;
-            margin-top: 5px;
+        .status-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            border-right: 1px solid #555;
+            border-left: 1px solid #555;
+            padding: 0 20px;
         }
 
+        /* --- RESPONSIVE --- */
         @media (max-width: 768px) {
-            header { grid-template-columns: 1fr; text-align: left; }
-            .project-meta { text-align: left; margin-top: 10px; }
+            header { padding: 15px; flex-direction: column; }
+            .meta-data { display: none; } /* Ocultar detalles en móvil para ver foto */
+            .controls-bar { width: 90%; justify-content: space-between; bottom: 20px; }
+            .image-label { left: 10px; right: 10px; bottom: 90px; max-width: none; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="project-title">
+        <div class="project-info">
             <h1>Extracción de Carotenoides</h1>
-            <h2>Proyecto: Reporteros en la Red</h2>
+            <h2>Reporteros en la Red</h2>
         </div>
-        <div class="project-meta">
-            <div>Autor: <strong>Alexander de Toro Todorov</strong></div>
-            <div>Tutora: <strong>M.ª del Mar Inda Pérez</strong></div>
-            <div>Centro: IES Radio Exterior Alicante</div>
+        <div class="meta-data">
+            <div>Autor: Alexander de Toro Todorov</div>
+            <div>IES Radio Exterior Alicante</div>
         </div>
     </header>
 
-    <div class="carousel-outer-container">
-        <div class="carousel-viewport" id="viewport">
-            
-            <div class="carousel-item active" id="slide-0">
-                <div class="transform-layer">
-                    <img src="https://raw.githubusercontent.com/alexander-inverso/inverso-project/49b679585ddb33d6452274bf43488d3ab450296a/RELR/Imagen.png" alt="Muestra Carotenoides">
-                </div>
-                <div class="meta-layer">
-                    <div>REF: EXP_001</div>
-                    <div>DATA: RAW SCAN</div>
-                    <div>FUENTE: GITHUB_REPO</div>
-                </div>
-            </div>
-
-            <div class="carousel-item" id="slide-1">
-                <div class="transform-layer">
-                    <img src="https://images.unsplash.com/photo-1518544806314-5360b411d5a7?auto=format&fit=crop&w=1600&q=80" alt="Estructura Referencia">
-                </div>
-                <div class="meta-layer">
-                    <div>REF: REF_002</div>
-                    <div>TIPO: ESTRUCTURA CONCRETO</div>
-                    <div>ESTADO: ARCHIVADO</div>
-                </div>
-            </div>
-
-            <div class="carousel-item" id="slide-2">
-                <div class="transform-layer">
-                    <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1600&q=80" alt="Datos Referencia">
-                </div>
-                <div class="meta-layer">
-                    <div>REF: DAT_003</div>
-                    <div>TIPO: ANÁLISIS DE SEGURIDAD</div>
-                    <div>ESTADO: PROCESADO</div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="controls-section">
-        <div class="status-indicator" id="status-text">MUESTRA 1 / 3</div>
+    <div class="carousel-viewport">
         
-        <div class="nav-buttons">
-            <button class="btn" onclick="changeSlide(-1)">Anterior</button>
-            <button class="btn" onclick="resetZoom()">Reset Vista</button>
-            <button class="btn" onclick="changeSlide(1)">Siguiente</button>
+        <div class="carousel-item active">
+            <div class="transform-layer">
+                <img src="https://github.com/alexander-inverso/inverso-project/blob/main/RELR/Imagen.png?raw=true" alt="Escaneo HD">
+            </div>
+            <div class="image-label">
+                <strong>REF: ESCANEO_HD</strong><br>
+                Digitalización de alta resolución de las bandas de papel de filtro tras el proceso de cromatografía.
+            </div>
         </div>
+
+        <div class="carousel-item">
+            <div class="transform-layer">
+                <img src="https://github.com/alexander-inverso/inverso-project/blob/main/RELR/20260203_125116.jpg?raw=true" alt="Técnica Arrastre">
+            </div>
+            <div class="image-label">
+                <strong>REF: TÉCNICA_ARRASTRE</strong><br>
+                Resultado visual utilizando la técnica experimental de arrastre de pigmentos.
+            </div>
+        </div>
+
+        <div class="carousel-item">
+            <div class="transform-layer">
+                <img src="https://github.com/alexander-inverso/inverso-project/blob/main/RELR/20260128_162756.jpg?raw=true" alt="Capilaridad Sencilla">
+            </div>
+            <div class="image-label">
+                <strong>REF: CAPILARIDAD_BANDEJA</strong><br>
+                Prueba de separación mediante capilaridad sencilla en entorno de bandeja plástica.
+            </div>
+        </div>
+
     </div>
-    <div class="zoom-hint">Usa la rueda del ratón para Zoom · Arrastra para mover</div>
+
+    <div class="controls-bar">
+        <button class="btn" onclick="changeSlide(-1)">&#8592; Prev</button>
+        <div class="status-text" id="status-counter">01 / 03</div>
+        <button class="btn" onclick="changeSlide(1)">Next &#8594;</button>
+        <button class="btn" onclick="resetZoom()" style="font-size:0.8rem; opacity:0.7">[ RESET VISTA ]</button>
+    </div>
 
     <script>
-        // --- CONFIGURACIÓN ---
-        const slides = document.querySelectorAll('.carousel-item');
-        const statusText = document.getElementById('status-text');
+        // CONFIGURACIÓN
+        const items = document.querySelectorAll('.carousel-item');
+        const counter = document.getElementById('status-counter');
         let currentIndex = 0;
 
-        // Variables de estado independientes para cada slide
-        let viewStates = Array.from({length: slides.length}, () => ({
+        // ESTADO DE VISTA (ZOOM/PAN)
+        let viewStates = Array.from({length: items.length}, () => ({
             scale: 1,
             pointX: 0,
             pointY: 0,
-            panning: false,
+            isDragging: false,
             startX: 0,
             startY: 0
         }));
 
-        const MIN_ZOOM = 0.5;
-        const MAX_ZOOM = 8;
-        const ZOOM_SPEED = 0.1;
+        const MIN_ZOOM = 0.8; // Permite alejar un poco más para ver márgenes
+        const MAX_ZOOM = 12;  // Zoom potente para ver detalles del papel
+        const ZOOM_SENSITIVITY = 0.001; // Ajuste fino para trackpad/rueda
 
-        // --- INICIALIZACIÓN ---
+        // INICIALIZACIÓN
         updateUI();
-        attachEventListeners();
+        attachEvents();
 
-        // --- NAVEGACIÓN ---
-        function changeSlide(direction) {
-            slides[currentIndex].classList.remove('active');
+        // 1. NAVEGACIÓN
+        function changeSlide(dir) {
+            items[currentIndex].classList.remove('active');
             
-            currentIndex += direction;
-            if (currentIndex < 0) currentIndex = slides.length - 1;
-            if (currentIndex >= slides.length) currentIndex = 0;
+            currentIndex += dir;
+            if (currentIndex < 0) currentIndex = items.length - 1;
+            if (currentIndex >= items.length) currentIndex = 0;
             
-            slides[currentIndex].classList.add('active');
+            items[currentIndex].classList.add('active');
             updateUI();
         }
 
         function updateUI() {
-            statusText.textContent = `MUESTRA ${currentIndex + 1} / ${slides.length}`;
-            updateTransform(currentIndex); // Asegurar que se renderiza el estado guardado
+            counter.innerText = `0${currentIndex + 1} / 0${items.length}`;
+            applyTransform(currentIndex);
         }
 
-        // --- ZOOM INTELIGENTE Y ARRASTRE ---
-        function attachEventListeners() {
-            slides.forEach((slide, index) => {
-                const layer = slide.querySelector('.transform-layer');
+        // 2. MOTOR GRÁFICO (ZOOM Y PAN)
+        function attachEvents() {
+            items.forEach((slide, index) => {
+                const container = slide; 
                 
-                // 1. ZOOM (Pivote en cursor)
-                slide.addEventListener('wheel', (e) => {
+                // ZOOM (Rueda)
+                container.addEventListener('wheel', (e) => {
                     e.preventDefault();
+                    
                     const state = viewStates[index];
+                    const rect = container.getBoundingClientRect();
                     
-                    // Coordenadas del ratón relativas a la capa transformada
-                    const xs = (e.clientX - state.pointX) / state.scale;
-                    const ys = (e.clientY - state.pointY) / state.scale;
-                    
-                    const delta = -e.deltaY;
-                    
-                    // Aplicar factor de zoom
-                    if (delta > 0) state.scale *= (1 + ZOOM_SPEED);
-                    else state.scale /= (1 + ZOOM_SPEED);
-                    
-                    // Limitar zoom
-                    state.scale = Math.min(Math.max(state.scale, MIN_ZOOM), MAX_ZOOM);
-                    
-                    // Ajustar posición para que el punto bajo el ratón no se mueva visualmente
-                    state.pointX = e.clientX - xs * state.scale;
-                    state.pointY = e.clientY - ys * state.scale;
+                    // Coordenadas relativas al contenedor
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
 
-                    updateTransform(index);
+                    // Calcular desplazamiento del zoom
+                    // deltaY negativo es zoom in
+                    const delta = -e.deltaY;
+                    const factor = 1 + (delta * 0.001); // Factor de escala suave
+
+                    const newScale = Math.min(Math.max(state.scale * factor, MIN_ZOOM), MAX_ZOOM);
+                    
+                    // Matemáticas para hacer zoom hacia el cursor
+                    // (pos_cursor - pos_actual) * (1 - factor_escala)
+                    // Ajustamos el desplazamiento para mantener el punto bajo el ratón
+                    if (newScale !== state.scale) {
+                        const scaleRatio = newScale / state.scale;
+                        state.pointX = mouseX - (mouseX - state.pointX) * scaleRatio;
+                        state.pointY = mouseY - (mouseY - state.pointY) * scaleRatio;
+                        state.scale = newScale;
+                    }
+
+                    applyTransform(index);
                 }, { passive: false });
 
-                // 2. ARRASTRE (PAN)
-                slide.addEventListener('mousedown', (e) => {
-                    const state = viewStates[index];
-                    state.panning = true;
-                    state.startX = e.clientX - state.pointX;
-                    state.startY = e.clientY - state.pointY;
-                    layer.style.cursor = 'grabbing';
+                // ARRASTRE (Mouse)
+                container.addEventListener('mousedown', (e) => {
+                    // Evitar arrastre si no hay zoom (opcional, pero mejora UX)
+                    viewStates[index].isDragging = true;
+                    viewStates[index].startX = e.clientX - viewStates[index].pointX;
+                    viewStates[index].startY = e.clientY - viewStates[index].pointY;
+                    container.querySelector('.transform-layer').style.cursor = 'grabbing';
                 });
 
                 window.addEventListener('mousemove', (e) => {
-                    // Solo afecta a la slide actual para evitar cálculos innecesarios
-                    if (index !== currentIndex) return;
+                    if (index !== currentIndex || !viewStates[index].isDragging) return;
+                    e.preventDefault();
                     
                     const state = viewStates[index];
-                    if (!state.panning) return;
-                    
-                    e.preventDefault();
                     state.pointX = e.clientX - state.startX;
                     state.pointY = e.clientY - state.startY;
-                    updateTransform(index);
+                    applyTransform(index);
                 });
 
                 window.addEventListener('mouseup', () => {
-                    if(viewStates[index].panning) {
-                        viewStates[index].panning = false;
-                        layer.style.cursor = 'grab';
+                    if (viewStates[index].isDragging) {
+                        viewStates[index].isDragging = false;
+                        container.querySelector('.transform-layer').style.cursor = 'grab';
                     }
                 });
             });
         }
 
-        function updateTransform(index) {
+        function applyTransform(index) {
             const state = viewStates[index];
-            const layer = slides[index].querySelector('.transform-layer');
+            const layer = items[index].querySelector('.transform-layer');
+            // Matriz simple: mover y luego escalar
             layer.style.transform = `translate(${state.pointX}px, ${state.pointY}px) scale(${state.scale})`;
         }
 
@@ -378,12 +374,19 @@
                 scale: 1,
                 pointX: 0,
                 pointY: 0,
-                panning: false,
+                isDragging: false,
                 startX: 0,
                 startY: 0
             };
-            updateTransform(currentIndex);
+            applyTransform(currentIndex);
         }
+
+        // Navegación por teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') changeSlide(1);
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'Escape') resetZoom();
+        });
     </script>
 </body>
 </html>
