@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cromatografía: Extracción de Carotenoides | Reporteros en la Red</title>
+    <title>Cromatografía: Extracción de Carotenoides | Reporteros en la Red 2026</title>
     <style>
         :root {
             --bg-color: #000000;
-            --ui-bg: rgba(0, 0, 0, 0.6); /* Fondo semitransparente para UI */
+            --ui-bg: rgba(10, 10, 10, 0.7);
             --text-color: #e0e0e0;
-            --accent-color: #00ff41; /* Verde técnico */
+            --accent-color: #00ff41; /* Verde matriz/técnico */
             --font-stack: 'Segoe UI', 'Roboto', 'Courier New', monospace;
+            --anim-speed: 0.6s;
+            --curve-depth: -500px; /* Profundidad del carrusel */
         }
 
         body {
@@ -21,16 +23,19 @@
             font-family: var(--font-stack);
             width: 100vw;
             height: 100vh;
-            overflow: hidden; /* Sin barras de scroll del navegador */
+            overflow: hidden;
+            user-select: none; /* Evita selección de texto accidental */
         }
 
-        /* --- CAPA 1: VISOR (Fondo Z-Index 0) --- */
+        /* --- ESCENARIO 3D --- */
         .carousel-viewport {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            perspective: 2000px; /* Clave para el efecto 3D */
+            overflow: hidden;
             z-index: 1;
         }
 
@@ -45,15 +50,50 @@
             justify-content: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.4s ease-in-out;
+            /* Estado base oculto (atrás en el fondo) */
+            transform: translateZ(var(--curve-depth)) rotateY(0deg); 
+            transition: opacity var(--anim-speed), transform var(--anim-speed), filter var(--anim-speed);
+            will-change: transform, opacity, filter;
         }
 
+        /* --- CLASES DE ANIMACIÓN DEL CARRUSEL --- */
+        
+        /* Activo (Centro) */
         .carousel-item.active {
             opacity: 1;
             pointer-events: all;
+            transform: translateZ(0) translateX(0) rotateY(0deg);
+            filter: blur(0px);
+            z-index: 10;
         }
 
-        /* Capa de transformación para Zoom/Pan */
+        /* Salida hacia la Izquierda (Curva) */
+        .carousel-item.exit-left {
+            opacity: 0;
+            transform: translateX(-50%) translateZ(var(--curve-depth)) rotateY(45deg);
+            filter: blur(10px); /* Motion Blur */
+        }
+
+        /* Salida hacia la Derecha (Curva) */
+        .carousel-item.exit-right {
+            opacity: 0;
+            transform: translateX(50%) translateZ(var(--curve-depth)) rotateY(-45deg);
+            filter: blur(10px);
+        }
+
+        /* Entrada desde la Derecha */
+        .carousel-item.enter-right {
+            /* Estado inicial antes de activarse, se define en JS/CSS flow */
+            transform: translateX(50%) translateZ(var(--curve-depth)) rotateY(-45deg);
+        }
+
+         /* Entrada desde la Izquierda */
+         .carousel-item.enter-left {
+            transform: translateX(-50%) translateZ(var(--curve-depth)) rotateY(45deg);
+        }
+
+
+        /* --- CAPA DE TRANSFORMACIÓN (ZOOM/PAN) --- */
         .transform-layer {
             width: 100%;
             height: 100%;
@@ -61,28 +101,27 @@
             align-items: center;
             justify-content: center;
             transform-origin: 0 0; 
-            will-change: transform;
             cursor: grab;
+            /* Suavizado para el zoom */
+            transition: transform 0.1s cubic-bezier(0.1, 0.7, 1.0, 0.1); 
         }
 
         .transform-layer:active {
             cursor: grabbing;
+            transition: none; /* Quitar suavizado al arrastrar para respuesta instantánea */
         }
 
         .carousel-item img {
-            /* LÓGICA DE DIMENSIONES: */
             max-width: 100%;
             max-height: 100%;
             width: auto;
             height: auto;
-            object-fit: contain; /* NUNCA RECORTAR */
-            user-select: none;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); /* Sombra para separar del fondo negro */
+            object-fit: contain;
+            box-shadow: 0 0 100px rgba(0,0,0,0.9);
         }
 
-        /* --- CAPA 2: INTERFAZ (HUD Z-Index 100) --- */
-        
-        /* HEADER FLOTANTE */
+
+        /* --- HUD / INTERFAZ --- */
         header {
             position: absolute;
             top: 0;
@@ -90,17 +129,17 @@
             width: 100%;
             padding: 20px 40px;
             box-sizing: border-box;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+            background: linear-gradient(to bottom, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%);
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             z-index: 100;
-            pointer-events: none; /* Dejar pasar clics en zonas vacías */
+            pointer-events: none;
         }
 
         .project-info {
-            pointer-events: auto; /* Reactivar clics en el texto */
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            pointer-events: auto;
+            text-shadow: 0 0 10px rgba(0,255,65, 0.2);
         }
 
         .project-info h1 {
@@ -125,23 +164,22 @@
             pointer-events: auto;
         }
 
-        /* ETIQUETA DE DATOS (Overlay en la imagen) */
+        /* ETIQUETAS FLOTANTES */
         .image-label {
             position: absolute;
-            bottom: 100px; /* Encima de los controles */
+            bottom: 120px;
             left: 40px;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(10, 10, 10, 0.8);
             border-left: 2px solid var(--accent-color);
-            padding: 10px 15px;
+            padding: 12px 18px;
             font-family: 'Courier New', monospace;
             font-size: 0.85rem;
             max-width: 400px;
             z-index: 90;
-            backdrop-filter: blur(4px);
-            pointer-events: none;
+            backdrop-filter: blur(8px);
             opacity: 0;
             transform: translateY(20px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            transition: all 0.5s ease 0.3s; /* Delay para que aparezca después de la slide */
         }
 
         .carousel-item.active .image-label {
@@ -149,57 +187,57 @@
             transform: translateY(0);
         }
 
-        /* BARRA DE CONTROL INFERIOR */
+        /* BARRA DE CONTROL */
         .controls-bar {
             position: absolute;
-            bottom: 30px;
+            bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
             background: var(--ui-bg);
-            padding: 10px 20px;
-            border-radius: 30px;
-            backdrop-filter: blur(10px);
+            padding: 10px 30px;
+            border-radius: 4px; /* Estilo más brutalista/cuadrado */
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255,255,255,0.1);
             display: flex;
             align-items: center;
             gap: 20px;
             z-index: 100;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
         }
 
         .btn {
             background: transparent;
-            border: none;
+            border: 1px solid transparent;
             color: #fff;
             cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
+            font-size: 0.9rem;
+            font-weight: 600;
             text-transform: uppercase;
-            padding: 8px 15px;
-            border-radius: 4px;
-            transition: background 0.2s, color 0.2s;
+            padding: 8px 16px;
+            letter-spacing: 1px;
+            transition: all 0.2s;
         }
 
         .btn:hover {
-            background: rgba(255,255,255,0.1);
+            border-color: var(--accent-color);
             color: var(--accent-color);
+            background: rgba(0, 255, 65, 0.05);
         }
 
         .status-text {
             font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
+            font-size: 1rem;
             color: var(--accent-color);
-            border-right: 1px solid #555;
-            border-left: 1px solid #555;
             padding: 0 20px;
+            font-weight: bold;
         }
 
-        /* --- RESPONSIVE --- */
+        /* Responsive */
         @media (max-width: 768px) {
             header { padding: 15px; flex-direction: column; }
-            .meta-data { display: none; } /* Ocultar detalles en móvil para ver foto */
-            .controls-bar { width: 90%; justify-content: space-between; bottom: 20px; }
-            .image-label { left: 10px; right: 10px; bottom: 90px; max-width: none; }
+            .meta-data { display: none; }
+            .controls-bar { width: 90%; justify-content: space-between; bottom: 20px; padding: 10px; }
+            .image-label { left: 10px; right: 10px; bottom: 100px; max-width: none; }
         }
     </style>
 </head>
@@ -208,62 +246,64 @@
     <header>
         <div class="project-info">
             <h1>Extracción de Carotenoides</h1>
-            <h2>Reporteros en la Red</h2>
+            <h2>Reporteros en la Red 2026</h2>
         </div>
         <div class="meta-data">
             <div>Autor: Alexander de Toro Todorov</div>
+            <div>Tutora: M.ª del Mar Inda Pérez</div>
             <div>IES Radio Exterior Alicante</div>
         </div>
     </header>
 
     <div class="carousel-viewport">
         
-        <div class="carousel-item active">
+        <div class="carousel-item active" data-index="0">
             <div class="transform-layer">
-                <img src="https://github.com/alexander-inverso/inverso-project/blob/main/RELR/Imagen.png?raw=true" alt="Escaneo HD">
+                <img src="https://github.com/alexander-inverso/inverso-project/blob/main/RELR/Imagen.png?raw=true" alt="Escaneo">
             </div>
             <div class="image-label">
                 <strong>REF: ESCANEO_HD</strong><br>
-                Digitalización de alta resolución de las bandas de papel de filtro tras el proceso de cromatografía.
+                Digitalización de alta resolución. Bandas de cromatografía.
             </div>
         </div>
 
-        <div class="carousel-item">
+        <div class="carousel-item" data-index="1">
             <div class="transform-layer">
-                <img src="https://github.com/alexander-inverso/inverso-project/blob/main/RELR/20260203_125116.jpg?raw=true" alt="Técnica Arrastre">
+                <img src="https://github.com/alexander-inverso/inverso-project/blob/main/RELR/20260203_125116.jpg?raw=true" alt="Arrastre">
             </div>
             <div class="image-label">
                 <strong>REF: TÉCNICA_ARRASTRE</strong><br>
-                Resultado visual utilizando la técnica experimental de arrastre de pigmentos.
+                Resultado experimental mediante técnica de arrastre de pigmentos.
             </div>
         </div>
 
-        <div class="carousel-item">
+        <div class="carousel-item" data-index="2">
             <div class="transform-layer">
-                <img src="https://github.com/alexander-inverso/inverso-project/blob/main/RELR/20260128_162756.jpg?raw=true" alt="Capilaridad Sencilla">
+                <img src="https://github.com/alexander-inverso/inverso-project/blob/main/RELR/20260128_162756.jpg?raw=true" alt="Capilaridad">
             </div>
             <div class="image-label">
                 <strong>REF: CAPILARIDAD_BANDEJA</strong><br>
-                Prueba de separación mediante capilaridad sencilla en entorno de bandeja plástica.
+                Prueba de separación por capilaridad simple.
             </div>
         </div>
 
     </div>
 
     <div class="controls-bar">
-        <button class="btn" onclick="changeSlide(-1)">&#8592; Prev</button>
+        <button class="btn" onclick="navigate(-1)">[ ANT ]</button>
         <div class="status-text" id="status-counter">01 / 03</div>
-        <button class="btn" onclick="changeSlide(1)">Next &#8594;</button>
-        <button class="btn" onclick="resetZoom()" style="font-size:0.8rem; opacity:0.7">[ RESET VISTA ]</button>
+        <button class="btn" onclick="navigate(1)">[ SIG ]</button>
+        <button class="btn" onclick="resetView()" style="opacity:0.7; font-size:0.8rem">RESTABLECER</button>
     </div>
 
     <script>
-        // CONFIGURACIÓN
+        // --- CONFIGURACIÓN ---
         const items = document.querySelectorAll('.carousel-item');
         const counter = document.getElementById('status-counter');
         let currentIndex = 0;
+        let isAnimating = false;
 
-        // ESTADO DE VISTA (ZOOM/PAN)
+        // Estado del Zoom/Pan por cada diapositiva
         let viewStates = Array.from({length: items.length}, () => ({
             scale: 1,
             pointX: 0,
@@ -273,57 +313,121 @@
             startY: 0
         }));
 
-        const MIN_ZOOM = 0.8; // Permite alejar un poco más para ver márgenes
-        const MAX_ZOOM = 12;  // Zoom potente para ver detalles del papel
-        const ZOOM_SENSITIVITY = 0.001; // Ajuste fino para trackpad/rueda
+        const MIN_ZOOM = 0.8;
+        const MAX_ZOOM = 8;
 
-        // INICIALIZACIÓN
-        updateUI();
-        attachEvents();
+        // --- INICIALIZACIÓN ---
+        updateCounter();
+        initMouseEvents();
 
-        // 1. NAVEGACIÓN
-        function changeSlide(dir) {
-            items[currentIndex].classList.remove('active');
+        // --- LÓGICA DE NAVEGACIÓN ANIMADA (CARRUSEL 3D) ---
+        function navigate(dir) {
+            if (isAnimating) return; // Bloquear clicks rápidos
+            isAnimating = true;
+
+            const currentItem = items[currentIndex];
+            let nextIndex = currentIndex + dir;
+
+            // Loop infinito
+            if (nextIndex < 0) nextIndex = items.length - 1;
+            if (nextIndex >= items.length) nextIndex = 0;
+
+            const nextItem = items[nextIndex];
+
+            // 1. Definir clases de animación según dirección
+            // Si voy a SIGUIENTE (dir 1): Actual sale por Izq, Nuevo entra por Der
+            // Si voy a ANTERIOR (dir -1): Actual sale por Der, Nuevo entra por Izq
+            let exitClass = dir > 0 ? 'exit-left' : 'exit-right';
+            let enterClass = dir > 0 ? 'enter-right' : 'enter-left'; // Clase virtual para setup inicial
+
+            // 2. Preparar el siguiente elemento (Resetear su estado previo)
+            nextItem.className = 'carousel-item'; // Limpiar clases
+            // Forzar posición inicial antes de animar (Hack para que el navegador reconozca el "desde donde")
+            if (dir > 0) {
+                nextItem.style.transform = 'translateX(50%) translateZ(-500px) rotateY(-45deg)';
+            } else {
+                nextItem.style.transform = 'translateX(-50%) translateZ(-500px) rotateY(45deg)';
+            }
+            nextItem.style.opacity = '0';
             
-            currentIndex += dir;
-            if (currentIndex < 0) currentIndex = items.length - 1;
-            if (currentIndex >= items.length) currentIndex = 0;
-            
-            items[currentIndex].classList.add('active');
-            updateUI();
+            // Forzar reflow (lectura de layout) para que la transición funcione
+            void nextItem.offsetWidth; 
+
+            // 3. Ejecutar Animación
+            // Salida del actual
+            currentItem.classList.remove('active');
+            currentItem.classList.add(exitClass);
+
+            // Entrada del nuevo (Limpiamos el estilo inline y ponemos la clase active para que CSS haga la magia)
+            nextItem.style.transform = ''; // Quitar override manual
+            nextItem.style.opacity = '';
+            nextItem.classList.add('active');
+
+            // 4. Limpieza post-animación
+            setTimeout(() => {
+                currentItem.className = 'carousel-item'; // Reset total
+                isAnimating = false;
+            }, 600); // 600ms coincide con var(--anim-speed)
+
+            // 5. Actualizar índices y resetear zoom del nuevo slide
+            currentIndex = nextIndex;
+            updateCounter();
+            resetView(false); // False = no forzar render, ya lo hará el loop si hace falta
         }
 
-        function updateUI() {
+        function updateCounter() {
             counter.innerText = `0${currentIndex + 1} / 0${items.length}`;
-            applyTransform(currentIndex);
         }
 
-        // 2. MOTOR GRÁFICO (ZOOM Y PAN)
-        function attachEvents() {
-            items.forEach((slide, index) => {
-                const container = slide; 
+        // --- MOTOR DE ZOOM Y ARRASTRE (FIX BUGS) ---
+        function initMouseEvents() {
+            // Escuchar eventos en todo el documento para el mouseup (Fix Arrastre Pegajoso)
+            window.addEventListener('mouseup', () => {
+                viewStates.forEach(state => state.isDragging = false);
+                document.body.style.cursor = 'default';
+            });
+
+            // Prevenir que se quede pegado si sales de la ventana
+            window.addEventListener('mouseleave', () => {
+                viewStates.forEach(state => state.isDragging = false);
+            });
+
+            // Movimiento global (solo afecta al slide activo)
+            window.addEventListener('mousemove', (e) => {
+                const state = viewStates[currentIndex];
+                if (!state.isDragging) return;
                 
-                // ZOOM (Rueda)
-                container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                // Calcular delta
+                const dx = e.clientX - state.startX;
+                const dy = e.clientY - state.startY;
+
+                state.pointX = dx;
+                state.pointY = dy;
+                
+                renderTransform(currentIndex);
+            });
+
+            // Eventos específicos por item
+            items.forEach((slide, index) => {
+                const layer = slide.querySelector('.transform-layer');
+
+                // ZOOM
+                slide.addEventListener('wheel', (e) => {
                     e.preventDefault();
-                    
                     const state = viewStates[index];
-                    const rect = container.getBoundingClientRect();
                     
-                    // Coordenadas relativas al contenedor
+                    // Coordenadas relativas
+                    const rect = slide.getBoundingClientRect();
                     const mouseX = e.clientX - rect.left;
                     const mouseY = e.clientY - rect.top;
 
-                    // Calcular desplazamiento del zoom
-                    // deltaY negativo es zoom in
+                    // Cálculo zoom
                     const delta = -e.deltaY;
-                    const factor = 1 + (delta * 0.001); // Factor de escala suave
-
+                    const factor = 1 + (delta * 0.001);
                     const newScale = Math.min(Math.max(state.scale * factor, MIN_ZOOM), MAX_ZOOM);
-                    
-                    // Matemáticas para hacer zoom hacia el cursor
-                    // (pos_cursor - pos_actual) * (1 - factor_escala)
-                    // Ajustamos el desplazamiento para mantener el punto bajo el ratón
+
+                    // Ajuste de pivote (Zoom hacia el ratón)
                     if (newScale !== state.scale) {
                         const scaleRatio = newScale / state.scale;
                         state.pointX = mouseX - (mouseX - state.pointX) * scaleRatio;
@@ -331,45 +435,30 @@
                         state.scale = newScale;
                     }
 
-                    applyTransform(index);
+                    renderTransform(index);
                 }, { passive: false });
 
-                // ARRASTRE (Mouse)
-                container.addEventListener('mousedown', (e) => {
-                    // Evitar arrastre si no hay zoom (opcional, pero mejora UX)
-                    viewStates[index].isDragging = true;
-                    viewStates[index].startX = e.clientX - viewStates[index].pointX;
-                    viewStates[index].startY = e.clientY - viewStates[index].pointY;
-                    container.querySelector('.transform-layer').style.cursor = 'grabbing';
-                });
-
-                window.addEventListener('mousemove', (e) => {
-                    if (index !== currentIndex || !viewStates[index].isDragging) return;
-                    e.preventDefault();
-                    
+                // INICIO ARRASTRE
+                layer.addEventListener('mousedown', (e) => {
                     const state = viewStates[index];
-                    state.pointX = e.clientX - state.startX;
-                    state.pointY = e.clientY - state.startY;
-                    applyTransform(index);
-                });
-
-                window.addEventListener('mouseup', () => {
-                    if (viewStates[index].isDragging) {
-                        viewStates[index].isDragging = false;
-                        container.querySelector('.transform-layer').style.cursor = 'grab';
-                    }
+                    state.isDragging = true;
+                    // Guardar offset inicial corregido por la posición actual
+                    state.startX = e.clientX - state.pointX;
+                    state.startY = e.clientY - state.pointY;
+                    document.body.style.cursor = 'grabbing';
                 });
             });
         }
 
-        function applyTransform(index) {
+        function renderTransform(index) {
             const state = viewStates[index];
             const layer = items[index].querySelector('.transform-layer');
-            // Matriz simple: mover y luego escalar
-            layer.style.transform = `translate(${state.pointX}px, ${state.pointY}px) scale(${state.scale})`;
+            if(layer) {
+                layer.style.transform = `translate(${state.pointX}px, ${state.pointY}px) scale(${state.scale})`;
+            }
         }
 
-        function resetZoom() {
+        function resetView(animate = true) {
             viewStates[currentIndex] = {
                 scale: 1,
                 pointX: 0,
@@ -378,14 +467,14 @@
                 startX: 0,
                 startY: 0
             };
-            applyTransform(currentIndex);
+            renderTransform(currentIndex);
         }
 
-        // Navegación por teclado
+        // Teclado
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight') changeSlide(1);
-            if (e.key === 'ArrowLeft') changeSlide(-1);
-            if (e.key === 'Escape') resetZoom();
+            if (e.key === 'ArrowRight') navigate(1);
+            if (e.key === 'ArrowLeft') navigate(-1);
+            if (e.key === 'Escape' || e.key === 'r') resetView();
         });
     </script>
 </body>
