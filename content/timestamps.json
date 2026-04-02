@@ -1,0 +1,63 @@
+{
+  "_instructions": "Map each sentence of the narration to its audio timestamp. 'start' and 'end' are in seconds. 'section' matches the HTML section id. Replace placeholder text with actual narration sentences once the audio is recorded.",
+  "_audio_file": "audio/narration.mp3",
+  "_total_duration": 0,
+  "sentences": [
+    {
+      "id": "intro_1",
+      "section": "intro",
+      "text": "[First sentence of introduction narration]",
+      "start": 0.0,
+      "end": 0.0
+    },
+    {
+      "id": "intro_2",
+      "section": "intro",
+      "text": "[Second sentence of introduction narration]",
+      "start": 0.0,
+      "end": 0.0
+    },
+    {
+      "id": "intro_3",
+      "section": "intro",
+      "text": "[Third sentence of introduction narration]",
+      "start": 0.0,
+      "end": 0.0
+    },
+    {
+      "id": "goal1_1",
+      "section": "goal1",
+      "text": "[First sentence of Goal 1 narration]",
+      "start": 0.0,
+      "end": 0.0
+    },
+    {
+      "id": "goal1_2",
+      "section": "goal1",
+      "text": "[Second sentence of Goal 1 narration]",
+      "start": 0.0,
+      "end": 0.0
+    },
+    {
+      "id": "goal1_3",
+      "section": "goal1",
+      "text": "[Third sentence of Goal 1 narration]",
+      "start": 0.0,
+      "end": 0.0
+    },
+    {
+      "id": "goal2_1",
+      "section": "goal2",
+      "text": "[Sentence about the second goal — can be cryptic]",
+      "start": 0.0,
+      "end": 0.0
+    },
+    {
+      "id": "contact_1",
+      "section": "contact",
+      "text": "[Closing words / contact invitation narration]",
+      "start": 0.0,
+      "end": 0.0
+    }
+  ]
+}
