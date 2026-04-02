@@ -129,10 +129,35 @@
     }, { passive: true });
   }
 
+  // ── Reset all reveals when back at top ───────────────────────────────────
+  function resetAllRevealElements() {
+    // Remove visible state from every character
+    document.querySelectorAll('.char').forEach(c => c.classList.remove('visible'));
+    // Clear section reveal flags
+    document.querySelectorAll('section').forEach(s => {
+      s._revealed = false;
+    });
+    // Rebuild observers so sections animate again on next scroll
+    buildAllRevealElements();
+    // Reset audio
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    audioStarted = false;
+    muted = true;
+    updateMuteUI();
+  }
+
   function handleScroll() {
     const scrollY = window.scrollY;
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
     const fraction = maxScroll > 0 ? scrollY / maxScroll : 0;
+
+    // Reset everything when scrolled back to very top
+    if (scrollY < 50 && lastScrollY >= 50) {
+      resetAllRevealElements();
+    }
 
     // First scroll: start audio if not muted
     if (!audioStarted && scrollY > 10) {
@@ -142,9 +167,10 @@
       }
     }
 
-    // Detect upward scroll for rewind effect
+    // Detect upward scroll for rewind effect (only mid-page, not near top)
     if (
       !rewindCooldown &&
+      scrollY >= 50 &&
       fraction < lastScrollFraction - REWIND_THRESHOLD &&
       audioStarted
     ) {
@@ -257,11 +283,11 @@
 
     muteBtn.setAttribute(
       'data-i18n',
-      muted ? 'audio_unmute' : 'audio_mute'
+      muted ? 'audio_start' : 'audio_stop'
     );
     muteBtn.textContent = muted
-      ? (strings.audio_unmute || 'unmute narration')
-      : (strings.audio_mute || 'mute');
+      ? (strings.audio_start || 'start narration')
+      : (strings.audio_stop || 'stop narration');
 
     muteBtn.classList.toggle('active', !muted);
   }

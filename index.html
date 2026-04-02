@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Alexander Inverso</title>
-  <meta name="description" content="Alexander Inverso — biomedical scientist, builder, thinker. This site is a work in progress." />
+  <title>Project Inverso</title>
+  <meta name="description" content="Project Inverso — by Alexander DTT. Biomedical scientist, builder, thinker. This site is a work in progress." />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -32,8 +32,8 @@
       <span class="wave-bar"></span>
       <span class="wave-bar"></span>
     </div>
-    <button id="audio-mute-btn" data-i18n="audio_unmute" aria-pressed="false">
-      unmute narration
+    <button id="audio-mute-btn" data-i18n="audio_start" aria-pressed="false">
+      start narration
     </button>
     <audio
       id="narration-audio"
@@ -76,19 +76,23 @@
         <button class="lang-btn" data-lang="bg" aria-current="false">BG</button>
       </div>
 
-      <!-- Name -->
+      <!-- Project name + author -->
       <h1 class="hero-name">
-        Alexander<br /><em>Inverso.</em>
+        Project<br /><em>Inverso.</em>
       </h1>
+      <p class="hero-author">Alexander DTT</p>
 
       <!-- Tagline -->
       <p class="hero-tagline" data-i18n="hero_tagline">
         [Your tagline — one sentence, under 15 words]
       </p>
 
-      <!-- Scroll prompt -->
+      <!-- Scroll prompt with bouncing arrow -->
       <div class="scroll-prompt" aria-hidden="true">
-        <span data-i18n="scroll_prompt">scroll to begin</span>
+        <svg class="scroll-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+        <span class="scroll-label" data-i18n="scroll_prompt">scroll to begin</span>
       </div>
 
     </section>

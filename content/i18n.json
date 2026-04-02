@@ -38,8 +38,8 @@
     "more_tefq": "TEFQ →",
     "more_relr": "RELR →",
     "more_close": "close",
-    "audio_unmute": "unmute narration",
-    "audio_mute": "mute",
+    "audio_start": "start narration",
+    "audio_stop": "stop narration",
     "audio_label": "narration",
     "toast_lang_saved": "Language set to English. This site uses no tracking cookies.",
     "toast_no_cookies": "No analytics. No tracking. Only your language preference is saved."
@@ -83,8 +83,8 @@
     "more_tefq": "TEFQ →",
     "more_relr": "RELR →",
     "more_close": "cerrar",
-    "audio_unmute": "activar narración",
-    "audio_mute": "silenciar",
+    "audio_start": "iniciar narración",
+    "audio_stop": "detener narración",
     "audio_label": "narración",
     "toast_lang_saved": "Idioma cambiado a español. Este sitio no usa cookies de rastreo.",
     "toast_no_cookies": "Sin analítica. Sin rastreo. Solo se guarda tu preferencia de idioma."
@@ -128,8 +128,8 @@
     "more_tefq": "TEFQ →",
     "more_relr": "RELR →",
     "more_close": "tancar",
-    "audio_unmute": "activar narració",
-    "audio_mute": "silenciar",
+    "audio_start": "iniciar narració",
+    "audio_stop": "aturar narració",
     "audio_label": "narració",
     "toast_lang_saved": "Idioma canviat a català. Aquest lloc no utilitza cookies de seguiment.",
     "toast_no_cookies": "Sense analítica. Sense seguiment. Només es guarda la teva preferència d'idioma."
@@ -173,8 +173,8 @@
     "more_tefq": "TEFQ →",
     "more_relr": "RELR →",
     "more_close": "затвори",
-    "audio_unmute": "включи разказа",
-    "audio_mute": "изключи звука",
+    "audio_start": "стартирай разказа",
+    "audio_stop": "спри разказа",
     "audio_label": "разказ",
     "toast_lang_saved": "Езикът е зададен на български. Сайтът не използва проследяващи бисквитки.",
     "toast_no_cookies": "Без анализи. Без проследяване. Запазва се само вашата езикова предпочитание."

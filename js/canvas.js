@@ -1,12 +1,11 @@
 /**
  * canvas.js — Narrative Background Animation
  *
- * Story: Many particles drift rightward. One lone, smaller particle
- * moves against the current — leftward. Over time, the crowd drifts
- * off-screen. The view gently zooms toward the lone particle.
- * Then the cycle resets, quietly.
- *
- * Intentionally subtle. Should never distract from the text.
+ * Story: Many particles flow in one direction. One lone particle —
+ * noticeably larger, brighter — moves against the current. When it
+ * reaches a wall, it bounces back, shifts to a new Y position, and
+ * the crowd flips direction to always oppose it. Perfectly looping.
+ * Fixed to the viewport — scroll has no effect on it.
  */
 
 (function () {
@@ -16,187 +15,187 @@
   const ctx = canvas.getContext('2d');
 
   // ── Config ────────────────────────────────────────────────────────────────
-  const CONFIG = {
-    particleCount: 70,
-    connectionDistance: 110,
-    cycleLength: 28000,      // ms — full story cycle
-    zoomMax: 1.22,           // max zoom toward lone particle
-    baseOpacity: 0.22,       // all particles (subtle)
-    loneOpacity: 0.35,
-    loneRadius: 1.8,
-    crowdRadius: 2.2,
-    crowdSpeedX: 0.28,       // rightward drift (px/frame)
-    loneSpeedX: -0.18,       // leftward drift
-    speedY: 0.05,            // gentle vertical drift (crowd)
-    lineOpacityMax: 0.10,
-    color: '180, 160, 175',  // muted purple-gray (RGB)
-    loneColor: '150, 120, 160',
+  const C = {
+    crowdCount:       65,
+    crowdSpeed:       0.30,        // px/frame, base horizontal speed
+    loneSpeed:        0.22,        // px/frame
+    connDist:         115,         // px — max connection line distance
+    crowdR:           2.0,
+    loneR:            5.5,
+    crowdOpacity:     0.18,
+    loneOpacity:      0.82,
+    crowdColor:       '170, 148, 165',
+    loneColor:        '148, 98, 175',  // brighter accent purple
+    lineMax:          0.09,
+    speedYNoise:      0.045,
+    loneShadow:       16,
+    wallMargin:       40,
   };
 
-  // ── State ─────────────────────────────────────────────────────────────────
   let W, H;
-  let particles = [];
-  let lone = null;
-  let startTime = null;
+  let crowd = [];
+  let lone = {};
+  let loneDir = -1;       // -1 = moving left, +1 = moving right
+  let loneTargetY = 0;
   let raf = null;
-  let zoom = 1;
-  let zoomTarget = 1;
-  let zoomOriginX = 0.5;
-  let zoomOriginY = 0.5;
+  let initialized = false;
 
   // ── Resize ────────────────────────────────────────────────────────────────
   function resize() {
-    W = canvas.width = window.innerWidth;
+    W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
+
+    if (initialized) {
+      lone.x = Math.max(C.wallMargin, Math.min(W - C.wallMargin, lone.x));
+      loneTargetY = Math.max(H * 0.15, Math.min(H * 0.85, loneTargetY));
+    }
   }
 
   window.addEventListener('resize', resize);
   resize();
 
-  // ── Particle factory ──────────────────────────────────────────────────────
-  function makeParticle(isLone) {
-    const r = isLone ? CONFIG.loneRadius : CONFIG.crowdRadius;
+  // ── Crowd particle factory ─────────────────────────────────────────────────
+  // All crowd particles are spread randomly at startup; each frame they wrap.
+  function makeCrowdParticle(spreadX) {
+    const vx = crowdVx();
     return {
-      x: isLone ? W * 0.35 + Math.random() * W * 0.3 : Math.random() * W,
-      y: Math.random() * H,
-      vx: isLone ? CONFIG.loneSpeedX : CONFIG.crowdSpeedX + (Math.random() - 0.5) * 0.08,
-      vy: isLone ? (Math.random() - 0.5) * 0.06 : (Math.random() - 0.5) * CONFIG.speedY,
-      r,
-      opacity: isLone ? CONFIG.loneOpacity : CONFIG.baseOpacity * (0.6 + Math.random() * 0.4),
-      isLone,
-      offscreen: false,
+      x:  spreadX ? Math.random() * W : (loneDir > 0 ? W + 10 : -10),
+      y:  Math.random() * H,
+      vx,
+      vy: (Math.random() - 0.5) * C.speedYNoise,
+      opacity: C.crowdOpacity * (0.55 + Math.random() * 0.45),
     };
   }
 
+  function crowdVx() {
+    // Crowd always moves OPPOSITE to lone
+    return (-loneDir) * C.crowdSpeed + (Math.random() - 0.5) * 0.06;
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────
   function init() {
-    particles = [];
-    for (let i = 0; i < CONFIG.particleCount; i++) {
-      particles.push(makeParticle(false));
+    loneDir     = -1;
+    loneTargetY = H * (0.25 + Math.random() * 0.5);
+
+    lone = {
+      x:  W * 0.6,
+      y:  loneTargetY,
+      vx: loneDir * C.loneSpeed,
+    };
+
+    crowd = [];
+    for (let i = 0; i < C.crowdCount; i++) {
+      crowd.push(makeCrowdParticle(true)); // true = spread randomly for startup
     }
-    lone = makeParticle(true);
-    startTime = null;
-    zoom = 1;
-    zoomTarget = 1;
-    zoomOriginX = lone.x / W;
-    zoomOriginY = lone.y / H;
+
+    initialized = true;
   }
 
   init();
 
-  // ── Draw ──────────────────────────────────────────────────────────────────
-  function drawParticle(p) {
-    const col = p.isLone ? CONFIG.loneColor : CONFIG.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${col}, ${p.opacity})`;
-    ctx.fill();
-  }
+  // ── Draw ─────────────────────────────────────────────────────────────────
+  function drawConnections() {
+    // Mix crowd + lone into one list for connection checks
+    const pts = crowd.concat([{ x: lone.x, y: lone.y, isLone: true }]);
 
-  function drawConnections(all) {
-    for (let i = 0; i < all.length; i++) {
-      for (let j = i + 1; j < all.length; j++) {
-        const a = all[i];
-        const b = all[j];
-        if (a.offscreen || b.offscreen) continue;
+    for (let i = 0; i < pts.length; i++) {
+      for (let j = i + 1; j < pts.length; j++) {
+        const a = pts[i], b = pts[j];
         const dx = a.x - b.x;
         const dy = a.y - b.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < CONFIG.connectionDistance) {
-          const alpha = (1 - dist / CONFIG.connectionDistance) * CONFIG.lineOpacityMax;
-          const col = (a.isLone || b.isLone) ? CONFIG.loneColor : CONFIG.color;
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.strokeStyle = `rgba(${col}, ${alpha})`;
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
-        }
+        if (dist >= C.connDist) continue;
+
+        const alpha = (1 - dist / C.connDist) * C.lineMax;
+        const isLoneConn = a.isLone || b.isLone;
+
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = `rgba(${isLoneConn ? C.loneColor : C.crowdColor}, ${alpha})`;
+        ctx.lineWidth   = isLoneConn ? 0.9 : 0.5;
+        ctx.stroke();
       }
     }
   }
 
-  // ── Easing ────────────────────────────────────────────────────────────────
-  function easeInOut(t) {
-    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+  function drawCrowd() {
+    crowd.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, C.crowdR, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${C.crowdColor}, ${p.opacity})`;
+      ctx.fill();
+    });
+  }
+
+  function drawLone() {
+    // Glow
+    ctx.save();
+    ctx.shadowBlur  = C.loneShadow;
+    ctx.shadowColor = `rgba(${C.loneColor}, 0.45)`;
+    ctx.beginPath();
+    ctx.arc(lone.x, lone.y, C.loneR, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${C.loneColor}, ${C.loneOpacity})`;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // ── Flip crowd direction ──────────────────────────────────────────────────
+  function flipCrowd() {
+    crowd.forEach(p => {
+      // Reverse horizontal velocity, keep magnitude roughly constant
+      const speed = Math.abs(p.vx) || C.crowdSpeed;
+      p.vx = (-loneDir) * speed + (Math.random() - 0.5) * 0.06;
+    });
   }
 
   // ── Frame ─────────────────────────────────────────────────────────────────
-  function frame(ts) {
-    if (!startTime) startTime = ts;
-    const elapsed = ts - startTime;
-    const progress = Math.min(elapsed / CONFIG.cycleLength, 1);
-
+  function frame() {
     ctx.clearRect(0, 0, W, H);
 
-    // ── Zoom logic ────────────────────────────────────────────────────────
-    // Phase 0–0.5: normal, crowd drifts
-    // Phase 0.5–0.85: crowd fades, zoom begins toward lone particle
-    // Phase 0.85–1.0: zoom holds, lone particle alone on screen
-    if (progress < 0.5) {
-      zoomTarget = 1;
-    } else if (progress < 0.85) {
-      const t = (progress - 0.5) / 0.35;
-      zoomTarget = 1 + easeInOut(t) * (CONFIG.zoomMax - 1);
-    } else {
-      zoomTarget = CONFIG.zoomMax;
+    // ── Move lone ──────────────────────────────────────────────────────────
+    lone.x += lone.vx;
+    lone.y += (loneTargetY - lone.y) * 0.005; // slow drift to target Y
+
+    // Bounce off walls
+    if (loneDir === -1 && lone.x <= C.wallMargin) {
+      lone.x    = C.wallMargin;
+      loneDir   = 1;
+      lone.vx   = C.loneSpeed;
+      loneTargetY = H * (0.15 + Math.random() * 0.70);
+      flipCrowd();
+    } else if (loneDir === 1 && lone.x >= W - C.wallMargin) {
+      lone.x    = W - C.wallMargin;
+      loneDir   = -1;
+      lone.vx   = -C.loneSpeed;
+      loneTargetY = H * (0.15 + Math.random() * 0.70);
+      flipCrowd();
     }
 
-    // Smooth zoom
-    zoom += (zoomTarget - zoom) * 0.012;
-
-    // Track lone particle position for zoom origin
-    zoomOriginX += (lone.x / W - zoomOriginX) * 0.015;
-    zoomOriginY += (lone.y / H - zoomOriginY) * 0.015;
-
-    // Apply zoom transform centered on lone particle
-    ctx.save();
-    const ox = zoomOriginX * W;
-    const oy = zoomOriginY * H;
-    ctx.translate(ox, oy);
-    ctx.scale(zoom, zoom);
-    ctx.translate(-ox, -oy);
-
-    // ── Move + fade crowd ────────────────────────────────────────────────
-    const crowdFadeStart = 0.48;
-    const crowdFadeEnd = 0.75;
-
-    particles.forEach(p => {
+    // ── Move crowd + wrap ─────────────────────────────────────────────────
+    crowd.forEach(p => {
       p.x += p.vx;
       p.y += p.vy;
 
-      // Fade out during crowd-exit phase
-      if (progress >= crowdFadeStart) {
-        const ft = Math.min((progress - crowdFadeStart) / (crowdFadeEnd - crowdFadeStart), 1);
-        p.opacity = CONFIG.baseOpacity * (0.6 + Math.random() * 0.4) * (1 - ft);
+      // Wrap horizontally: exit one edge → enter from opposite
+      if (p.vx > 0 && p.x > W + 18) {
+        p.x  = -12;
+        p.y  = Math.random() * H;
+        p.vy = (Math.random() - 0.5) * C.speedYNoise;
+      } else if (p.vx < 0 && p.x < -18) {
+        p.x  = W + 12;
+        p.y  = Math.random() * H;
+        p.vy = (Math.random() - 0.5) * C.speedYNoise;
       }
 
-      // Off-screen check
-      p.offscreen = (p.x > W + 20 || p.x < -20 || p.y > H + 20 || p.y < -20);
+      // Soft vertical boundary reflection (gentle)
+      if (p.y < 5 || p.y > H - 5) p.vy *= -1;
     });
 
-    // ── Move lone ────────────────────────────────────────────────────────
-    lone.x += lone.vx;
-    lone.y += lone.vy;
-
-    // Lone particle bounces vertically, wraps horizontally
-    if (lone.y < 20 || lone.y > H - 20) lone.vy *= -1;
-    if (lone.x < -40) lone.x = W + 20; // wrap if it drifts too far left
-
-    // Draw connections (crowd ↔ crowd + lone ↔ near crowd while visible)
-    const visibleParticles = particles.filter(p => !p.offscreen && p.opacity > 0.01);
-    drawConnections([...visibleParticles, lone]);
-
-    // Draw particles
-    visibleParticles.forEach(drawParticle);
-    drawParticle(lone);
-
-    ctx.restore();
-
-    // ── Cycle reset ───────────────────────────────────────────────────────
-    if (progress >= 1) {
-      // Soft reset: fade back in
-      init();
-    }
+    // ── Draw ──────────────────────────────────────────────────────────────
+    drawConnections();
+    drawCrowd();
+    drawLone();
 
     raf = requestAnimationFrame(frame);
   }
@@ -205,7 +204,11 @@
 
   // ── Public API ────────────────────────────────────────────────────────────
   window.InversoCanvas = {
-    stop: () => { if (raf) cancelAnimationFrame(raf); },
-    restart: () => { init(); raf = requestAnimationFrame(frame); },
+    stop:    () => { if (raf) cancelAnimationFrame(raf); },
+    restart: () => {
+      if (raf) cancelAnimationFrame(raf);
+      init();
+      raf = requestAnimationFrame(frame);
+    },
   };
 })();
