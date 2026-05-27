@@ -3,245 +3,177 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project Inverso</title>
-  <meta name="description" content="Alexander DTT — biomedical student, builder, thinker. This site is a work in progress." />
+  <title>Alexander Inverso</title>
+  <meta name="description" content="Alexander Inverso — reverse-engineering the human body." />
 
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: #F2F0EE;
+      color: #1A1718;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      display: grid;
+      grid-template-columns: 42% 1fr;
+      min-height: 100dvh;
+    }
+
+    /* ── Photo ─────────────────────────────────────────────────── */
+    .photo-col {
+      position: sticky;
+      top: 0;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .photo-col img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+
+    /* ── Content ───────────────────────────────────────────────── */
+    .content-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: clamp(3rem, 7vw, 6rem) clamp(2.5rem, 6vw, 5.5rem);
+      min-height: 100dvh;
+    }
+
+    .name {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3rem, 5.5vw, 5.5rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      color: #1A1718;
+      margin-bottom: 2rem;
+    }
+
+    .name em {
+      font-style: normal;
+      color: #5E4B56;
+    }
+
+    .bio {
+      font-size: clamp(0.92rem, 1.2vw, 1.05rem);
+      line-height: 1.85;
+      color: #1A1718;
+      max-width: 500px;
+      margin-bottom: 2rem;
+    }
+
+    .bio p + p {
+      margin-top: 1.1em;
+    }
+
+    .links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin-bottom: 2.25rem;
+    }
+
+    .links a {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #5E4B56;
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      transition: color 0.18s;
+    }
+
+    .links a:hover {
+      color: #1A1718;
+    }
+
+    .divider {
+      width: 2.5rem;
+      height: 1px;
+      background: rgba(94, 75, 86, 0.3);
+      margin-bottom: 2rem;
+    }
+
+    .beg {
+      font-size: clamp(0.82rem, 1vw, 0.9rem);
+      color: #7D6B75;
+      line-height: 1.8;
+      max-width: 460px;
+    }
+
+    .beg strong {
+      color: #5E4B56;
+      font-weight: 600;
+    }
+
+    /* ── Mobile ────────────────────────────────────────────────── */
+    @media (max-width: 700px) {
+      .page {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+
+      .photo-col {
+        position: relative;
+        height: 55vw;
+        min-height: 260px;
+        max-height: 420px;
+      }
+
+      .content-col {
+        min-height: unset;
+        padding: 2.5rem 1.75rem 3.5rem;
+        justify-content: flex-start;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="page">
 
-  <!-- Background canvas -->
-  <canvas id="bg-canvas" aria-hidden="true"></canvas>
-
-  <!-- ── WIP badge ─────────────────────────────────────────────────────── -->
-  <div id="wip-badge" aria-label="Work in progress">
-    <span data-i18n="wip_badge">v0.1 — work in progress</span>
-  </div>
-
-  <!-- ── Audio widget ───────────────────────────────────────────────────── -->
-  <div id="audio-widget" role="region" aria-label="Narration controls">
-    <div id="audio-waveform" aria-hidden="true">
-      <span class="wave-bar"></span>
-      <span class="wave-bar"></span>
-      <span class="wave-bar"></span>
-      <span class="wave-bar"></span>
-      <span class="wave-bar"></span>
-    </div>
-    <button id="audio-mute-btn" data-i18n="audio_unmute" aria-pressed="false">
-      unmute narration
-    </button>
-    <audio
-      id="narration-audio"
-      src="audio/narration.mp3"
-      preload="auto"
-      aria-label="Page narration"
-    ></audio>
-  </div>
-
-  <!-- ── More button + drawer ───────────────────────────────────────────── -->
-  <button id="more-btn" aria-expanded="false" aria-controls="more-drawer">
-    <span data-i18n="more_button">more ↗</span>
-  </button>
-
-  <div id="more-drawer" role="dialog" aria-label="Additional pages">
-    <p class="more-drawer-title" data-i18n="more_drawer_title">Also here:</p>
-    <nav class="more-drawer-links">
-      <a href="TEFQ.html" data-i18n="more_tefq">TEFQ →</a>
-      <a href="RELR/index.html" data-i18n="more_relr">RELR →</a>
-    </nav>
-    <button id="more-close" data-i18n="more_close">close</button>
-  </div>
-
-  <!-- ── Language toast ────────────────────────────────────────────────── -->
-  <div id="lang-toast" role="status" aria-live="polite"></div>
-
-  <!-- ═══════════════════════════════════════════════════════════════════
-       MAIN CONTENT
-       ═══════════════════════════════════════════════════════════════════ -->
-  <main>
-
-    <!-- ── HERO ─────────────────────────────────────────────────────────── -->
-    <section id="hero">
-
-      <!-- Language selector -->
-      <div id="lang-selector" role="navigation" aria-label="Language selection">
-        <button class="lang-btn active" data-lang="en" aria-current="true">EN</button>
-        <button class="lang-btn" data-lang="es" aria-current="false">ES</button>
-        <button class="lang-btn" data-lang="ca" aria-current="false">CA</button>
-        <button class="lang-btn" data-lang="bg" aria-current="false">BG</button>
-      </div>
-
-      <!-- Name -->
-      <h1 class="hero-name">
-        Project<br /><em>Inverso.</em>
-      </h1>
-
-      <!-- Tagline -->
-      <p class="hero-tagline" data-i18n="hero_tagline">
-        [Your tagline — one sentence, under 15 words]
-      </p>
-
-      <!-- Scroll prompt -->
-      <div class="scroll-prompt" aria-hidden="true">
-        <span data-i18n="scroll_prompt">scroll to begin</span>
-      </div>
-
-    </section>
-
-    <!-- ── INTRODUCTION ──────────────────────────────────────────────────── -->
-    <section id="intro">
-      <span class="section-label" data-i18n="intro_heading">Who I am.</span>
-
-      <div class="section-body">
-        <p
-          data-reveal
-          data-i18n="intro_body"
-          data-section="intro"
-        >[Write a short introduction about yourself here. Who are you? What drives you? What are you studying or building? This is your honest, direct presentation to the world. Keep it real.]</p>
-      </div>
-    </section>
-
-    <!-- ── Image divider (placeholder) ─────────────────────────────────── -->
-    <div class="section-divider-img placeholder-img" aria-hidden="true">
-      [Image placeholder — drop a photo here]
+    <div class="photo-col">
+      <img
+        src="TEFQ%20Media/03_Christmas/alex_cake.jpg"
+        alt="Alexander Inverso"
+      />
     </div>
 
-    <!-- ── GOAL 1 ─────────────────────────────────────────────────────────── -->
-    <section id="goal1">
-      <span class="section-label" data-i18n="goal1_label">Goal.</span>
+    <div class="content-col">
 
-      <div class="goal-content">
-        <div class="goal-text">
-          <h2 class="section-heading" data-reveal data-i18n="goal1_heading" data-section="goal1">
-            [The name or title of your first goal]
-          </h2>
+      <h1 class="name">Alexander<br /><em>Inverso.</em></h1>
 
-          <div class="section-body">
-            <p
-              data-reveal
-              data-i18n="goal1_body"
-              data-section="goal1"
-            >[Describe your first big goal here. This is the one you're willing to share. Be honest. Be ambitious. People respect clarity of vision more than vagueness. Write it in your own words — this is your story, not a pitch deck.]</p>
-          </div>
-        </div>
-
-        <!-- Image slot -->
-        <div class="goal-image-slot" aria-label="Goal 1 image placeholder">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <path d="M21 15l-5-5L5 21"/>
-          </svg>
-          <span data-i18n="goal1_img_alt">[Image representing Goal 1]</span>
-          <img src="" alt="" />
-        </div>
-      </div>
-    </section>
-
-    <!-- ── GOAL 2 (blurred) ──────────────────────────────────────────────── -->
-    <div id="goal2-wrapper">
-
-      <!-- Blurred content -->
-      <section id="goal2" aria-hidden="true">
-        <span class="section-label" data-i18n="goal2_label">What comes next.</span>
-
-        <h2 class="section-heading" data-i18n="goal2_heading">
-          [A second goal exists.]
-        </h2>
-
-        <div class="section-body">
-          <p data-i18n="goal2_body">
-            [This goal is not yet public. It will become visible when Goal 1 is complete. Check back then.]
-          </p>
-        </div>
-      </section>
-
-      <!-- Overlay (not blurred — always readable) -->
-      <div class="goal2-overlay" aria-label="Locked section">
-        <div class="goal2-lock">
-          <!-- Lock icon -->
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0110 0v4"/>
-          </svg>
-          <span data-i18n="goal2_lock_text">Unlocks when Goal 1 is achieved.</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── NEWSLETTER ────────────────────────────────────────────────────── -->
-    <section id="newsletter-section">
-      <span class="section-label" data-i18n="newsletter_heading">Stay in the loop.</span>
-
-      <div class="section-body" style="margin-bottom: 0;">
-        <p data-reveal data-i18n="newsletter_body" data-section="newsletter">
-          If you want to be notified when this site updates, when a project launches, or when something worth saying happens — leave your email.
-        </p>
+      <div class="bio">
+        <p>I'm 18. I study biology. My actual goal is to simulate the human body at the molecular level — a digital twin driven by heterogeneous computing: quantum processors for individual interactions, HPC for the broader state, neuromorphic and optical systems for speed. A machine that computes what a drug should be, or how aging works mechanistically, and then how to stop it.</p>
+        <p>I named this project Inverso because understanding nature requires reverse-engineering it. And because the right way to do something is almost always the opposite of how it's being done.</p>
       </div>
 
-      <form id="newsletter-form" novalidate>
-        <input
-          type="email"
-          id="newsletter-email"
-          name="email"
-          autocomplete="email"
-          data-i18n-placeholder="newsletter_placeholder"
-          placeholder="your@email.com"
-          required
-        />
-        <button type="submit" id="newsletter-submit" data-i18n="newsletter_cta">
-          Notify me
-        </button>
-      </form>
-
-      <p id="newsletter-confirm" data-i18n="newsletter_confirm" aria-live="polite">
-        Got it. You'll hear from me when there's something real to say.
-      </p>
-    </section>
-
-    <!-- ── CONTACT ───────────────────────────────────────────────────────── -->
-    <section id="contact">
-      <span class="section-label" data-i18n="contact_heading">Let's talk.</span>
-
-      <h2 class="section-heading" data-reveal data-section="contact">
-        Let's<br />talk.
-      </h2>
-
-      <a
-        class="contact-email-link"
-        href="mailto:[alexander@inverso.bio]"
-        data-i18n="contact_email"
-        aria-label="Send email to Alexander Inverso"
-      >
-        [hello@inverso.bio]
-      </a>
-
-      <nav class="contact-socials" aria-label="Social links">
-        <a class="contact-social-link" href="#" data-i18n="contact_social_instagram">[Instagram]</a>
-        <a class="contact-social-link" href="#" data-i18n="contact_social_linkedin">[LinkedIn]</a>
-        <a class="contact-social-link" href="#" data-i18n="contact_social_x">[X / Twitter]</a>
+      <nav class="links" aria-label="Contact and social links">
+        <a href="mailto:alexander@inverso.bio">alexander@inverso.bio</a>
+        <a href="https://www.instagram.com/alexander.inverso/" target="_blank" rel="noopener noreferrer">@alexander.inverso</a>
       </nav>
-    </section>
 
-  </main>
+      <div class="divider" aria-hidden="true"></div>
 
-  <!-- ── FOOTER ────────────────────────────────────────────────────────── -->
-  <footer>
-    <span class="footer-wip" data-i18n="footer_wip">This site is a work in progress.</span>
-    <div class="footer-meta">
-      <span class="footer-updated" data-i18n="footer_updated">Last updated: April 2026</span>
-      <span class="footer-copyright" data-i18n="footer_copyright">© 2026 Alexander Inverso</span>
+      <p class="beg">
+        This doesn't exist yet. No lab, no team — just the goal. If you're working on heterogeneous computing, computational biology, synthetic biology, or deductive medicine, <strong>please write to me</strong>. Or if you think I'm wrong about something fundamental. I'm at the beginning and I need to hear from people who are serious about this. <strong><a href="mailto:alexander@inverso.bio" style="color: inherit;">alexander@inverso.bio</a></strong>
+      </p>
+
     </div>
-  </footer>
-
-  <!-- Scripts -->
-  <script src="js/canvas.js"></script>
-  <script src="js/scroll.js"></script>
-
+  </div>
 </body>
 </html>
