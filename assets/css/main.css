@@ -279,7 +279,7 @@ a:hover { color: var(--accent); }
    ============================================================ */
 .landing-body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
 .landing {
-  text-align: center; max-width: 640px; padding: 2rem var(--gutter);
+  text-align: center; max-width: 640px; padding: 2rem var(--gutter); position: relative;
 }
 .landing-kicker {
   font-family: var(--font-mono); font-size: 0.82rem; letter-spacing: 0.3em;
@@ -288,15 +288,26 @@ a:hover { color: var(--accent); }
 .landing-name {
   font-family: var(--font-display); font-weight: 800;
   font-size: clamp(2.8rem, 9vw, 6rem); line-height: 0.95; letter-spacing: -0.02em;
-  margin-bottom: 1.8rem;
+  margin-bottom: 1.8rem; display: block; text-align: center;
 }
-.landing-line { color: var(--paper); opacity: 0.82; font-size: 1.1rem; max-width: 44ch; margin: 0 auto 2.4rem; }
-.landing-cta { color: var(--muted); line-height: 2; }
-.landing-cta a {
-  font-family: var(--font-mono); font-size: 1.15rem; color: var(--accent);
-  border-bottom: 1px solid var(--accent); padding-bottom: 2px;
+.landing-line { color: var(--paper); opacity: 0.82; font-size: 1.1rem; max-width: 52ch; margin: 0 auto 2.4rem; line-height: 1.6; }
+.landing-contacts { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 2.4rem; }
+.contact-link {
+  font-family: var(--font-mono); font-size: 1rem; color: var(--accent);
+  border-bottom: 1px solid var(--accent); padding-bottom: 2px; transition: 0.2s;
+  display: inline-block;
 }
-.landing-cta a:hover { background: var(--accent); color: var(--ink); }
+.contact-link:hover { background: var(--accent); color: var(--ink); }
+
+.landing-callout {
+  position: fixed; bottom: clamp(1.2rem, 5vh, 3rem); right: clamp(1.2rem, 4vw, 2.4rem);
+  border: 1px solid var(--accent); border-radius: 12px; padding: 1rem 1.2rem;
+  background: rgba(125,107,117,0.08); backdrop-filter: blur(6px);
+  font-family: var(--font-mono); font-size: 0.85rem; color: var(--paper);
+  max-width: 140px; text-align: center; line-height: 1.5;
+  z-index: 30;
+}
+.landing-callout strong { color: var(--accent); }
 
 /* ============================================================
    Puerta de contraseña ( /preliminar )
