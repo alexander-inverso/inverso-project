@@ -277,37 +277,79 @@ a:hover { color: var(--accent); }
 /* ============================================================
    Landing pública ( / )
    ============================================================ */
-.landing-body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-.landing {
-  text-align: center; max-width: 640px; padding: 2rem var(--gutter); position: relative;
+.landing-body {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100svh;                       /* svh: estable con la barra del móvil */
+  padding: 5rem var(--gutter);
 }
+/* veil más ligero en la landing para que respire el code art */
+.landing-body #bg-veil {
+  background:
+    radial-gradient(60% 50% at 50% 42%, rgba(125,107,117,0.10), transparent 70%),
+    radial-gradient(120% 90% at 50% -10%, transparent 45%, rgba(21,17,15,0.7) 100%),
+    linear-gradient(180deg, rgba(21,17,15,0.25), rgba(21,17,15,0.5));
+}
+
+.landing { text-align: center; max-width: 40rem; margin-inline: auto; }
 .landing-kicker {
   font-family: var(--font-mono); font-size: 0.82rem; letter-spacing: 0.3em;
-  text-transform: uppercase; color: var(--accent); margin-bottom: 1.6rem;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem;
 }
 .landing-name {
   font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(2.8rem, 9vw, 6rem); line-height: 0.95; letter-spacing: -0.02em;
-  margin-bottom: 1.8rem; display: block; text-align: center;
+  font-size: clamp(2.8rem, 11vw, 6rem); line-height: 0.95; letter-spacing: -0.02em;
+  margin-bottom: 1.7rem; text-wrap: balance;
 }
-.landing-line { color: var(--paper); opacity: 0.82; font-size: 1.1rem; max-width: 52ch; margin: 0 auto 2.4rem; line-height: 1.6; }
-.landing-contacts { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 2.4rem; }
+.landing-line {
+  color: var(--paper); opacity: 0.85; font-size: clamp(1rem, 0.95rem + 0.5vw, 1.2rem);
+  max-width: 34ch; margin: 0 auto 2.6rem; line-height: 1.6; text-wrap: pretty;
+}
+.landing-contacts { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; }
 .contact-link {
-  font-family: var(--font-mono); font-size: 1rem; color: var(--accent);
-  border-bottom: 1px solid var(--accent); padding-bottom: 2px; transition: 0.2s;
-  display: inline-block;
+  font-family: var(--font-mono); font-size: clamp(0.9rem, 0.85rem + 0.4vw, 1.05rem);
+  color: var(--accent); border-bottom: 1px solid var(--accent);
+  padding-bottom: 2px; transition: background 0.2s, color 0.2s;
 }
-.contact-link:hover { background: var(--accent); color: var(--ink); }
+.contact-link:hover, .contact-link:focus-visible { background: var(--accent); color: var(--ink); outline: none; }
 
+/* ---- callout dinámico: flota en escritorio, inline en móvil ---- */
 .landing-callout {
-  position: fixed; bottom: clamp(1.2rem, 5vh, 3rem); right: clamp(1.2rem, 4vw, 2.4rem);
-  border: 1px solid var(--accent); border-radius: 12px; padding: 1rem 1.2rem;
-  background: rgba(125,107,117,0.08); backdrop-filter: blur(6px);
-  font-family: var(--font-mono); font-size: 0.85rem; color: var(--paper);
-  max-width: 140px; text-align: center; line-height: 1.5;
-  z-index: 30;
+  position: fixed; bottom: max(1.4rem, env(safe-area-inset-bottom)); right: clamp(1.2rem, 4vw, 2.4rem);
+  z-index: 30; display: inline-flex; align-items: center; gap: 0.55rem;
+  padding: 0.7rem 1rem; border: 1px solid var(--accent); border-radius: 999px;
+  background: rgba(125,107,117,0.10); backdrop-filter: blur(8px);
+  font-family: var(--font-mono); font-size: 0.82rem; color: var(--paper);
+  /* entra (una vez) y luego flota (en bucle) */
+  animation: rise 0.7s cubic-bezier(0.2,0.7,0.2,1) 0.55s both,
+             floaty 4.5s ease-in-out 1.3s infinite;
+  transition: background 0.2s, box-shadow 0.2s;
 }
-.landing-callout strong { color: var(--accent); }
+.landing-callout:hover, .landing-callout:focus-visible {
+  background: rgba(125,107,117,0.22); outline: none;
+  box-shadow: 0 8px 30px -10px rgba(125,107,117,0.6);
+}
+.callout-tag { color: var(--accent); font-weight: 700; }
+.callout-arrow { display: inline-block; animation: nudge 1.6s ease-in-out infinite; }
+
+@keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes nudge  { 0%,100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+
+/* ---- entrada escalonada ---- */
+.rise { opacity: 0; animation: rise 0.7s cubic-bezier(0.2,0.7,0.2,1) forwards; animation-delay: calc(var(--i,0) * 0.09s + 0.1s); }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+/* ---- móvil: el callout pasa al flujo (centrado por el text-align del padre) ---- */
+@media (max-width: 640px) {
+  .landing-callout {
+    position: static; margin-top: 2.4rem; animation-name: none; transform: none;
+  }
+  .landing-callout .callout-arrow { animation-name: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise { opacity: 1; animation: none; }
+  .landing-callout, .callout-arrow { animation: none; }
+}
 
 /* ============================================================
    Puerta de contraseña ( /preliminar )
