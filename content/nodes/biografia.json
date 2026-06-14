@@ -1,0 +1,49 @@
+{
+  "id": "biografia",
+  "label": "Biografía",
+  "kicker": "01 — Quién soy",
+  "title": "Alexander Inverso",
+  "lede": "Estudiante con una obsesión concreta: tratar el envejecimiento humano como un problema de ingeniería, no como un destino.",
+  "accent": "#7D6B75",
+  "shader": "field",
+  "layout": "split",
+  "contexts": ["profesional", "internet", "default"],
+  "blocks": [
+    {
+      "type": "prose",
+      "heading": "Ahora mismo",
+      "body": "Preparándome para estudiar Biomedicina en el Karolinska Institutet (Estocolmo), con la idea de especializarme después en bioestadística y data science. El objetivo final no ha cambiado desde que lo entendí: frenar el envejecimiento humano atacándolo desde el código fuente de la vida.\n\n[Escribe aquí tu situación actual con tus propias palabras: curso, proyectos, contexto.]"
+    },
+    {
+      "type": "prose",
+      "heading": "De dónde vengo",
+      "body": "[Tu pasado: infancia, de dónde eres, experiencias que te formaron y por qué acabaste pensando así.]"
+    },
+    {
+      "type": "list",
+      "heading": "Lo que me mueve",
+      "items": [
+        "Entender sistemas que nadie diseñó conscientemente.",
+        "Convertir lo impredecible en predecible.",
+        "Preguntas grandes con respuestas incómodas.",
+        "[Añade lo tuyo]"
+      ]
+    },
+    {
+      "type": "cv",
+      "heading": "Currículum",
+      "items": [
+        { "when": "Objetivo", "what": "BSc Biomedicina", "where": "Karolinska Institutet, Suecia" },
+        { "when": "Después", "what": "MSc Bioestadística / Data Science", "where": "[por decidir]" },
+        { "when": "[año]", "what": "[hito / proyecto / premio]", "where": "[dónde]" }
+      ]
+    },
+    {
+      "type": "quote",
+      "text": "Que los científicos se queden sin trabajo."
+    }
+  ],
+  "links": [
+    { "label": "Escríbeme", "href": "mailto:correo@inverso.bio" }
+  ]
+}
