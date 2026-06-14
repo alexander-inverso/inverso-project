@@ -302,6 +302,7 @@ a:hover { color: var(--accent); }
   /* escala con el ancho y se queda SIEMPRE en una sola línea, centrada */
   font-size: clamp(2rem, 9vw, 5.5rem); line-height: 1; letter-spacing: -0.01em;
   margin-bottom: 1.7rem; white-space: nowrap;
+  width: 100%; text-align: center;
 }
 .landing-line {
   color: var(--paper); opacity: 0.85; font-size: clamp(1rem, 0.95rem + 0.5vw, 1.2rem);
@@ -325,20 +326,24 @@ a:hover { color: var(--accent); }
   background: var(--accent); color: var(--ink); outline: none;
 }
 
-/* ---- selector de idioma (arriba, centrado) ---- */
+/* ---- selector de idioma (arriba del todo, centrado, integrado con la paleta) ---- */
 .lang-switch {
-  position: fixed; top: max(1rem, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
-  z-index: 40; display: inline-flex; gap: 0.15rem;
-  padding: 0.25rem; border: 1px solid rgba(255,255,255,0.14); border-radius: 999px;
-  background: rgba(21,17,15,0.45); backdrop-filter: blur(8px);
+  position: fixed; top: max(1.1rem, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+  z-index: 40; display: inline-flex; align-items: center; gap: 0.1rem;
+  padding: 0.28rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 999px;
+  background: rgba(21,17,15,0.5);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.25);
 }
 .lang-btn {
   appearance: none; border: 0; background: transparent; cursor: pointer;
-  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em;
-  color: var(--muted); padding: 0.3rem 0.7rem; border-radius: 999px;
-  transition: color 0.2s, background 0.2s;
+  font-family: var(--font-mono); font-weight: 700; font-size: 0.7rem;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); padding: 0.34rem 0.8rem; border-radius: 999px;
+  transition: color 0.2s ease, background 0.2s ease;
 }
 .lang-btn:hover { color: var(--paper); }
+.lang-btn:focus-visible { outline: none; color: var(--paper); box-shadow: 0 0 0 2px rgba(125,107,117,0.6); }
 .lang-btn[aria-pressed="true"] { color: var(--ink); background: var(--accent); }
 
 /* ---- entrada escalonada ---- */
