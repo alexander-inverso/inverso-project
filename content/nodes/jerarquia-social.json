@@ -1,0 +1,38 @@
+{
+  "id": "jerarquia-social",
+  "label": "Jerarquía Social",
+  "kicker": "05 — Cómo nos ordenamos",
+  "title": "Jerarquía social",
+  "lede": "Si mañana existe la cura, ¿quién decide quién vive? Toda jerarquía es una respuesta a quién merece qué.",
+  "accent": "#6E5A66",
+  "shader": "lattice",
+  "layout": "flow",
+  "contexts": ["internet", "default", "profesional"],
+  "blocks": [
+    {
+      "type": "prose",
+      "heading": "Productivo no es lo mismo que valioso",
+      "body": "¿Merece la inmortalidad un jubilado que no produce pero tampoco molesta? Confundimos el valor de una vida con su utilidad económica. La existencia de una cura transforma la muerte evitable en asesinato por omisión: y entonces quién accede primero deja de ser un detalle logístico."
+    },
+    {
+      "type": "prose",
+      "heading": "Mi lectura de las jerarquías",
+      "body": "[Tu visión: ¿cómo se forman las jerarquías sociales? ¿Qué las legitima y qué las corrompe? ¿Cuáles defiendes y cuáles te parecen heredadas sin justificación?]"
+    },
+    {
+      "type": "list",
+      "heading": "Preguntas que no esquivo",
+      "items": [
+        "¿Quién define qué significa 'aportar'?",
+        "¿Es la escasez una excusa o una restricción real?",
+        "¿Qué jerarquías son funcionales y cuáles solo inerciales?",
+        "[Añade las tuyas]"
+      ]
+    },
+    {
+      "type": "quote",
+      "text": "La pregunta de quién merece vivir es demasiado importante para dejarla en manos de quienes lleguen primero."
+    }
+  ],
+  "essays": ["quien-merece-inmortalidad"]
+}

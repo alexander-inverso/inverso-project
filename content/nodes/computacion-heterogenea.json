@@ -1,0 +1,43 @@
+{
+  "id": "computacion-heterogenea",
+  "label": "Computación Heterogénea",
+  "kicker": "02 — El método",
+  "title": "Computación heterogénea",
+  "lede": "Si el cuerpo es código sin documentar, la salida no es probar a ciegas: es simularlo hasta que sea predecible.",
+  "accent": "#5E4B56",
+  "shader": "lattice",
+  "layout": "manifesto",
+  "contexts": ["profesional", "internet", "default"],
+  "blocks": [
+    {
+      "type": "prose",
+      "heading": "El cuerpo como sistema",
+      "body": "El ADN es código. Las proteínas son funciones. Las células son procesos. La muerte es un error no controlado. La diferencia con el software es que este código tiene 3.000 millones de pares de bases y viene sin documentación: no sabemos qué hace cada gen ni todas sus interacciones."
+    },
+    {
+      "type": "prose",
+      "heading": "Inductivo, no deductivo",
+      "body": "La medicina tradicional es deductiva: ensayo clínico → conclusión. Es probar cambios en producción sin entender el código. Funciona a veces, pero es prueba y error, no ingeniería.\n\nEl enfoque inverso es inductivo: comprender el sistema → simularlo → predecir el resultado antes de tocar a nadie. Primero entender, luego documentar, luego simular, y solo entonces parchear."
+    },
+    {
+      "type": "list",
+      "heading": "Lo que implica de verdad",
+      "items": [
+        "Simulación: un modelo del cuerpo al que preguntar '¿qué pasa si...?' sin experimentar en humanos.",
+        "Determinismo: lo analógico e impredecible convertido en un sistema cuyo resultado se calcula.",
+        "Digital twins: una copia computacional de un cuerpo —o de una mente— y la pregunta de cuándo deja de ser copia.",
+        "Computación heterogénea: usar el sustrato adecuado (CPU, GPU, biológico) para cada parte del problema."
+      ]
+    },
+    {
+      "type": "prose",
+      "heading": "La frontera filosófica",
+      "body": "Si entrenas un sistema para comportarse exactamente como tú, ¿en qué momento deja de ser simulación y empieza a ser 'tú'? Chaplin quedó tercero en un concurso de imitadores de sí mismo. Una copia puede acabar siendo más 'tú' que tú. Esto deja de ser ciencia ficción en cuanto el simulador es lo bastante bueno."
+    },
+    {
+      "type": "quote",
+      "text": "Predecir es la nueva medicina."
+    }
+  ],
+  "essays": ["humano-analogico", "muerte-software", "elegancia-complejidad"]
+}

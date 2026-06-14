@@ -1,39 +1,22 @@
 {
-  "site_name": "Inverso",
+  "name": "Inverso",
   "domain": "inverso.bio",
-  "author": "Alexander",
-  "landing": {
-    "main_title": "THINK",
-    "accent_title": "4D.",
-    "subtitle": "¿Qué hacemos hoy?",
-    "description": "La inercia es el fallo. Elige una ruta y contribuye a la infraestructura de la longevidad."
+  "author": "Alexander Inverso",
+  "email": "correo@inverso.bio",
+  "tagline": "Un manifiesto de cómo pienso.",
+  "description": "Proyecto Inverso — el mapa de una forma de entender el mundo: desde la biografía hasta la computación heterogénea, pasando por la epistemología, el sentido de la vida, la jerarquía social, la socioeconomía y el mindset.",
+  "accent": "#7D6B75",
+  "channel": {
+    "name": "Proyecto Inverso",
+    "intent": "Vídeos y entrevistas cortas en la calle sobre estas mismas preguntas."
   },
-  "navigation": [
-    { "id": "home", "label": "Inicio", "path": "/" },
-    { "id": "about", "label": "Sobre Mí", "path": "/about" },
-    { "id": "inverso", "label": "Inverso", "path": "/inverso" },
-    { "id": "biblioteca", "label": "Biblioteca", "path": "/biblioteca" },
-    { "id": "reflexiones", "label": "Reflexiones", "path": "/reflexiones" },
-    { "id": "apoyo", "label": "Apoyar", "path": "/apoyo" }
-  ],
-  "crowdfunding": {
-    "goal": 10000,
-    "current": 0,
-    "gofundme_embed": "[PEGAR AQUÍ EL CÓDIGO EMBED DE GOFUNDME]",
-    "events": [
-      { "name": "LIYSF", "location": "Londres" },
-      { "name": "BIYSC", "location": "Barcelona" }
-    ]
-  },
-  "social": {
-    "email": "[tu@email.com]",
-    "instagram": "[tu_instagram]",
-    "linkedin": "[tu_linkedin]"
-  },
-  "tasks": [
-    { "id": "read_essays", "label": "Explorar la Biblioteca", "action": "read_2_essays" },
-    { "id": "do_test", "label": "Completar una Reflexión", "action": "complete_test" },
-    { "id": "share_axiom", "label": "Compartir un Axioma", "action": "share" },
-    { "id": "subscribe", "label": "Suscribirse a la Newsletter", "action": "newsletter" }
+  "nodes": [
+    "biografia",
+    "computacion-heterogenea",
+    "epistemologia",
+    "sentido-vida",
+    "jerarquia-social",
+    "socioeconomia",
+    "mindset"
   ]
 }

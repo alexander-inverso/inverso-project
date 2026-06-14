@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Inverso</title>
+  <meta name="description" content="Project Inverso — reverse-engineering the human body." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: #F2F0EE;
+      color: #1A1718;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      display: grid;
+      grid-template-columns: 42% 1fr;
+      min-height: 100dvh;
+    }
+
+    /* ── Photo ─────────────────────────────────────────────────── */
+    .photo-col {
+      position: sticky;
+      top: 0;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .photo-col img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+
+    /* ── Content ───────────────────────────────────────────────── */
+    .content-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: clamp(3rem, 7vw, 6rem) clamp(2.5rem, 6vw, 5.5rem);
+      min-height: 100dvh;
+    }
+
+    .name {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3rem, 5.5vw, 5.5rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      color: #1A1718;
+      margin-bottom: 2rem;
+    }
+
+    .name em {
+      font-style: normal;
+      color: #5E4B56;
+    }
+
+    .bio {
+      font-size: clamp(0.92rem, 1.2vw, 1.05rem);
+      line-height: 1.85;
+      color: #1A1718;
+      max-width: 500px;
+      margin-bottom: 2rem;
+    }
+
+    .bio p + p {
+      margin-top: 1.1em;
+    }
+
+    .links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin-bottom: 2.25rem;
+    }
+
+    .links a {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #5E4B56;
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      transition: color 0.18s;
+    }
+
+    .links a:hover {
+      color: #1A1718;
+    }
+
+    .divider {
+      width: 2.5rem;
+      height: 1px;
+      background: rgba(94, 75, 86, 0.3);
+      margin-bottom: 2rem;
+    }
+
+    .beg {
+      font-size: clamp(0.82rem, 1vw, 0.9rem);
+      color: #7D6B75;
+      line-height: 1.8;
+      max-width: 460px;
+    }
+
+    .beg strong {
+      color: #5E4B56;
+      font-weight: 600;
+    }
+
+    /* ── Mobile ────────────────────────────────────────────────── */
+    @media (max-width: 700px) {
+      .page {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+
+      .photo-col {
+        position: relative;
+        height: 55vw;
+        min-height: 260px;
+        max-height: 420px;
+      }
+
+      .content-col {
+        min-height: unset;
+        padding: 2.5rem 1.75rem 3.5rem;
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <div class="photo-col">
+      <img
+        src="TEFQ%20Media/03_Christmas/alex_cake.jpg"
+        alt="Project Inverso"
+      />
+    </div>
+
+    <div class="content-col">
+
+      <h1 class="name">Project<br /><em>Inverso.</em></h1>
+
+      <div class="bio">
+        <p>I'm Alexander DTT, and I'm 18. My actual goal in life is to simulate the human body at the molecular level. To develop a digital twin driven by heterogeneous computing: quantum processors for individual interactions, HPC for the broader state, probabilistic and neuromorphic systems for speed. A machine that computes what a drug should be, or how aging works mechanistically, and then how to stop it.</p>
+        <p>I named my project Inverso because understanding nature requires reverse-engineering it and because revolutions happen when the state of the art is turned upside down.</p>
+      </div>
+
+      <nav class="links" aria-label="Contact and social links">
+        <a href="mailto:alexander@inverso.bio">alexander@inverso.bio</a>
+        <a href="https://www.instagram.com/alexander.inverso/" target="_blank" rel="noopener noreferrer">@alexander.inverso</a>
+      </nav>
+
+      <div class="divider" aria-hidden="true"></div>
+
+      <p class="beg">
+        This doesn't exist yet. No lab, no team — just the goal. If you're working on heterogeneous computing, computational biology, synthetic biology, or deductive medicine, <strong>please write to me</strong>. Or if you think I'm wrong about something fundamental. I'm at the beginning and I want to hear from people who know more than I do. <strong><a href="mailto:alexander@inverso.bio" style="color: inherit;">alexander@inverso.bio</a></strong>
+      </p>
+
+    </div>
+  </div>
+</body>
+</html>

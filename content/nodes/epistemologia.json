@@ -1,0 +1,37 @@
+{
+  "id": "epistemologia",
+  "label": "Epistemología",
+  "kicker": "03 — Cómo sé lo que sé",
+  "title": "Epistemología",
+  "lede": "Antes de afirmar nada sobre el mundo, la pregunta es cómo lo sabes y cuánto deberías fiarte de ello.",
+  "accent": "#8A7480",
+  "shader": "noisefield",
+  "layout": "flow",
+  "contexts": ["internet", "profesional", "default"],
+  "blocks": [
+    {
+      "type": "prose",
+      "heading": "Idiopático = no lo sabemos",
+      "body": "En medicina, 'idiopático' es la forma elegante de admitir ignorancia: no sabemos por qué ocurre. Me interesa esa frontera —lo que no sabemos— más que el catálogo de lo que ya damos por cierto. La mayor parte del conocimiento útil vive en el borde de lo desconocido."
+    },
+    {
+      "type": "prose",
+      "heading": "Mi posición",
+      "body": "[Escribe aquí tu epistemología en primera persona: ¿qué cuenta como evidencia para ti? ¿Cómo distingues una creencia bien fundada de una intuición? ¿Qué papel das a la simulación, a los datos, a la experiencia directa?]"
+    },
+    {
+      "type": "list",
+      "heading": "Principios de trabajo",
+      "items": [
+        "Entender un sistema vale más que predecir uno de sus comportamientos.",
+        "La prueba y error sin modelo es deuda, no conocimiento.",
+        "Lo que no se puede simular, todavía no se entiende del todo.",
+        "[Añade los tuyos]"
+      ]
+    },
+    {
+      "type": "quote",
+      "text": "El cuerpo humano es código sin documentar."
+    }
+  ]
+}
