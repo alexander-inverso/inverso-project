@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inverso — Un manifiesto de cómo pienso</title>
-  <meta name="description" content="Proyecto Inverso: el mapa de una forma de entender el mundo — biografía, computación heterogénea, epistemología, sentido de la vida, jerarquía social, socioeconomía y mindset." />
+  <title>Proyecto Inverso</title>
+  <meta name="description" content="Proyecto Inverso — Alexander DTT. Escríbeme: alexander@inverso.bio" />
   <link rel="canonical" href="https://inverso.bio/" />
-  <meta property="og:title" content="Inverso — Un manifiesto de cómo pienso" />
-  <meta property="og:description" content="El mapa de una forma de entender el mundo." />
+  <meta property="og:title" content="Proyecto Inverso" />
+  <meta property="og:description" content="Alexander DTT — alexander@inverso.bio" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://inverso.bio/" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,25 +15,23 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/css/main.css" />
 </head>
-<body data-context="default">
+<body class="landing-body">
   <canvas id="bg-canvas"></canvas>
   <div id="bg-veil"></div>
 
-  <header id="topbar" class="topbar"></header>
-  <nav id="rail" class="rail" aria-label="Índice de nodos"></nav>
-
-  <main>
-    <section id="hero" class="hero"></section>
-    <div id="app"></div>
+  <main class="landing">
+    <p class="landing-kicker">Proyecto Inverso</p>
+    <h1 class="landing-name">Alexander&nbsp;DTT</h1>
+    <p class="landing-line">
+      Un proyecto sobre cómo entender el mundo: biología, computación,
+      epistemología y las preguntas grandes. Todavía tomando forma.
+    </p>
+    <p class="landing-cta">
+      Si algo de esto te resuena, escríbeme.<br />
+      <a href="mailto:alexander@inverso.bio">alexander@inverso.bio</a>
+    </p>
   </main>
 
-  <div id="reader" class="reader" role="dialog" aria-modal="true">
-    <div class="reader-inner">
-      <button class="reader-close" aria-label="Cerrar">cerrar ✕</button>
-      <article class="reader-body"></article>
-    </div>
-  </div>
-
-  <script type="module" src="/assets/js/main.js"></script>
+  <script type="module" src="/assets/js/landing.js"></script>
 </body>
 </html>

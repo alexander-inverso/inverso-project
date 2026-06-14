@@ -1,0 +1,8 @@
+# Contenido en texto plano: NO se sube. Solo viaja cifrado en secure/content.enc.
+# Para editar en local: node tools/unlock.mjs  →  edita  →  node tools/lock.mjs
+/content/
+
+# locales / sistema
+.DS_Store
+node_modules/
+*.log

@@ -1,83 +1,63 @@
 /* ============================================================
-   INVERSO — app
-   Estática, sin build. Carga el contexto (default / profesional /
-   internet), renderiza TODOS los nodos a la vez (sin anidar) y
-   conecta el fondo de code art que reacciona al nodo en vista.
+   INVERSO — render
+   Recibe un bundle de contenido YA descifrado y monta la vista:
+   renderiza TODOS los nodos a la vez (sin anidar) y conecta el
+   fondo de code art que reacciona al nodo en vista.
+   No hace fetch de contenido: todo llega en el bundle.
    ============================================================ */
 
 import { initBackground } from "./shaders/gl.js";
 
-const CONTEXT = document.body.dataset.context || "default";
-
-async function getJSON(path) {
-  const res = await fetch(path);
-  if (!res.ok) throw new Error(`No se pudo cargar ${path}`);
-  return res.json();
-}
-async function getText(path) {
-  const res = await fetch(path);
-  if (!res.ok) throw new Error(`No se pudo cargar ${path}`);
-  return res.text();
-}
-
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-/* ---------- arranque ---------- */
-(async function boot() {
-  let site, contexts, ctx, nodes, essaysIndex;
-  try {
-    [site, contexts, essaysIndex] = await Promise.all([
-      getJSON("/content/site.json"),
-      getJSON("/content/contexts.json"),
-      getJSON("/content/essays/index.json").catch(() => ({ essays: [] })),
-    ]);
-    ctx = contexts[CONTEXT] || contexts.default;
-    const order = ctx.order && ctx.order.length ? ctx.order : site.nodes;
-    nodes = await Promise.all(
-      order.map((id) => getJSON(`/content/nodes/${id}.json`).catch(() => null))
-    );
-    nodes = nodes.filter(Boolean);
-  } catch (err) {
-    document.getElementById("app").innerHTML =
-      `<div class="shell" style="padding:30vh 0"><p>${esc(err.message)}</p>
-       <p style="color:var(--muted)">Sirve el sitio por HTTP (no file://) para cargar el contenido.</p></div>`;
-    return;
-  }
+/* ============================================================
+   mount(bundle, ctxName, base)
+   bundle = { site, contexts, axioms, essaysIndex, nodes:{id:obj},
+              essays:{ "archivo.md": "markdown..." } }
+   ctxName = "default" | "profesional" | "internet"
+   base    = prefijo de rutas (p. ej. "/preliminar")
+   ============================================================ */
+export function mount(bundle, ctxName, base = "") {
+  const { site, contexts } = bundle;
+  const ctx = contexts[ctxName] || contexts.default;
+  const order = ctx.order && ctx.order.length ? ctx.order : site.nodes;
+  const nodes = order.map((id) => bundle.nodes[id]).filter(Boolean);
+  const essayById = Object.fromEntries(
+    ((bundle.essaysIndex && bundle.essaysIndex.essays) || []).map((e) => [e.id, e])
+  );
 
-  const essayById = Object.fromEntries((essaysIndex.essays || []).map((e) => [e.id, e]));
-
-  renderTopbar(site, contexts);
+  renderTopbar(site, contexts, ctxName, base);
   renderHero(site, ctx);
   renderRail(nodes);
   const app = document.getElementById("app");
   app.innerHTML = nodes.map(renderNode).join("");
   app.insertAdjacentHTML("beforeend", renderFooter(site));
 
-  wireReader(essayById);
+  wireReader(essayById, bundle.essays || {});
   wireJumpLinks();
   const bg = initBackground(document.getElementById("bg-canvas"));
   bg.setAccent(nodes[0]?.accent || site.accent || "#7D6B75");
   setupScrollSpy(nodes, bg, site);
   setupReveal();
-})();
+}
 
-/* ---------- render: topbar ---------- */
-function renderTopbar(site, contexts) {
+/* ---------- topbar ---------- */
+function renderTopbar(site, contexts, ctxName, base) {
   const order = ["default", "profesional", "internet"];
   const links = order
     .filter((k) => contexts[k])
     .map((k) => {
-      const href = k === "default" ? "/" : `/${k}/`;
-      const cur = k === CONTEXT ? ' aria-current="page"' : "";
+      const href = k === "default" ? `${base}/` : `${base}/${k}/`;
+      const cur = k === ctxName ? ' aria-current="page"' : "";
       return `<a href="${href}"${cur}>${esc(contexts[k].label)}</a>`;
     }).join("");
   document.getElementById("topbar").innerHTML = `
-    <a class="brand" href="/"><b>●</b> ${esc(site.name)}</a>
+    <a class="brand" href="${base}/"><b>●</b> ${esc(site.name)}</a>
     <nav class="contexts">${links}</nav>`;
 }
 
-/* ---------- render: hero ---------- */
+/* ---------- hero ---------- */
 function renderHero(site, ctx) {
   document.getElementById("hero").innerHTML = `
     <div class="shell">
@@ -89,13 +69,13 @@ function renderHero(site, ctx) {
     </div>`;
 }
 
-/* ---------- render: rail ---------- */
+/* ---------- rail ---------- */
 function renderRail(nodes) {
   document.getElementById("rail").innerHTML = nodes.map((n) =>
     `<a href="#${n.id}" data-rail="${n.id}"><span>${esc(n.label)}</span></a>`).join("");
 }
 
-/* ---------- render: node ---------- */
+/* ---------- node ---------- */
 function renderNode(n) {
   const layout = `layout-${n.layout || "flow"}`;
   const blocks = (n.blocks || []).map(renderBlock).join("");
@@ -147,7 +127,6 @@ function renderBlock(b) {
 }
 
 function renderEssayCards(ids) {
-  // rellena con metadata si existe; los datos los inyecta wireReader vía data-essay
   return `<div class="essays reveal">
     <p class="essays-label">Ensayos relacionados</p>
     <div class="essay-cards">
@@ -159,7 +138,7 @@ function renderEssayCards(ids) {
     </div></div>`;
 }
 
-/* ---------- render: footer ---------- */
+/* ---------- footer ---------- */
 function renderFooter(site) {
   const ch = site.channel || {};
   return `
@@ -173,9 +152,8 @@ function renderFooter(site) {
   </footer>`;
 }
 
-/* ---------- ensayos: poblar tarjetas + lector ---------- */
-function wireReader(essayById) {
-  // poblar metadata
+/* ---------- ensayos: tarjetas + lector (texto del bundle) ---------- */
+function wireReader(essayById, essayText) {
   document.querySelectorAll(".essay-card").forEach((card) => {
     const e = essayById[card.dataset.essay];
     if (!e) return;
@@ -193,23 +171,18 @@ function wireReader(essayById) {
   addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
 
   document.querySelectorAll(".essay-card").forEach((card) => {
-    card.addEventListener("click", async () => {
+    card.addEventListener("click", () => {
       const e = essayById[card.dataset.essay];
       if (!e) return;
-      body.innerHTML = `<p style="color:var(--muted)">Cargando…</p>`;
+      const md = essayText[e.file];
+      body.innerHTML = md ? mdToHtml(md) : `<p>No se pudo cargar el ensayo.</p>`;
       reader.classList.add("open");
       document.body.style.overflow = "hidden";
-      try {
-        const md = await getText(`/content/essays/${e.file}`);
-        body.innerHTML = mdToHtml(md);
-      } catch {
-        body.innerHTML = `<p>No se pudo cargar el ensayo.</p>`;
-      }
     });
   });
 }
 
-/* mini-markdown: títulos, citas, hr, énfasis, párrafos */
+/* mini-markdown */
 function mdToHtml(md) {
   const lines = md.replace(/\r/g, "").split("\n");
   let html = "", para = [];
@@ -233,7 +206,7 @@ function inline(s) {
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 }
 
-/* ---------- jump links del recomendador ---------- */
+/* ---------- jump links ---------- */
 function wireJumpLinks() {
   document.querySelectorAll("[data-jump]").forEach((a) => {
     a.addEventListener("click", (e) => {
@@ -244,7 +217,7 @@ function wireJumpLinks() {
   });
 }
 
-/* ---------- scroll spy: acento + shader + rail activo ---------- */
+/* ---------- scroll spy ---------- */
 function setupScrollSpy(nodes, bg, site) {
   const sections = nodes.map((n) => document.getElementById(n.id));
   const rail = document.querySelectorAll("[data-rail]");
@@ -264,7 +237,7 @@ function setupScrollSpy(nodes, bg, site) {
   sections.forEach((s) => s && obs.observe(s));
 }
 
-/* ---------- reveal on scroll ---------- */
+/* ---------- reveal ---------- */
 function setupReveal() {
   const obs = new IntersectionObserver((entries) => {
     entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("in"); obs.unobserve(en.target); } });

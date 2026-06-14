@@ -273,3 +273,68 @@ a:hover { color: var(--accent); }
   html { scroll-behavior: auto; }
   .reveal { opacity: 1; transform: none; transition: none; }
 }
+
+/* ============================================================
+   Landing pública ( / )
+   ============================================================ */
+.landing-body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+.landing {
+  text-align: center; max-width: 640px; padding: 2rem var(--gutter);
+}
+.landing-kicker {
+  font-family: var(--font-mono); font-size: 0.82rem; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 1.6rem;
+}
+.landing-name {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(2.8rem, 9vw, 6rem); line-height: 0.95; letter-spacing: -0.02em;
+  margin-bottom: 1.8rem;
+}
+.landing-line { color: var(--paper); opacity: 0.82; font-size: 1.1rem; max-width: 44ch; margin: 0 auto 2.4rem; }
+.landing-cta { color: var(--muted); line-height: 2; }
+.landing-cta a {
+  font-family: var(--font-mono); font-size: 1.15rem; color: var(--accent);
+  border-bottom: 1px solid var(--accent); padding-bottom: 2px;
+}
+.landing-cta a:hover { background: var(--accent); color: var(--ink); }
+
+/* ============================================================
+   Puerta de contraseña ( /preliminar )
+   ============================================================ */
+body[data-base] main, body[data-base] .topbar, body[data-base] .rail { opacity: 0; }
+body[data-base].unlocked main,
+body[data-base].unlocked .topbar,
+body[data-base].unlocked .rail { opacity: 1; transition: opacity 0.5s; }
+
+.gate {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(15,12,10,0.92); backdrop-filter: blur(6px);
+  transition: opacity 0.35s;
+}
+.gate.unlocked { opacity: 0; pointer-events: none; }
+.gate-box {
+  display: flex; flex-direction: column; gap: 0.9rem; width: min(360px, 88vw);
+  text-align: center;
+}
+.gate-kicker {
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.25em;
+  text-transform: uppercase; color: var(--accent);
+}
+.gate-box h1 {
+  font-family: var(--font-display); font-weight: 800; font-size: 2.4rem; letter-spacing: -0.02em;
+}
+.gate-sub { color: var(--muted); font-size: 0.92rem; margin-bottom: 0.4rem; }
+.gate-box input {
+  font-family: var(--font-mono); font-size: 1rem; text-align: center;
+  padding: 0.8rem 1rem; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.04); color: var(--paper);
+}
+.gate-box input:focus { outline: none; border-color: var(--accent); }
+.gate-box button {
+  font-family: var(--font-mono); font-size: 0.9rem; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 0.75rem 1rem; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--ink); transition: 0.2s;
+}
+.gate-box button:hover { filter: brightness(1.1); }
+.gate-error { color: #d98b8b; font-size: 0.85rem; min-height: 1.2em; }
