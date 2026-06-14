@@ -306,24 +306,19 @@ a:hover { color: var(--accent); }
   max-width: 34ch; margin: 0 auto 2.6rem; line-height: 1.6; text-wrap: pretty;
 }
 
-/* ---- contactos: dos formas, cada una con su etiqueta encima ---- */
-.landing-contacts { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
-.contact-link { display: inline-flex; flex-direction: column; align-items: center; gap: 0.4rem; }
-.contact-hint {
-  font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.18em;
-  text-transform: uppercase; color: var(--muted);
+/* ---- contactos: dos formas, cada una con su etiqueta, flecha y valor ---- */
+.landing-contacts { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; }
+.contact-link { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: clamp(0.85rem, 0.8rem + 0.4vw, 1rem); }
+.contact-label {
+  color: var(--muted); font-size: 0.85em;
 }
 .contact-value {
-  font-family: var(--font-mono); font-size: clamp(0.9rem, 0.85rem + 0.4vw, 1.05rem);
   color: var(--accent); border-bottom: 1px solid var(--accent);
   padding-bottom: 2px; transition: background 0.2s, color 0.2s;
 }
 .contact-link:hover .contact-value, .contact-link:focus-visible .contact-value {
   background: var(--accent); color: var(--ink); outline: none;
 }
-/* el gancho de Instagram (Gen Z) respira un poco para llamar la atención */
-.contact-ig .contact-hint { color: var(--accent); animation: pulse 2.8s ease-in-out infinite; }
-@keyframes pulse { 0%,100% { opacity: 0.65; } 50% { opacity: 1; } }
 
 /* ---- entrada escalonada ---- */
 .rise { opacity: 0; animation: rise 0.7s cubic-bezier(0.2,0.7,0.2,1) forwards; animation-delay: calc(var(--i,0) * 0.09s + 0.1s); }
@@ -331,7 +326,6 @@ a:hover { color: var(--accent); }
 
 @media (prefers-reduced-motion: reduce) {
   .rise { opacity: 1; animation: none; }
-  .contact-ig .contact-hint { animation: none; }
 }
 
 /* ============================================================
