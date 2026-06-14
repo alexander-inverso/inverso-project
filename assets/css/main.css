@@ -290,15 +290,17 @@ a:hover { color: var(--accent); }
     linear-gradient(180deg, rgba(21,17,15,0.25), rgba(21,17,15,0.5));
 }
 
-.landing { text-align: center; max-width: 40rem; margin-inline: auto; }
+/* el bloque se ajusta a su contenido y lo centra el flex del body:
+   así NADA puede quedar descentrado, ni aunque el nombre desborde */
+.landing { text-align: center; display: flex; flex-direction: column; align-items: center; }
 .landing-kicker {
   font-family: var(--font-mono); font-size: 0.82rem; letter-spacing: 0.3em;
   text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem;
 }
 .landing-name {
   font-family: var(--font-display); font-weight: 800;
-  /* escala con el ancho y se queda SIEMPRE en una sola línea, bien centrada */
-  font-size: clamp(2rem, 10vw, 5.5rem); line-height: 1; letter-spacing: -0.01em;
+  /* escala con el ancho y se queda SIEMPRE en una sola línea, centrada */
+  font-size: clamp(2rem, 9vw, 5.5rem); line-height: 1; letter-spacing: -0.01em;
   margin-bottom: 1.7rem; white-space: nowrap;
 }
 .landing-line {
@@ -306,11 +308,14 @@ a:hover { color: var(--accent); }
   max-width: 34ch; margin: 0 auto 2.6rem; line-height: 1.6; text-wrap: pretty;
 }
 
-/* ---- contactos: dos formas, cada una con su etiqueta, flecha y valor ---- */
-.landing-contacts { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; }
-.contact-link { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: clamp(0.85rem, 0.8rem + 0.4vw, 1rem); }
+/* ---- contactos: etiqueta encima, valor debajo (apilados) ---- */
+.landing-contacts { display: flex; flex-direction: column; align-items: center; gap: 1.6rem; }
+.contact-link {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 0.35rem;
+  font-family: var(--font-mono); font-size: clamp(0.9rem, 0.85rem + 0.4vw, 1.05rem);
+}
 .contact-label {
-  color: var(--muted); font-size: 0.85em;
+  font-size: 0.7em; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
 }
 .contact-value {
   color: var(--accent); border-bottom: 1px solid var(--accent);
@@ -319,6 +324,22 @@ a:hover { color: var(--accent); }
 .contact-link:hover .contact-value, .contact-link:focus-visible .contact-value {
   background: var(--accent); color: var(--ink); outline: none;
 }
+
+/* ---- selector de idioma (arriba, centrado) ---- */
+.lang-switch {
+  position: fixed; top: max(1rem, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+  z-index: 40; display: inline-flex; gap: 0.15rem;
+  padding: 0.25rem; border: 1px solid rgba(255,255,255,0.14); border-radius: 999px;
+  background: rgba(21,17,15,0.45); backdrop-filter: blur(8px);
+}
+.lang-btn {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em;
+  color: var(--muted); padding: 0.3rem 0.7rem; border-radius: 999px;
+  transition: color 0.2s, background 0.2s;
+}
+.lang-btn:hover { color: var(--paper); }
+.lang-btn[aria-pressed="true"] { color: var(--ink); background: var(--accent); }
 
 /* ---- entrada escalonada ---- */
 .rise { opacity: 0; animation: rise 0.7s cubic-bezier(0.2,0.7,0.2,1) forwards; animation-delay: calc(var(--i,0) * 0.09s + 0.1s); }
