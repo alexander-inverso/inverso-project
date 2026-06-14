@@ -3,21 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inverso — Profesional</title>
-  <meta name="description" content="Para quien viene por trabajo: recorrido, currículum y el método técnico detrás de Proyecto Inverso." />
-  <link rel="canonical" href="https://inverso.bio/profesional/" />
-  <meta property="og:title" content="Inverso — Profesional" />
-  <meta property="og:description" content="Lo que hago y cómo lo pienso." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://inverso.bio/profesional/" />
+  <title>Inverso — preliminar</title>
+  <meta name="robots" content="noindex, nofollow" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/css/main.css" />
 </head>
-<body data-context="profesional">
+<body data-context="default" data-base="/preliminar">
   <canvas id="bg-canvas"></canvas>
   <div id="bg-veil"></div>
+
+  <div id="gate" class="gate">
+    <form class="gate-box" id="gate-form">
+      <p class="gate-kicker">Acceso restringido</p>
+      <h1>preliminar</h1>
+      <p class="gate-sub">Contenido cifrado. Introduce la contraseña.</p>
+      <input id="gate-pass" type="password" autocomplete="current-password" placeholder="contraseña" />
+      <button type="submit">Entrar</button>
+      <p class="gate-error" id="gate-error" role="alert"></p>
+    </form>
+  </div>
 
   <header id="topbar" class="topbar"></header>
   <nav id="rail" class="rail" aria-label="Índice de nodos"></nav>
@@ -34,6 +40,6 @@
     </div>
   </div>
 
-  <script type="module" src="/assets/js/main.js"></script>
+  <script type="module" src="/assets/js/preliminar.js"></script>
 </body>
 </html>
