@@ -65,9 +65,7 @@ const STORAGE_KEY = "inverso-lang";
 
 function pickInitial() {
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (LANGS.includes(saved)) return saved;
-  const nav = (navigator.language || "es").slice(0, 2).toLowerCase();
-  return LANGS.includes(nav) ? nav : "es";
+  return LANGS.includes(saved) ? saved : "en";
 }
 
 function applyLang(lang) {
@@ -154,7 +152,15 @@ applyLang(pickInitial());
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(runMeasure);
   else runMeasure();
 
+  // Only re-measure on real width changes. Mobile browsers fire "resize"
+  // when their toolbar hides/shows during scroll (height-only) — reacting
+  // to those would unpin and re-pin the wordmark mid-scroll and make the
+  // shrink look like it stutters instead of tracking smoothly.
+  let lastWidth = window.innerWidth;
   window.addEventListener("resize", () => {
+    const w = window.innerWidth;
+    if (Math.abs(w - lastWidth) < 1) return;
+    lastWidth = w;
     clearTimeout(resizeTimer);
     unmeasure();
     resizeTimer = setTimeout(runMeasure, 120);
