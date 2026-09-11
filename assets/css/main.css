@@ -275,7 +275,7 @@ a:hover { color: var(--accent); }
 }
 
 /* ============================================================
-   Landing pública ( / )
+   Landing pública ( / ) — usado también por 404.html
    ============================================================ */
 .landing-body {
   display: flex; align-items: center; justify-content: center;
@@ -308,38 +308,103 @@ a:hover { color: var(--accent); }
   max-width: 34ch; margin: 0 auto 2.6rem; line-height: 1.6; text-wrap: pretty;
 }
 
-/* ---- contactos: etiqueta encima, valor debajo (apilados) ---- */
-.landing-contacts { display: flex; flex-direction: column; align-items: center; gap: 1.6rem; }
-.contact-link {
-  display: inline-flex; flex-direction: column; align-items: center; gap: 0.35rem;
-  font-family: var(--font-mono); font-size: clamp(0.9rem, 0.85rem + 0.4vw, 1.05rem);
-}
-.contact-label {
-  font-size: 0.7em; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
-}
-.contact-value {
-  color: var(--accent); border-bottom: 1px solid var(--accent);
-  padding-bottom: 2px; transition: background 0.2s, color 0.2s;
-}
-.contact-link:hover .contact-value, .contact-link:focus-visible .contact-value {
-  background: var(--accent); color: var(--ink); outline: none;
-}
-
-/* ---- selector de idioma (arriba, centrado) ---- */
+/* ---- selector de idioma (usado por la home, en flujo) ---- */
 .lang-switch {
-  position: fixed; top: max(1rem, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
-  z-index: 40; display: inline-flex; gap: 0.15rem;
-  padding: 0.25rem; border: 1px solid rgba(255,255,255,0.14); border-radius: 999px;
-  background: rgba(21,17,15,0.45); backdrop-filter: blur(8px);
+  display: inline-flex; align-items: center; gap: 0.15rem;
+  padding: 0.28rem; border: 1px solid rgba(255,255,255,0.16); border-radius: 999px;
+  background: rgba(21,17,15,0.55); backdrop-filter: blur(8px);
+  margin: 0 0 clamp(2rem,5vh,3rem);
 }
 .lang-btn {
-  appearance: none; border: 0; background: transparent; cursor: pointer;
-  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em;
-  color: var(--muted); padding: 0.3rem 0.7rem; border-radius: 999px;
-  transition: color 0.2s, background 0.2s;
+  appearance: none; border: 0; border-radius: 999px; cursor: pointer;
+  font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted); background: transparent;
+  padding: 0.34rem 0.95rem; transition: color 0.2s, background 0.2s;
 }
 .lang-btn:hover { color: var(--paper); }
-.lang-btn[aria-pressed="true"] { color: var(--ink); background: var(--accent); }
+.lang-btn[aria-pressed="true"] { color: var(--paper); background: rgba(125,107,117,0.62); }
+
+/* ============================================================
+   Home ( / ) — wordmark + intro + retrato + contactos
+   ============================================================ */
+.home-body {
+  min-height: 100vh;
+  padding: 0;
+}
+.home-body #bg-veil {
+  background:
+    radial-gradient(60% 50% at 50% 42%, rgba(125,107,117,0.10), transparent 70%),
+    radial-gradient(120% 90% at 50% -10%, transparent 45%, rgba(21,17,15,0.7) 100%),
+    linear-gradient(180deg, rgba(21,17,15,0.25), rgba(21,17,15,0.5));
+}
+.home-wrap {
+  position: relative; z-index: 1;
+  max-width: 1020px; margin: 0 auto;
+  padding: clamp(3.5rem,12vh,8rem) clamp(1.25rem,4vw,3.5rem) clamp(4rem,10vh,7rem);
+}
+
+/* ---- wordmark: se encoge y se fija como cabecera al hacer scroll ---- */
+.mark-spacer { margin: 0 0 clamp(3rem,9vh,5rem); }
+.home-mark {
+  margin: 0 0 clamp(3rem,9vh,5rem);
+  transform-origin: top left;
+  will-change: transform;
+}
+.home-mark.pinned { position: fixed; z-index: 3; margin: 0; }
+.home-wordmark {
+  margin: 0; font-family: "Unbounded", var(--font-display); font-weight: 800;
+  font-size: clamp(3rem,13vw,7.5rem); line-height: 0.92; letter-spacing: -0.03em;
+  color: var(--paper);
+}
+.home-wordmark .accent-glyph { color: var(--accent); }
+.home-sub {
+  margin: 0.9rem 0 0; font-family: var(--font-mono); font-size: 0.72rem;
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+}
+
+/* ---- fila de intro: retrato + texto ---- */
+.intro-row {
+  display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center;
+  gap: clamp(1.75rem,4vw,3rem);
+}
+.intro-text {
+  order: 1; flex: 1 1 340px; max-width: 56ch;
+  display: flex; flex-direction: column; gap: 1.15rem;
+  font-family: var(--font-body); font-size: clamp(1rem,0.95rem + 0.25vw,1.12rem);
+  line-height: 1.7; color: rgba(236,231,228,0.90); text-wrap: pretty;
+}
+.intro-text p { margin: 0; }
+.intro-hi { font-weight: 700; color: var(--paper); }
+.intro-note {
+  margin: 0.4rem 0 0 !important; font-family: var(--font-mono); font-size: 0.62rem;
+  letter-spacing: 0.12em; color: var(--faint);
+}
+
+.portrait {
+  order: -1; flex: 0 0 auto;
+  width: clamp(170px,24vw,240px); aspect-ratio: 4/5;
+  background: var(--bg-soft); border: 1px solid rgba(255,255,255,0.16);
+  overflow: hidden;
+}
+.portrait video { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* ---- contactos: fila con etiqueta + enlace ---- */
+.home-contacts {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  margin-top: clamp(2.5rem,6vh,3.5rem);
+  font-family: var(--font-mono); font-size: 0.82rem; letter-spacing: 0.04em; color: var(--muted);
+}
+.contact-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem; margin: 0; }
+.contact-tag {
+  font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--faint);
+  border: 1px solid rgba(255,255,255,0.16); padding: 0.15rem 0.45rem;
+}
+.contact-row a {
+  color: var(--paper); border-bottom: 1px solid rgba(125,107,117,0.55);
+  transition: color 0.2s, border-color 0.2s;
+}
+.contact-row a:hover, .contact-row a:focus-visible { color: var(--accent); border-bottom-color: var(--accent); }
+.contact-row a.nowrap { white-space: nowrap; }
 
 /* ---- entrada escalonada ---- */
 .rise { opacity: 0; animation: rise 0.7s cubic-bezier(0.2,0.7,0.2,1) forwards; animation-delay: calc(var(--i,0) * 0.09s + 0.1s); }

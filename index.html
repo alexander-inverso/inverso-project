@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Proyecto Inverso</title>
-  <meta name="description" content="Proyecto Inverso — Alexander DTT. Un proyecto sobre cómo entender el mundo. Escríbeme: alexander@inverso.bio" />
+  <meta name="description" content="Proyecto Inverso — Alexander DTT, estudiante de Bioinformática. Simulación biológica, gemelos digitales, biología sintética. Escríbeme: alexander@inverso.bio" />
   <meta name="theme-color" content="#15110F" />
   <link rel="canonical" href="https://inverso.bio/" />
   <meta property="og:title" content="Proyecto Inverso" />
@@ -13,36 +13,53 @@
   <meta property="og:url" content="https://inverso.bio/" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@800&family=Syne:wght@600;700;800&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/css/main.css" />
 </head>
-<body class="landing-body">
+<body class="home-body">
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
   <div id="bg-veil" aria-hidden="true"></div>
 
-  <div class="lang-switch" role="group" aria-label="Idioma / Language / Idioma">
-    <button type="button" class="lang-btn" data-lang="es">ESP</button>
-    <button type="button" class="lang-btn" data-lang="en">ENG</button>
-    <button type="button" class="lang-btn" data-lang="ca">CAT</button>
-  </div>
+  <div class="home-wrap">
 
-  <main class="landing">
-    <p class="landing-kicker rise" style="--i:0" data-i18n="kicker">Proyecto Inverso</p>
-    <h1 class="landing-name rise" style="--i:1">Alexander DTT</h1>
-    <p class="landing-line rise" style="--i:2" data-i18n="lede">
-      Un proyecto para los que no queremos detenernos. Todavía tomando forma. Si estás aquí, escríbeme. Me encantaría oír de ti.
-    </p>
-    <nav class="landing-contacts rise" style="--i:3" aria-label="Contacto">
-      <a href="mailto:alexander@inverso.bio" class="contact-link">
-        <span class="contact-label" data-i18n="emailLabel">correo</span>
-        <span class="contact-value">alexander@inverso.bio</span>
-      </a>
-      <a href="https://instagram.com/alexander.inverso" target="_blank" rel="noopener" class="contact-link">
-        <span class="contact-label" data-i18n="instaLabel">insta</span>
-        <span class="contact-value">alexander.inverso</span>
-      </a>
+    <div class="lang-switch" role="group" aria-label="Idioma / Language / Idioma">
+      <button type="button" class="lang-btn" data-lang="es">ESP</button>
+      <button type="button" class="lang-btn" data-lang="en">ENG</button>
+      <button type="button" class="lang-btn" data-lang="ca">CAT</button>
+    </div>
+
+    <div class="mark-spacer" id="mark-spacer" hidden></div>
+    <div class="home-mark" id="landing-mark">
+      <h1 class="home-wordmark">I<span class="accent-glyph">И</span>VE<span class="accent-glyph">Я</span>SO</h1>
+      <p class="home-sub" data-i18n="sub">A project for the dear curious.</p>
+    </div>
+
+    <div class="intro-row">
+      <div class="portrait">
+        <video autoplay loop muted playsinline aria-label="Timelapse portrait of Alexander">
+          <source src="/assets/media/selfies_01.webm" type="video/webm" />
+          <source src="/assets/media/selfies_01.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="intro-text">
+        <p class="intro-hi" data-i18n="hi">Hi, I'm Alexander.</p>
+        <p data-i18n="p1">I'm a Bioinformatics student interested in biological simulation, digital twins, and synthetic biology. I believe we won't be able to take full advantage of our bodies until we stop assuming it's a black box.</p>
+        <p data-i18n="p2">I hate the idea of a wet lab or AI as ways to discover/design drugs. We should use computers to simulate biology and find the solutions we need, rationally, with math. Not by AI interpolations or trial and error with pipettes.</p>
+        <p data-i18n="p3">As a kid, I loved machines. Today, I want to create one that solves biotech problems for us.</p>
+        <p data-i18n="p4">I want to share my ideas and projects, and will do here. Starting with my Breakthrough Junior Challenge submission, which I'll link around September 15th.</p>
+        <p data-i18n="p5">If you're curious, let's have a chat. Find my contact info below.</p>
+        <p class="intro-note" data-i18n="note" hidden>Original.</p>
+      </div>
+    </div>
+
+    <nav class="home-contacts" aria-label="Contacto">
+      <p class="contact-row"><span class="contact-tag" data-i18n="tagProject">project</span><a href="mailto:alexander@inverso.bio">alexander@inverso.bio</a></p>
+      <p class="contact-row"><span class="contact-tag" data-i18n="tagAcademic">academic</span><a href="mailto:alexander.de.toro@estudiantat.upc.edu">alexander.de.toro@estudiantat.upc.edu</a></p>
+      <p class="contact-row"><span class="contact-tag">instagram</span><a href="https://instagram.com/alexander.inverso" target="_blank" rel="noopener">@alexander.inverso</a></p>
+      <p class="contact-row"><span class="contact-tag">linkedin</span><a href="https://www.linkedin.com/in/alexander-de-toro-todorov-9b830b257/" target="_blank" rel="noopener" class="nowrap">alexander-de-toro-todorov</a></p>
     </nav>
-  </main>
+
+  </div>
 
   <script type="module" src="/assets/js/landing.js"></script>
 </body>
