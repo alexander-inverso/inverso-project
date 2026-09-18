@@ -375,6 +375,11 @@ a:hover { color: var(--accent); }
 }
 .intro-text p { margin: 0; }
 .intro-hi { font-weight: 700; color: var(--paper); }
+.intro-text a {
+  color: var(--paper); border-bottom: 1px solid rgba(125,107,117,0.55);
+  transition: color 0.2s, border-color 0.2s;
+}
+.intro-text a:hover, .intro-text a:focus-visible { color: var(--accent); border-bottom-color: var(--accent); }
 .intro-note {
   margin: 0.4rem 0 0 !important; font-family: var(--font-mono); font-size: 0.62rem;
   letter-spacing: 0.12em; color: var(--faint);
