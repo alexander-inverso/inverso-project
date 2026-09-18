@@ -114,6 +114,7 @@ const TEMPLATE = `
     <div class="nl-fallback">
       <p class="nl-fallback-note">Fallback, in case anything here misbehaves:</p>
       <a class="nl-fallback-btn" href="${FORM_URL}" target="_blank" rel="noopener">Open the form on Mailrelay &rarr;</a>
+      <p class="nl-fallback-note nl-leave">Want off the list? Every e-mail I send carries an unsubscribe link at the bottom. Or write to <a href="mailto:alexander@inverso.bio">alexander@inverso.bio</a> and I'll take you off myself.</p>
     </div>
   </div>
 </div>
@@ -156,30 +157,31 @@ export function mountFooter() {
   let sending = false;
   let finished = false;
 
-  /* Qué haría el formulario ahora mismo, dicho en voz alta. Nombre + correo +
-     al menos una casilla da de alta; sólo el correo, sin casillas, da de baja. */
+  /* Qué haría el formulario ahora mismo, dicho en voz alta. Mailrelay rechaza
+     un envío sin ningún grupo, así que hace falta marcar al menos una casilla:
+     no existe el camino "sin casillas = baja" que se intentó antes. */
   function state() {
     const name = nameEl.value.trim();
     const email = emailEl.value.trim();
     const picked = boxes.filter((b) => b.checked);
     if (!email) return { key: "idle", picked };
-    if (!picked.length) return { key: "unsubscribe", picked };
+    if (!picked.length) return { key: "needGroup", picked };
     if (!name) return { key: "needName", picked };
     return { key: "subscribe", picked };
   }
 
   const COPY = {
     idle: {
-      hint: "Your e-mail is all it takes to start. Tick a box below to sign up, or leave them all empty to unsubscribe.",
+      hint: "Your e-mail, your name, and at least one box below.",
+      label: "Sign me up",
+    },
+    needGroup: {
+      hint: "Tick at least one box — the list needs to know what to send you.",
       label: "Sign me up",
     },
     needName: {
-      hint: "Add your name and you're signed up.",
+      hint: "Add your name and you're set.",
       label: "Sign me up",
-    },
-    unsubscribe: {
-      hint: "No boxes ticked — sending this takes you off the list.",
-      label: "Unsubscribe me",
     },
     subscribe: { label: "Sign me up" },
   };
@@ -188,8 +190,7 @@ export function mountFooter() {
     if (sending || finished) return;
     const s = state();
     submit.textContent = COPY[s.key].label;
-    submit.classList.toggle("nl-submit-off", s.key === "idle" || s.key === "needName");
-    submit.classList.toggle("nl-submit-leave", s.key === "unsubscribe");
+    submit.classList.toggle("nl-submit-off", s.key !== "subscribe");
     if (s.key === "subscribe") {
       const names = s.picked.map((b) => GROUPS[+b.dataset.group].label).join(", ");
       hint.textContent = "Signing you up as: " + names + ".";
@@ -224,25 +225,15 @@ export function mountFooter() {
       history.pushState(null, "", location.pathname + location.search);
     }
   };
-  /* Mailrelay puede pedir confirmación por correo (doble opt-in): hasta que se
-     pulsa ese enlace, el alta no existe. Decir sólo "Thanks" haría creer lo
-     contrario, así que se explica y el mensaje se queda fijo. */
-  const OUTCOME = {
-    subscribe: {
-      word: "Sent",
-      text: "Almost there. Check your inbox — and your spam folder — for a confirmation link. You are not on the list until you click it.",
-    },
-    unsubscribe: {
-      word: "Unsubscribed",
-      text: "Done. Your address has been taken off every group.",
-    },
-  };
-  const done = (key) => {
+  /* La respuesta de Mailrelay llega dentro de un iframe de otro dominio: no se
+     puede leer. El evento load salta igual si aceptó el alta que si devolvió un
+     error, así que aquí no se puede afirmar que haya funcionado — sólo que se
+     envió, y qué hacer si no llega nada. */
+  const done = () => {
     sending = false;
     finished = true;
-    const o = OUTCOME[key] || OUTCOME.subscribe;
-    submit.textContent = o.word;
-    hint.textContent = o.text;
+    submit.textContent = "Sent";
+    hint.textContent = "Sent. Mailrelay should write to you — check your spam folder too. If nothing arrives, use its own form below.";
     hint.classList.remove("nl-hint-warn");
   };
 
@@ -263,7 +254,7 @@ export function mountFooter() {
     const since = Math.max(openedAt, firstInputAt);
     if (trap.value !== "" || Date.now() - since < MIN_FILL_MS) {
       e.preventDefault();
-      done(state().key === "unsubscribe" ? "unsubscribe" : "subscribe");
+      done();
       return;
     }
 
@@ -273,6 +264,15 @@ export function mountFooter() {
       hint.textContent = "An e-mail address first, please.";
       hint.classList.add("nl-hint-warn");
       emailEl.focus();
+      return;
+    }
+    /* Enviarlo sin grupo devuelve un error de Mailrelay que este formulario no
+       puede ver, así que se para aquí. */
+    if (s.key === "needGroup") {
+      e.preventDefault();
+      hint.textContent = "Tick at least one box first.";
+      hint.classList.add("nl-hint-warn");
+      boxes[0].focus();
       return;
     }
     if (s.key === "needName") {
@@ -294,9 +294,8 @@ export function mountFooter() {
 
     sending = true;
     submit.textContent = "Sending…";
-    submit.dataset.outcome = s.key === "unsubscribe" ? "unsubscribe" : "subscribe";
   });
-  sink.addEventListener("load", () => { if (sending) done(submit.dataset.outcome); });
+  sink.addEventListener("load", () => { if (sending) done(); });
 
   /* ---- cookies ---- */
   const ck = host.querySelector("[data-cookies]");

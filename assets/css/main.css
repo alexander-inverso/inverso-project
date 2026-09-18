@@ -892,6 +892,9 @@ footer[data-site-footer] {
   transition: border-color 0.2s, color 0.2s;
 }
 .nl-fallback-btn:hover { border-color: var(--accent); color: var(--accent); }
+.nl-leave { margin: 0.8rem 0 0; }
+.nl-leave a { color: var(--muted); border-bottom: 1px solid rgba(125,107,117,0.55); }
+.nl-leave a:hover { color: var(--accent); border-bottom-color: var(--accent); }
 .nl-close {
   margin-left: auto; appearance: none; border: 1px solid rgba(255,255,255,0.16);
   border-radius: 999px; background: transparent; color: var(--muted);
