@@ -4,8 +4,22 @@
    <noscript> de cada página lleva el contacto por si esto no llega a correr. */
 import { createTipper } from "./tips.js";
 
-const ACTION = "https://inverso.ipzmarketing.com/f/DmdC0JRZiwE";
+/* Formulario alojado en Mailrelay. La misma URL sirve para dos cosas: el POST
+   del formulario propio y el botón de emergencia que abre el de Mailrelay. */
+const FORM_URL = "https://inverso.ipzmarketing.com/f/aGnwNmVCRF0";
 const HASH = "subscribe";
+
+/* Grupos de Mailrelay. `id` es el valor que espera su formulario, no el nombre:
+   se ve en el HTML del formulario alojado (view-source de FORM_URL), donde cada
+   checkbox de grupo lleva su value. Sin estos números no se puede dar de alta a
+   nadie en un grupo, así que mientras estén vacíos el alta queda bloqueada y se
+   ofrece el formulario de Mailrelay. Darse de baja sí funciona sin ellos. */
+const GROUPS = [
+  { id: "", label: "a professional", mailrelay: "Inverso Project Professional" },
+  { id: "", label: "just curious", mailrelay: "Inverso Project Newsletter" },
+  { id: "", label: "interested in the philosophy page", mailrelay: "Inverso Project Philosophy" },
+];
+const GROUPS_READY = GROUPS.every((g) => g.id !== "");
 
 /* Un humano no rellena un campo que no puede ver, ni envía el formulario en
    menos de un segundo y medio. Si pasa cualquiera de las dos cosas, no se
@@ -24,6 +38,12 @@ const contactRow = ([tag, text, href, external]) => `
     <span class="contact-tag">${tag}</span>
     <a href="${href}"${external ? ' target="_blank" rel="noopener"' : ""}${tag === "academic" ? ' class="break-all"' : ""}>${text}</a>
   </p>`;
+
+const groupRow = (g, i) => `
+  <label class="nl-check">
+    <input type="checkbox" name="subscriber[group_ids][]" value="${g.id}" data-group="${i}">
+    <span>${g.label}</span>
+  </label>`;
 
 const TEMPLATE = `
 <div class="ft-inner">
@@ -54,28 +74,41 @@ const TEMPLATE = `
 </div>
 
 <div class="nl-scrim" data-nl-scrim hidden>
-  <div role="dialog" aria-modal="true" aria-label="E-mail updates" class="nl-dialog" data-nl-dialog>
+  <div role="dialog" aria-modal="true" aria-labelledby="nl-title" class="nl-dialog" data-nl-dialog>
     <div class="nl-head">
       <div>
         <p class="nl-kicker">E-mail updates</p>
-        <p class="nl-blurb">Occasional notes on the work. No schedule.</p>
+        <p class="nl-h" id="nl-title">Let's get to know you:</p>
       </div>
       <button type="button" class="nl-close" aria-label="Close" data-nl-close>&#10005;</button>
     </div>
-    <form class="nl-form" action="${ACTION}" method="post" target="ipz-sink" data-nl-form>
+
+    <form class="nl-form" action="${FORM_URL}" method="post" target="ipz-sink" data-nl-form novalidate>
       <label class="nl-label">Name
-        <input type="text" name="subscriber[name]" required autocomplete="name" placeholder="Your name">
+        <input type="text" name="subscriber[name]" autocomplete="name" placeholder="Your name" data-nl-name>
       </label>
-      <label class="nl-label">E-mail
-        <input type="email" name="subscriber[email]" required autocomplete="email" placeholder="you@email.com">
+      <label class="nl-label">Newsletter e-mail
+        <input type="email" name="subscriber[email]" autocomplete="email" placeholder="you@email.com" data-nl-email>
       </label>
+
+      <fieldset class="nl-groups">
+        <legend class="nl-legend">You are...</legend>
+        ${GROUPS.map(groupRow).join("")}
+      </fieldset>
+
       <div class="nl-trap" aria-hidden="true">
         <label for="ipz_honeypot">Leave this field empty</label>
         <input type="text" id="ipz_honeypot" name="ipz_honeypot" tabindex="-1" autocomplete="off" value="" data-nl-trap>
       </div>
-      <button type="submit" class="nl-submit" data-nl-submit>Subscribe</button>
+
+      <p class="nl-hint" role="status" data-nl-hint></p>
+      <button type="submit" class="nl-submit" data-nl-submit>Sign me up</button>
     </form>
-    <p class="nl-foot">Already subscribed? Re-submit with the same e-mail to update your details.</p>
+
+    <div class="nl-fallback">
+      <p class="nl-fallback-note">Fallback, in case anything here misbehaves:</p>
+      <a class="nl-fallback-btn" href="${FORM_URL}" target="_blank" rel="noopener">Open the form on Mailrelay &rarr;</a>
+    </div>
   </div>
 </div>
 
@@ -101,21 +134,82 @@ export function mountFooter() {
     btn.addEventListener("click", langTip);
   });
 
-  /* ---- alta en la lista ---- */
+  /* ---- alta y baja en la lista ---- */
   const scrim = host.querySelector("[data-nl-scrim]");
   const form = host.querySelector("[data-nl-form]");
   const submit = host.querySelector("[data-nl-submit]");
+  const hint = host.querySelector("[data-nl-hint]");
+  const nameEl = host.querySelector("[data-nl-name]");
+  const emailEl = host.querySelector("[data-nl-email]");
   const trap = host.querySelector("[data-nl-trap]");
   const sink = host.querySelector("[data-nl-sink]");
-  let openedAt = 0;
+  const boxes = Array.from(host.querySelectorAll("[data-group]"));
+  /* Nunca 0: Date.now() - 0 son cincuenta años y la trampa de tiempo
+     pasaría sola. Se reinicia al abrir el diálogo. */
+  let openedAt = Date.now();
   let sending = false;
+
+  /* Qué haría el formulario ahora mismo, dicho en voz alta. Nombre + correo +
+     al menos una casilla da de alta; sólo el correo, sin casillas, da de baja. */
+  function state() {
+    const name = nameEl.value.trim();
+    const email = emailEl.value.trim();
+    const picked = boxes.filter((b) => b.checked);
+    if (!email) return { key: "idle", picked };
+    if (!picked.length) return { key: "unsubscribe", picked };
+    if (!name) return { key: "needName", picked };
+    return { key: "subscribe", picked };
+  }
+
+  const COPY = {
+    idle: {
+      hint: "Your e-mail is all it takes to start. Tick a box below to sign up, or leave them all empty to unsubscribe.",
+      label: "Sign me up",
+    },
+    needName: {
+      hint: "Add your name and you're signed up.",
+      label: "Sign me up",
+    },
+    unsubscribe: {
+      hint: "No boxes ticked — sending this takes you off the list.",
+      label: "Unsubscribe me",
+    },
+    subscribe: { label: "Sign me up" },
+  };
+
+  function refresh() {
+    if (sending) return;
+    const s = state();
+    submit.textContent = COPY[s.key].label;
+    submit.classList.toggle("nl-submit-off", s.key === "idle" || s.key === "needName");
+    submit.classList.toggle("nl-submit-leave", s.key === "unsubscribe");
+    if (s.key === "subscribe") {
+      const names = s.picked.map((b) => GROUPS[+b.dataset.group].label).join(", ");
+      hint.textContent = GROUPS_READY
+        ? "Signing you up as: " + names + "."
+        : "Group sign-up is not wired up yet — use the Mailrelay form below. (Unsubscribing works here.)";
+      hint.classList.toggle("nl-hint-warn", !GROUPS_READY);
+    } else {
+      hint.textContent = COPY[s.key].hint;
+      hint.classList.remove("nl-hint-warn");
+    }
+  }
+
+  [nameEl, emailEl].forEach((el) => el.addEventListener("input", refresh));
+  boxes.forEach((b) => b.addEventListener("change", refresh));
+  refresh();
+
+  /* Rellenar y enviar de golpe es cosa de bots: se cronometra también desde la
+     primera pulsación, no sólo desde que se abrió el diálogo. */
+  let firstInputAt = 0;
+  const markInput = () => { if (!firstInputAt) firstInputAt = Date.now(); };
+  [nameEl, emailEl].forEach((el) => el.addEventListener("input", markInput, { once: true }));
 
   const open = () => {
     scrim.hidden = false;
     openedAt = Date.now();
     if (location.hash.replace("#", "") !== HASH) history.pushState(null, "", "#" + HASH);
-    const first = form.querySelector("input");
-    if (first) first.focus();
+    nameEl.focus();
   };
   const close = () => {
     scrim.hidden = true;
@@ -123,14 +217,12 @@ export function mountFooter() {
       history.pushState(null, "", location.pathname + location.search);
     }
   };
-  const done = () => { sending = false; submit.textContent = "Thanks"; };
+  const done = (word) => { sending = false; submit.textContent = word; };
 
   host.querySelector("[data-nl-open]").addEventListener("click", open);
   host.querySelector("[data-nl-close]").addEventListener("click", close);
   scrim.addEventListener("click", (e) => { if (e.target === scrim) close(); });
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !scrim.hidden) close();
-  });
+  window.addEventListener("keydown", (e) => { if (e.key === "Escape" && !scrim.hidden) close(); });
   window.addEventListener("hashchange", () => {
     const wants = location.hash.replace("#", "") === HASH;
     if (wants && scrim.hidden) open();
@@ -139,15 +231,44 @@ export function mountFooter() {
   if (location.hash.replace("#", "") === HASH) open();
 
   form.addEventListener("submit", (e) => {
-    if (trap.value !== "" || Date.now() - openedAt < MIN_FILL_MS) {
+    /* Los bots primero, y en silencio: ni el campo trampa ni un envío
+       instantáneo llegan a Mailrelay, pero se responde "Thanks" igual. */
+    const since = Math.max(openedAt, firstInputAt);
+    if (trap.value !== "" || Date.now() - since < MIN_FILL_MS) {
       e.preventDefault();
-      done();
+      done("Thanks");
       return;
     }
+
+    const s = state();
+    if (s.key === "idle") {
+      e.preventDefault();
+      hint.textContent = "An e-mail address first, please.";
+      hint.classList.add("nl-hint-warn");
+      emailEl.focus();
+      return;
+    }
+    if (s.key === "needName") {
+      e.preventDefault();
+      hint.textContent = "A name too, so I know who you are.";
+      hint.classList.add("nl-hint-warn");
+      nameEl.focus();
+      return;
+    }
+    /* Sin los ids de grupo, un alta llegaría sin grupo — que es justo lo que
+       significa "baja". Mejor no enviarla que darla de baja sin querer. */
+    if (s.key === "subscribe" && !GROUPS_READY) {
+      e.preventDefault();
+      hint.textContent = "Group sign-up is not wired up yet — use the Mailrelay form below.";
+      hint.classList.add("nl-hint-warn");
+      return;
+    }
+
     sending = true;
     submit.textContent = "Sending…";
+    submit.dataset.word = s.key === "unsubscribe" ? "Unsubscribed" : "Thanks";
   });
-  sink.addEventListener("load", () => { if (sending) done(); });
+  sink.addEventListener("load", () => { if (sending) done(submit.dataset.word || "Thanks"); });
 
   /* ---- cookies ---- */
   const ck = host.querySelector("[data-cookies]");

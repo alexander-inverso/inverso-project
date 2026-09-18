@@ -824,10 +824,74 @@ footer[data-site-footer] {
   margin: 0 0 0.3rem; font-family: var(--font-mono); font-size: 0.6rem;
   letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
 }
-.nl-blurb {
-  margin: 0; font-family: var(--font-body); font-size: 0.95rem; line-height: 1.55;
-  color: var(--paper); text-wrap: pretty;
+.nl-h {
+  margin: 0; font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(1.1rem,1rem + 0.5vw,1.35rem); line-height: 1.2;
+  letter-spacing: -0.01em; color: var(--paper); text-wrap: pretty;
 }
+
+/* ---- "You are..." ---- */
+.nl-groups {
+  display: flex; flex-direction: column; gap: 0.15rem;
+  margin: 0.35rem 0 0; padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+}
+.nl-legend {
+  padding: 0 0 0.35rem; font-family: var(--font-mono); font-size: 0.58rem;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
+}
+.nl-check {
+  display: grid; grid-template-columns: auto minmax(0,1fr); align-items: start;
+  gap: 0.6rem; padding: 0.4rem 0.15rem; cursor: pointer;
+  font-family: var(--font-body); font-size: 0.92rem; line-height: 1.45;
+  color: rgba(236,231,228,0.88); border-radius: 8px;
+  transition: color 0.2s, background 0.2s;
+}
+.nl-check:hover { color: var(--paper); background: rgba(125,107,117,0.10); }
+.nl-check input {
+  appearance: none; width: 1.05rem; height: 1.05rem; margin: 0.18rem 0 0;
+  flex: 0 0 auto; border: 1px solid rgba(255,255,255,0.28); border-radius: 4px;
+  background: transparent; cursor: pointer; position: relative;
+  transition: border-color 0.2s, background 0.2s;
+}
+.nl-check input:checked { border-color: var(--accent); background: var(--accent); }
+.nl-check input:checked::after {
+  content: ""; position: absolute; left: 0.28rem; top: 0.1rem;
+  width: 0.3rem; height: 0.55rem; border: solid var(--bg);
+  border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+.nl-check input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---- qué va a pasar al enviar ---- */
+.nl-hint {
+  margin: 0.15rem 0 0; font-family: var(--font-body); font-size: 0.8rem;
+  line-height: 1.5; color: var(--muted); text-wrap: pretty; min-height: 2.4em;
+}
+.nl-hint-warn { color: var(--accent); }
+.nl-submit-off { opacity: 0.55; }
+.nl-submit-leave {
+  border-color: rgba(255,255,255,0.28); background: transparent; color: var(--paper);
+}
+.nl-submit-leave:hover { border-color: var(--accent); color: var(--accent); opacity: 1; }
+
+/* ---- salida de emergencia al formulario alojado ---- */
+.nl-fallback {
+  margin: 1.1rem 0 0; padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.12);
+}
+.nl-fallback-note {
+  margin: 0 0 0.6rem; font-family: var(--font-body); font-size: 0.75rem;
+  line-height: 1.5; color: var(--faint);
+}
+.nl-fallback-btn {
+  display: inline-block; padding: 0.5rem 0.9rem;
+  border: 1px solid rgba(255,255,255,0.18); border-radius: 999px;
+  font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--muted);
+  transition: border-color 0.2s, color 0.2s;
+}
+.nl-fallback-btn:hover { border-color: var(--accent); color: var(--accent); }
 .nl-close {
   margin-left: auto; appearance: none; border: 1px solid rgba(255,255,255,0.16);
   border-radius: 999px; background: transparent; color: var(--muted);
@@ -841,12 +905,15 @@ footer[data-site-footer] {
   font-family: var(--font-mono); font-size: 0.58rem; letter-spacing: 0.2em;
   text-transform: uppercase; color: var(--muted);
 }
-.nl-form input {
+.nl-groups, .nl-check { font-style: normal; }
+/* Sólo los campos de texto: si esto alcanzara a las casillas, les impondría
+   su radio y su relleno y dejarían de parecer casillas. */
+.nl-form input[type="text"], .nl-form input[type="email"] {
   padding: 0.65rem 0.75rem; border: 1px solid rgba(255,255,255,0.16); border-radius: 10px;
   background: rgba(21,17,15,0.8); color: var(--paper);
   font-family: var(--font-body); font-size: 0.95rem; width: 100%;
 }
-.nl-form input:focus { outline: none; border-color: var(--accent); }
+.nl-form input[type="text"]:focus, .nl-form input[type="email"]:focus { outline: none; border-color: var(--accent); }
 /* Trampa antispam: fuera de pantalla, nunca display:none — los bots saltan lo
    que está oculto con display, pero sí rellenan lo que "existe". */
 .nl-trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
