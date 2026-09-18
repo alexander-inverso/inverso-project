@@ -154,6 +154,7 @@ export function mountFooter() {
      pasaría sola. Se reinicia al abrir el diálogo. */
   let openedAt = Date.now();
   let sending = false;
+  let finished = false;
 
   /* Qué haría el formulario ahora mismo, dicho en voz alta. Nombre + correo +
      al menos una casilla da de alta; sólo el correo, sin casillas, da de baja. */
@@ -184,7 +185,7 @@ export function mountFooter() {
   };
 
   function refresh() {
-    if (sending) return;
+    if (sending || finished) return;
     const s = state();
     submit.textContent = COPY[s.key].label;
     submit.classList.toggle("nl-submit-off", s.key === "idle" || s.key === "needName");
@@ -212,6 +213,8 @@ export function mountFooter() {
   const open = () => {
     scrim.hidden = false;
     openedAt = Date.now();
+    finished = false;
+    refresh();
     if (location.hash.replace("#", "") !== HASH) history.pushState(null, "", "#" + HASH);
     nameEl.focus();
   };
@@ -221,7 +224,27 @@ export function mountFooter() {
       history.pushState(null, "", location.pathname + location.search);
     }
   };
-  const done = (word) => { sending = false; submit.textContent = word; };
+  /* Mailrelay puede pedir confirmación por correo (doble opt-in): hasta que se
+     pulsa ese enlace, el alta no existe. Decir sólo "Thanks" haría creer lo
+     contrario, así que se explica y el mensaje se queda fijo. */
+  const OUTCOME = {
+    subscribe: {
+      word: "Sent",
+      text: "Almost there. Check your inbox — and your spam folder — for a confirmation link. You are not on the list until you click it.",
+    },
+    unsubscribe: {
+      word: "Unsubscribed",
+      text: "Done. Your address has been taken off every group.",
+    },
+  };
+  const done = (key) => {
+    sending = false;
+    finished = true;
+    const o = OUTCOME[key] || OUTCOME.subscribe;
+    submit.textContent = o.word;
+    hint.textContent = o.text;
+    hint.classList.remove("nl-hint-warn");
+  };
 
   host.querySelector("[data-nl-open]").addEventListener("click", open);
   host.querySelector("[data-nl-close]").addEventListener("click", close);
@@ -240,7 +263,7 @@ export function mountFooter() {
     const since = Math.max(openedAt, firstInputAt);
     if (trap.value !== "" || Date.now() - since < MIN_FILL_MS) {
       e.preventDefault();
-      done("Thanks");
+      done(state().key === "unsubscribe" ? "unsubscribe" : "subscribe");
       return;
     }
 
@@ -271,9 +294,9 @@ export function mountFooter() {
 
     sending = true;
     submit.textContent = "Sending…";
-    submit.dataset.word = s.key === "unsubscribe" ? "Unsubscribed" : "Thanks";
+    submit.dataset.outcome = s.key === "unsubscribe" ? "unsubscribe" : "subscribe";
   });
-  sink.addEventListener("load", () => { if (sending) done(submit.dataset.word || "Thanks"); });
+  sink.addEventListener("load", () => { if (sending) done(submit.dataset.outcome); });
 
   /* ---- cookies ---- */
   const ck = host.querySelector("[data-cookies]");
