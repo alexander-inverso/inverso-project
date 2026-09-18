@@ -931,7 +931,17 @@ footer[data-site-footer] {
   margin: 0.9rem 0 0; font-family: var(--font-body); font-size: 0.78rem;
   line-height: 1.5; color: var(--faint);
 }
-.nl-sink { position: absolute; width: 0; height: 0; border: none; opacity: 0; pointer-events: none; }
+/* Antes era un sumidero invisible. Ahora es la única forma honesta de decir
+   qué ha pasado: la página que devuelve Mailrelay, con sus palabras. */
+.nl-reply { margin: 0.4rem 0 0; }
+.nl-reply-note {
+  margin: 0 0 0.5rem; font-family: var(--font-mono); font-size: 0.58rem;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
+}
+.nl-sink {
+  display: block; width: 100%; height: 260px; border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 10px; background: #fff;
+}
 
 /* ---- aviso de cookies ---- */
 .ck-box {

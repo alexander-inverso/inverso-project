@@ -111,6 +111,11 @@ const TEMPLATE = `
       <button type="submit" class="nl-submit" data-nl-submit>Sign me up</button>
     </form>
 
+<div class="nl-reply" data-nl-reply hidden>
+      <p class="nl-reply-note">Mailrelay's reply:</p>
+      <iframe name="ipz-sink" title="Mailrelay's reply" class="nl-sink" data-nl-sink></iframe>
+    </div>
+
     <div class="nl-fallback">
       <p class="nl-fallback-note">Fallback, in case anything here misbehaves:</p>
       <a class="nl-fallback-btn" href="${FORM_URL}" target="_blank" rel="noopener">Open the form on Mailrelay &rarr;</a>
@@ -119,7 +124,7 @@ const TEMPLATE = `
   </div>
 </div>
 
-<iframe name="ipz-sink" title="Newsletter submission" aria-hidden="true" tabindex="-1" class="nl-sink" data-nl-sink></iframe>
+
 
 <div role="dialog" aria-label="Cookie preferences" class="ck-box" data-cookies hidden>
   <p class="ck-kicker">Cookies</p>
@@ -215,6 +220,9 @@ export function mountFooter() {
     scrim.hidden = false;
     openedAt = Date.now();
     finished = false;
+    form.hidden = false;
+    host.querySelector("[data-nl-reply]").hidden = true;
+    submit.textContent = "Sign me up";
     refresh();
     if (location.hash.replace("#", "") !== HASH) history.pushState(null, "", "#" + HASH);
     nameEl.focus();
@@ -229,12 +237,20 @@ export function mountFooter() {
      puede leer. El evento load salta igual si aceptó el alta que si devolvió un
      error, así que aquí no se puede afirmar que haya funcionado — sólo que se
      envió, y qué hacer si no llega nada. */
+  /* La respuesta de Mailrelay llega en un iframe de otro dominio: no se puede
+     leer desde aquí. Pero sí se puede enseñar. En vez de inventarse un "listo",
+     se muestra su página tal cual: si dice que ya estabas suscrito, o que algo
+     falla, el lector lo ve con sus palabras. */
+  const reply = host.querySelector("[data-nl-reply]");
   const done = () => {
     sending = false;
     finished = true;
     submit.textContent = "Sent";
-    hint.textContent = "Sent. Mailrelay should write to you — check your spam folder too. If nothing arrives, use its own form below.";
+    hint.textContent = "";
     hint.classList.remove("nl-hint-warn");
+    form.hidden = true;
+    reply.hidden = false;
+    reply.scrollIntoView({ block: "nearest" });
   };
 
   host.querySelector("[data-nl-open]").addEventListener("click", open);
