@@ -9,19 +9,20 @@ import { createTipper } from "./tips.js";
 const FORM_URL = "https://inverso.ipzmarketing.com/f/aGnwNmVCRF0";
 const HASH = "subscribe";
 
-/* Grupos de Mailrelay. `id` es el valor que espera su formulario, no el nombre:
-   se ve en el HTML del formulario alojado (view-source de FORM_URL), donde cada
-   checkbox de grupo lleva su value. Sin estos números no se puede dar de alta a
-   nadie en un grupo, así que mientras estén vacíos el alta queda bloqueada y se
-   ofrece el formulario de Mailrelay. Darse de baja sí funciona sin ellos. */
+/* Grupos de Mailrelay. `id` es el value de cada casilla en su formulario
+   alojado, no un nombre ni una URL. Si se añade o renombra un grupo allí, hay
+   que volver a mirar el HTML del formulario: el nombre visible puede cambiar
+   sin que cambie el número, y al contrario. */
 const GROUPS = [
-  { id: "", label: "a professional", mailrelay: "Inverso Project Professional" },
-  { id: "", label: "just curious", mailrelay: "Inverso Project Newsletter" },
-  { id: "", label: "interested in the philosophy page", mailrelay: "Inverso Project Philosophy" },
+  { id: "5", label: "a professional", mailrelay: "Inverso Project Professional" },
+  { id: "3", label: "just curious", mailrelay: "Inverso Project Newsletter" },
+  { id: "2", label: "interested in the philosophy page", mailrelay: "Inverso Project Philosophy" },
 ];
 const GROUPS_READY = GROUPS.every((g) => g.id !== "");
 
-/* Un humano no rellena un campo que no puede ver, ni envía el formulario en
+/* La trampa se llama `anotheremail` porque así se llama en el formulario de
+   Mailrelay: con ese nombre su servidor también la comprueba, no sólo nosotros.
+   Un humano no rellena un campo que no puede ver, ni envía el formulario en
    menos de un segundo y medio. Si pasa cualquiera de las dos cosas, no se
    envía nada — y decimos "Thanks" igual, para no darle pistas al bot. */
 const MIN_FILL_MS = 1500;
@@ -83,8 +84,8 @@ const TEMPLATE = `
       <button type="button" class="nl-close" aria-label="Close" data-nl-close>&#10005;</button>
     </div>
 
-    <form class="nl-form" action="${FORM_URL}" method="post" target="ipz-sink" data-nl-form novalidate>
-      <label class="nl-label">Name
+    <form class="nl-form" action="${FORM_URL}" method="post" accept-charset="UTF-8" target="ipz-sink" data-nl-form novalidate>
+      <label class="nl-label">How should I call you?
         <input type="text" name="subscriber[name]" autocomplete="name" placeholder="Your name" data-nl-name>
       </label>
       <label class="nl-label">Newsletter e-mail
@@ -93,15 +94,20 @@ const TEMPLATE = `
 
       <fieldset class="nl-groups">
         <legend class="nl-legend">You are...</legend>
+        <!-- Sin este campo vacío, no marcar nada no envía group_ids y Mailrelay
+             no tiene por qué entender que hay que vaciar los grupos. Con él, la
+             baja se pide explícitamente. Su propio formulario lo lleva. -->
+        <input type="hidden" name="subscriber[group_ids][]" value="" autocomplete="off">
         ${GROUPS.map(groupRow).join("")}
       </fieldset>
 
       <div class="nl-trap" aria-hidden="true">
-        <label for="ipz_honeypot">Leave this field empty</label>
-        <input type="text" id="ipz_honeypot" name="ipz_honeypot" tabindex="-1" autocomplete="off" value="" data-nl-trap>
+        <label for="anotheremail">Leave this field empty</label>
+        <input type="text" id="anotheremail" name="anotheremail" tabindex="-1" autocomplete="new-password" value="" data-nl-trap>
       </div>
 
       <p class="nl-hint" role="status" data-nl-hint></p>
+      <input type="hidden" name="commit" value="Enviar">
       <button type="submit" class="nl-submit" data-nl-submit>Sign me up</button>
     </form>
 
@@ -185,10 +191,8 @@ export function mountFooter() {
     submit.classList.toggle("nl-submit-leave", s.key === "unsubscribe");
     if (s.key === "subscribe") {
       const names = s.picked.map((b) => GROUPS[+b.dataset.group].label).join(", ");
-      hint.textContent = GROUPS_READY
-        ? "Signing you up as: " + names + "."
-        : "Group sign-up is not wired up yet — use the Mailrelay form below. (Unsubscribing works here.)";
-      hint.classList.toggle("nl-hint-warn", !GROUPS_READY);
+      hint.textContent = "Signing you up as: " + names + ".";
+      hint.classList.remove("nl-hint-warn");
     } else {
       hint.textContent = COPY[s.key].hint;
       hint.classList.remove("nl-hint-warn");
@@ -255,11 +259,12 @@ export function mountFooter() {
       nameEl.focus();
       return;
     }
-    /* Sin los ids de grupo, un alta llegaría sin grupo — que es justo lo que
-       significa "baja". Mejor no enviarla que darla de baja sin querer. */
+    /* Un id de grupo vacío llegaría como "sin grupos", que es justo lo que
+       significa darse de baja. Antes de dar de alta a nadie sin querer, no se
+       envía. Sólo puede pasar si alguien vacía un id en GROUPS. */
     if (s.key === "subscribe" && !GROUPS_READY) {
       e.preventDefault();
-      hint.textContent = "Group sign-up is not wired up yet — use the Mailrelay form below.";
+      hint.textContent = "Sign-up is misconfigured — use the Mailrelay form below.";
       hint.classList.add("nl-hint-warn");
       return;
     }
