@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>What I'm up to — Proyecto Inverso</title>
+  <meta name="description" content="The record: what is behind me, what I am in the middle of, and what is coming. Updated September 2026." />
+  <meta name="theme-color" content="#15110F" />
+  <link rel="canonical" href="https://inverso.bio/record/" />
+  <meta property="og:title" content="What I'm up to — Proyecto Inverso" />
+  <meta property="og:description" content="The record: past, now, ahead." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://inverso.bio/record/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@800&family=Syne:wght@600;700;800&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+</head>
+<body class="pg-body" data-shader="lattice">
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <div id="bg-veil" aria-hidden="true"></div>
+
+  <div class="pg-wrap pg-wrap-wide">
+
+    <a class="back" data-back data-back-fallback="/about/" href="/about/">
+      <span class="back-arrow" aria-hidden="true">&larr;</span>
+      <span data-back-label></span>
+    </a>
+
+    <p class="pg-kicker">Record</p>
+    <h1 class="pg-title">What I'm up to</h1>
+    <p class="pg-lede">Left to right: what is behind me, what I am in the middle of, what is coming. The middle column gets the room.</p>
+
+    <div class="rec-grid">
+      <div>
+        <p class="rec-col-label">The past</p>
+        <div class="rec-rows" data-past></div>
+      </div>
+      <div>
+        <p class="rec-col-label rec-col-label-now">Now</p>
+        <div class="rec-now" data-now></div>
+      </div>
+      <div>
+        <p class="rec-col-label">Ahead</p>
+        <div class="rec-rows" data-future></div>
+      </div>
+    </div>
+
+    <section class="rec-radar">
+      <p class="rec-col-label">On my radar</p>
+      <div class="rec-radar-grid" data-radar></div>
+    </section>
+
+    <p class="pg-stamp">Updated September 2026</p>
+
+  </div>
+
+  <footer data-site-footer>
+    <noscript>
+      <p>Contact: <a href="mailto:alexander@inverso.bio">alexander@inverso.bio</a> ·
+      <a href="mailto:alexander.de.toro@estudiantat.upc.edu">alexander.de.toro@estudiantat.upc.edu</a> ·
+      <a href="https://instagram.com/alexander.inverso">@alexander.inverso</a></p>
+    </noscript>
+  </footer>
+
+  <script type="module" src="/assets/js/record.js"></script>
+</body>
+</html>

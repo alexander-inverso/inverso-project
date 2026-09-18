@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Record — Proyecto Inverso</title>
+  <meta name="description" content="An entry from the record." />
+  <meta name="theme-color" content="#15110F" />
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@800&family=Syne:wght@600;700;800&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+</head>
+<body class="pg-body" data-shader="lattice">
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <div id="bg-veil" aria-hidden="true"></div>
+
+  <div class="pg-wrap pg-wrap-narrow">
+
+    <a class="back" data-back data-back-fallback="/record/" href="/record/">
+      <span class="back-arrow" aria-hidden="true">&larr;</span>
+      <span data-back-label></span>
+    </a>
+
+    <div class="entry-meta">
+      <span class="entry-date" data-entry-date></span>
+      <span class="entry-phase" data-entry-phase></span>
+      <span class="entry-kind" data-entry-kind></span>
+    </div>
+
+    <h1 class="entry-title" data-entry-title></h1>
+    <p class="entry-body" data-entry-body></p>
+
+    <div class="entry-steps" data-entry-steps></div>
+
+  </div>
+
+  <footer data-site-footer>
+    <noscript>
+      <p>Contact: <a href="mailto:alexander@inverso.bio">alexander@inverso.bio</a> ·
+      <a href="mailto:alexander.de.toro@estudiantat.upc.edu">alexander.de.toro@estudiantat.upc.edu</a> ·
+      <a href="https://instagram.com/alexander.inverso">@alexander.inverso</a></p>
+    </noscript>
+  </footer>
+
+  <script type="module" src="/assets/js/record-entry.js"></script>
+</body>
+</html>

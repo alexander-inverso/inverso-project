@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>About me — Proyecto Inverso</title>
+  <meta name="description" content="Alexander de Toro — born in Vienna, raised in Alicante, Bulgarian roots. Bioinformatics student interested in biological simulation, digital twins and synthetic biology." />
+  <meta name="theme-color" content="#15110F" />
+  <link rel="canonical" href="https://inverso.bio/about/" />
+  <meta property="og:title" content="About me — Proyecto Inverso" />
+  <meta property="og:description" content="Hi, I'm Alexander." />
+  <meta property="og:type" content="profile" />
+  <meta property="og:url" content="https://inverso.bio/about/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@800&family=Syne:wght@600;700;800&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+</head>
+<body class="pg-body" data-shader="field">
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <div id="bg-veil" aria-hidden="true"></div>
+
+  <div class="pg-wrap">
+
+    <a class="back" data-back data-back-fallback="/" href="/">
+      <span class="back-arrow" aria-hidden="true">&larr;</span>
+      <span data-back-label></span>
+    </a>
+
+    <h1 class="pg-title">About me</h1>
+
+    <div class="intro-row">
+      <div class="intro-text">
+        <p class="intro-hi">Hi, I'm Alexander.</p>
+        <p>I'm European. I was born in Vienna, raised in Alicante, and I have Bulgarian roots.</p>
+        <p>As a kid, I loved machines and science. Engineering seemed to be my path, but upon entering Spanish Baccalaureate, I switched from Engineering to Biology. Here's why:</p>
+        <p>I believe that time's finitude is the biggest constraint of both curiosity and ambition. People take death for granted and don't give it a second thought, but that didn't sit right with me. Aging is a thing, sure, but if medicine has come so far, why can't it keep us young indefinitely?</p>
+        <p>At age 16, I promised to myself I would get to explore the fascinating world of engineering once I knew I'd actually have time for everything. "60 years isn't enough for that. You can't convince me otherwise. I want to know everything knowable."</p>
+        <p>I wrote that last part in quotes becaus it's an old thought. You can read more about it here:&nbsp; &nbsp;<a class="pill-link" href="/philosophy/">Philosophy &rarr;</a></p>
+        <p>Today I study Bioinformatics, and I'm interested in biological simulation, digital twins, and synthetic biology. If you're curious, let's have a chat. My contact is at the bottom of every page.</p>
+        <a class="cta-pill" href="/portfolio/">Professional &amp; portfolio<span aria-hidden="true">&rarr;</span></a>
+      </div>
+
+      <div class="side-col">
+        <div>
+          <div class="portrait">
+            <video autoplay loop muted playsinline aria-label="Timelapse portrait of Alexander">
+              <source src="/assets/media/selfies_01.webm" type="video/webm" />
+              <source src="/assets/media/selfies_01.mp4" type="video/mp4" />
+            </video>
+          </div>
+          <p class="portrait-cap">Face time-lapse (just started)</p>
+        </div>
+
+        <div>
+          <h2 class="side-h">What I'm up to</h2>
+          <a class="up-card" data-up-card href="/record/entry/?event=ai-summit">
+            <p class="up-card-date" data-up-date></p>
+            <p class="up-card-title" data-up-title></p>
+            <p class="up-card-body" data-up-body></p>
+          </a>
+          <a class="see-all" href="/record/">See full record<span class="rec-arrow" aria-hidden="true">&rarr;</span></a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer data-site-footer>
+    <noscript>
+      <p>Contact: <a href="mailto:alexander@inverso.bio">alexander@inverso.bio</a> ·
+      <a href="mailto:alexander.de.toro@estudiantat.upc.edu">alexander.de.toro@estudiantat.upc.edu</a> ·
+      <a href="https://instagram.com/alexander.inverso">@alexander.inverso</a></p>
+    </noscript>
+  </footer>
+
+  <script type="module">
+    import { bySlug } from "/assets/js/record-data.js";
+    import { initPage } from "/assets/js/page.js";
+
+    const e = bySlug("ai-summit");
+    if (e) {
+      document.querySelector("[data-up-date]").textContent = e.date;
+      document.querySelector("[data-up-title]").textContent = e.title;
+      document.querySelector("[data-up-body]").textContent = e.body;
+    }
+    initPage();
+  </script>
+</body>
+</html>
