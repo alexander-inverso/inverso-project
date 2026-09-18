@@ -343,7 +343,13 @@ a:hover { color: var(--accent); }
   max-width: 900px; margin: 0 auto;
   padding: clamp(2rem,6vh,3.5rem) clamp(1.5rem,4vw,3rem) clamp(4rem,10vh,6rem);
 }
-.pg-wrap-home { padding-top: clamp(3rem,10vh,6rem); padding-bottom: clamp(4rem,10vh,6rem); }
+.pg-wrap-home {
+  /* el pie no debe asomar al cargar: el contenido llena la ventana. vh (el
+     viewport grande) y no svh, para que siga fuera de cuadro también cuando
+     el móvil esconde su barra. */
+  min-height: 100vh;
+  padding-top: clamp(3rem,10vh,6rem); padding-bottom: clamp(4rem,10vh,6rem);
+}
 .pg-wrap-wide { max-width: 1560px; }
 .pg-wrap-narrow { max-width: 760px; }
 
@@ -467,6 +473,11 @@ a:hover { color: var(--accent); }
   transition: border-color 0.2s, color 0.2s;
 }
 .cta-pill:hover { border-color: var(--accent); color: var(--accent); }
+.cta-pill-off {
+  border-color: rgba(255,255,255,0.16); color: var(--faint); cursor: not-allowed;
+}
+.cta-pill-off:hover { border-color: rgba(255,255,255,0.24); color: var(--muted); }
+.cta-pill-off span { color: var(--faint); }
 .side-col {
   display: flex; flex-direction: column; gap: 1.75rem;
   width: clamp(190px,26vw,260px); flex: 0 0 auto;
@@ -496,6 +507,8 @@ a:hover { color: var(--accent); }
   transition: border-color 0.2s, background 0.2s;
 }
 .up-card:hover { border-color: rgba(125,107,117,0.55); background: rgba(125,107,117,0.08); }
+.up-card-off { cursor: not-allowed; }
+.rec-card-off { cursor: not-allowed; }
 .up-card-date {
   margin: 0 0 0.45rem; font-family: var(--font-mono); font-size: 0.58rem;
   letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent);

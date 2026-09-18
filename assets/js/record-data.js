@@ -1,6 +1,6 @@
 /* El registro. Hechos y redacción de Alexander, verbatim: no añadir entradas,
-   no inventar desenlaces, no adornar. Fuente única para /record/, /record/entry/
-   y la tarjeta "What I'm up to" de /about/. */
+   no inventar desenlaces, no adornar. Fuente única para /record/ y la tarjeta
+   "What I'm up to" de /about/. */
 
 export const RECORD = [
   { slug: "exporecerca", date: "Mar 2026", phase: "past", kind: "Award",
