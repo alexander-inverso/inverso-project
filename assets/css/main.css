@@ -915,8 +915,9 @@ footer[data-site-footer] {
   text-transform: uppercase; color: var(--muted);
 }
 /* Las estrellas van en currentColor: monocromas, como el resto. Un azul y oro
-   de bandera pelearía con esta paleta. */
-.eu-stars { display: block; width: 0.95rem; height: 0.95rem; fill: currentColor; opacity: 0.8; }
+   de bandera pelearía con esta paleta. Un poco más grandes que el texto: doce
+   estrellas de cinco puntas necesitan sitio para leerse como estrellas. */
+.eu-stars { display: block; width: 1.1rem; height: 1.1rem; fill: currentColor; opacity: 0.85; }
 
 /* ---- salida de emergencia al formulario alojado ---- */
 .nl-fallback {
