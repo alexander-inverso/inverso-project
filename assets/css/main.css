@@ -549,6 +549,11 @@ a:hover { color: var(--accent); }
   transition: border-color 0.2s, color 0.2s;
 }
 .badge:hover { border-color: rgba(125,107,117,0.55); color: var(--paper); }
+/* Lo que se dice en este sitio lo digo yo, no las instituciones de arriba. */
+.badges-note {
+  margin: 0.7rem 0 0; font-family: var(--font-mono); font-size: 0.58rem;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--faint);
+}
 
 /* ============================================================
    Vision — vídeo
