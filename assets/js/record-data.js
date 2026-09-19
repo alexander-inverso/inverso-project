@@ -17,7 +17,7 @@ export const RECORD = [
     body: "Bioinformatics, coordinated by four Catalan universities." },
   { slug: "breakthrough", date: "16 Sep 2026", phase: "present", kind: "Tipping point",
     title: "Missed the Breakthrough Junior Challenge deadline",
-    body: "I felt so stupid... I was exporting the video when the timeline ended. It won't happen again. This one was a big loss." },
+    body: "I felt so stupid... I was exporting the video when the deadline ended. It won't happen again. This one was a big loss." },
   { slug: "ai-summit", date: "21–23 Sep 2026", phase: "present", kind: "Volunteer",
     title: "AI Summit Barcelona",
     body: "Volunteering. I literally don't have anything else to say until it happens." },

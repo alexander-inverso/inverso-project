@@ -531,6 +531,25 @@ a:hover { color: var(--accent); }
 .see-all:hover { color: var(--paper); }
 .see-all:hover .rec-arrow { transform: translateX(0.4rem); }
 
+/* ---- sellos de universidades e institutos ----
+   De tipografía, no de logotipo: el sistema visual dice que la identidad aquí
+   es la letra y que no hay que inventarse un juego de iconos. Si algún día
+   llegan los logos de verdad, van en .badge img con
+   filter: grayscale(1) brightness(0) invert(1); opacity: .7 — monocromos. */
+.badges {
+  display: flex; flex-wrap: wrap; gap: 0.5rem;
+  margin: clamp(2.5rem,6vh,3.5rem) 0 0; padding-top: 1.35rem;
+  border-top: 1px solid rgba(255,255,255,0.12);
+}
+.badge {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid rgba(255,255,255,0.16); border-radius: 999px;
+  font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--muted);
+  transition: border-color 0.2s, color 0.2s;
+}
+.badge:hover { border-color: rgba(125,107,117,0.55); color: var(--paper); }
+
 /* ============================================================
    Vision — vídeo
    ============================================================ */
@@ -555,6 +574,17 @@ a:hover { color: var(--accent); }
 @media (min-width: 1080px) {
   .rec-grid { grid-template-columns: minmax(0,0.78fr) minmax(0,1.5fr) minmax(0,0.78fr); gap: clamp(3rem,7vw,7rem); }
 }
+/* El texto tiene que describir la disposición que el lector está viendo: el
+   mismo 1080px en el que la rejilla pasa de tres columnas a una. Se oculta con
+   display:none, que también lo saca del árbol de accesibilidad: un lector de
+   pantalla no lee las dos versiones. */
+.on-wide { display: none; }
+.on-narrow { display: inline; }
+@media (min-width: 1080px) {
+  .on-wide { display: inline; }
+  .on-narrow { display: none; }
+}
+
 .rec-col-label {
   margin: 0 0 0.4rem; font-family: var(--font-mono); font-size: 0.6rem;
   letter-spacing: 0.22em; text-transform: uppercase; color: var(--faint);
@@ -874,6 +904,19 @@ footer[data-site-footer] {
   border-color: rgba(255,255,255,0.28); background: transparent; color: var(--paper);
 }
 .nl-submit-leave:hover { border-color: var(--accent); color: var(--accent); opacity: 1; }
+
+/* ---- sello de alojamiento en la UE ---- */
+.nl-eu { margin: 0.9rem 0 0; }
+.eu-badge {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  padding: 0.28rem 0.6rem 0.28rem 0.45rem;
+  border: 1px solid rgba(255,255,255,0.16); border-radius: 999px;
+  font-family: var(--font-mono); font-size: 0.56rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+}
+/* Las estrellas van en currentColor: monocromas, como el resto. Un azul y oro
+   de bandera pelearía con esta paleta. */
+.eu-stars { display: block; width: 0.95rem; height: 0.95rem; fill: currentColor; opacity: 0.8; }
 
 /* ---- salida de emergencia al formulario alojado ---- */
 .nl-fallback {

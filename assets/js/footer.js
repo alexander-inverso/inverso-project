@@ -116,6 +116,8 @@ const TEMPLATE = `
       <iframe name="ipz-sink" title="Mailrelay's reply" class="nl-sink" data-nl-sink></iframe>
     </div>
 
+    <p class="nl-eu"><span class="eu-badge"><svg class="eu-stars" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12.00" cy="4.00" r="1.35"/><circle cx="16.00" cy="5.07" r="1.35"/><circle cx="18.93" cy="8.00" r="1.35"/><circle cx="20.00" cy="12.00" r="1.35"/><circle cx="18.93" cy="16.00" r="1.35"/><circle cx="16.00" cy="18.93" r="1.35"/><circle cx="12.00" cy="20.00" r="1.35"/><circle cx="8.00" cy="18.93" r="1.35"/><circle cx="5.07" cy="16.00" r="1.35"/><circle cx="4.00" cy="12.00" r="1.35"/><circle cx="5.07" cy="8.00" r="1.35"/><circle cx="8.00" cy="5.07" r="1.35"/></svg>EU-hosted</span></p>
+
     <div class="nl-fallback">
       <p class="nl-fallback-note">Fallback, in case anything here misbehaves:</p>
       <a class="nl-fallback-btn" href="${FORM_URL}" target="_blank" rel="noopener">Open the form on Mailrelay &rarr;</a>
