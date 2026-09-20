@@ -6,7 +6,7 @@ import { createTipper } from "./tips.js";
 
 /* Formulario alojado en Mailrelay. La misma URL sirve para dos cosas: el POST
    del formulario propio y el botón de emergencia que abre el de Mailrelay. */
-const FORM_URL = "https://inverso.ipzmarketing.com/f/aGnwNmVCRF0";
+const FORM_URL = "https://inverso.ipzmarketing.com/f/dCqSdYRxa1A";
 const HASH = "subscribe";
 
 /* Grupos de Mailrelay. `id` es el value de cada casilla en su formulario
@@ -16,6 +16,7 @@ const HASH = "subscribe";
 const GROUPS = [
   { id: "5", label: "a professional", mailrelay: "Inverso Project Professional" },
   { id: "3", label: "just curious", mailrelay: "Inverso Project Newsletter" },
+  { id: "6", label: "interested in the vision", mailrelay: "Vision" },
   { id: "2", label: "interested in the philosophy page", mailrelay: "Inverso Project Philosophy" },
 ];
 const GROUPS_READY = GROUPS.every((g) => g.id !== "");
