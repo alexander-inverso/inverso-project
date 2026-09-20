@@ -258,7 +258,22 @@ export function mountFooter() {
 
   host.querySelector("[data-nl-open]").addEventListener("click", open);
   host.querySelector("[data-nl-close]").addEventListener("click", close);
-  scrim.addEventListener("click", (e) => { if (e.target === scrim) close(); });
+  /* Hay algo escrito si queda algo que perder. La trampa no cuenta: la rellenan
+     los bots, no las personas. */
+  const isDirty = () =>
+    nameEl.value.trim() !== "" || emailEl.value.trim() !== "" || boxes.some((b) => b.checked);
+
+  /* Un clic fuera cierra un formulario vacío, que es lo que se espera. Con algo
+     escrito no: es demasiado fácil tirar por la borda lo que acabas de teclear
+     con un clic a un centímetro del diálogo. Para eso están Esc y la ✕, y
+     ninguno de los dos borra nada. */
+  scrim.addEventListener("click", (e) => {
+    if (e.target !== scrim) return;
+    if (finished || !isDirty()) { close(); return; }
+    hint.textContent = "Esc or ✕ closes this. Nothing you typed will be lost.";
+    hint.classList.add("nl-hint-warn");
+    host.querySelector("[data-nl-close]").focus();
+  });
   window.addEventListener("keydown", (e) => { if (e.key === "Escape" && !scrim.hidden) close(); });
   window.addEventListener("hashchange", () => {
     const wants = location.hash.replace("#", "") === HASH;
