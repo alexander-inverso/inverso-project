@@ -55,8 +55,12 @@ const TEMPLATE = `
       <div class="ft-contacts" data-contact>${CONTACTS.map(contactRow).join("")}</div>
     </div>
     <div>
-      <h3 class="ft-h">E-mail updates</h3>
-      <button type="button" class="ft-sub-open" data-nl-open>Subscribe or manage &nbsp;&rarr;</button>
+      <h3 class="ft-h">I want to talk to you</h3>
+      <!-- "Yes please" on its own tells a screen reader nothing, and the heading
+           beside it is a sibling, not a label. El aria-label empieza por el
+           texto visible, como pide la norma, y añade de qué va. -->
+      <button type="button" class="ft-sub-open" data-nl-open
+              aria-label="Yes please — sign up for e-mail updates">Yes please &nbsp;&rarr;</button>
       <p class="ft-note">Occasional notes on the work. No schedule.</p>
     </div>
   </div>
