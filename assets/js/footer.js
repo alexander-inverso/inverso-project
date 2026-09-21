@@ -51,16 +51,16 @@ const TEMPLATE = `
 <div class="ft-inner">
   <div class="ft-cols">
     <div>
-      <h3 class="ft-h">Contact</h3>
+      <h3 class="ft-h">Talk to me?</h3>
       <div class="ft-contacts" data-contact>${CONTACTS.map(contactRow).join("")}</div>
     </div>
     <div>
-      <h3 class="ft-h">Talk to me?</h3>
-      <!-- "Talk to you!" on its own tells a screen reader nothing, and the
-           heading beside it is a sibling, not a label. El aria-label empieza por
-           el texto visible, como pide la norma, y añade de qué va. -->
+      <h3 class="ft-h">Talk to you!</h3>
+      <!-- "Yes please" on its own tells a screen reader nothing, and the heading
+           beside it is a sibling, not a label. El aria-label empieza por el
+           texto visible, como pide la norma, y añade de qué va. -->
       <button type="button" class="ft-sub-open" data-nl-open
-              aria-label="Talk to you! — sign up for e-mail updates">Talk to you!</button>
+              aria-label="Yes please — sign up for e-mail updates">Yes please &nbsp;&rarr;</button>
       <p class="ft-note">Occasional notes on the work. No schedule.</p>
     </div>
   </div>
