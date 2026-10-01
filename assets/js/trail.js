@@ -8,6 +8,7 @@ const PAGES = {
   "/vision/": "The vision",
   "/philosophy/": "Philosophy",
   "/record/": "What I'm up to",
+  "/cv/": "CV",
 };
 
 const norm = (p) => {
