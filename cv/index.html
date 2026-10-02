@@ -29,11 +29,42 @@
 
     <h1 class="pg-title">CV</h1>
 
-    <!-- La hoja, y nada más. El PDF está detrás de la imagen. -->
-    <a class="doc-sheet" href="/assets/docs/Alexander-de-Toro-CV.pdf" target="_blank" rel="noopener">
-      <img src="/assets/docs/Alexander-de-Toro-CV.webp" width="1653" height="2339"
-           alt="CV of Alexander de Toro Todorov, one page" />
-    </a>
+    <div class="doc-ctl">
+      <span class="doc-zoom">
+        <button type="button" class="doc-btn" data-zoom="out" aria-label="Zoom out">&minus;</button>
+        <span class="doc-pct" data-zoom-pct aria-live="polite">100%</span>
+        <button type="button" class="doc-btn" data-zoom="in" aria-label="Zoom in">+</button>
+      </span>
+      <a class="pill-link doc-dl" href="/assets/docs/Alexander-de-Toro-CV.pdf"
+         download="Alexander-de-Toro-CV.pdf">Download</a>
+    </div>
+
+    <!-- La hoja. Las zonas de enlace van calcadas de las del PDF, en % de la
+         página, así que siguen cuadrando con cualquier zoom. -->
+    <div class="doc-stage" data-doc-stage>
+      <div class="doc-sheet" data-doc-sheet>
+        <img src="/assets/docs/Alexander-de-Toro-CV.webp" width="1653" height="2339"
+             alt="CV of Alexander de Toro Todorov, one page" />
+      <a class="doc-hot" href="https://inverso.bio" target="_blank" rel="noopener"
+         style="left:38.196%;top:74.896%;width:11.850%;height:1.825%"
+         aria-label="Open www.inverso.bio"></a>
+      <a class="doc-hot" href="mailto:alexander.de.toro@estudiantat.upc.edu"
+         style="left:64.416%;top:84.517%;width:29.548%;height:1.825%"
+         aria-label="Write to alexander.de.toro@estudiantat.upc.edu"></a>
+      <a class="doc-hot" href="mailto:alexander@inverso.bio"
+         style="left:64.416%;top:86.388%;width:16.725%;height:1.825%"
+         aria-label="Write to alexander@inverso.bio"></a>
+      <a class="doc-hot" href="https://instagram.com/alexander.inverso" target="_blank" rel="noopener"
+         style="left:64.416%;top:88.259%;width:14.447%;height:1.825%"
+         aria-label="Open @alexander.inverso"></a>
+      <a class="doc-hot" href="https://www.linkedin.com/in/alexander-de-toro-todorov-9b830b257/" target="_blank" rel="noopener"
+         style="left:64.416%;top:90.129%;width:19.928%;height:1.825%"
+         aria-label="Open alexander-de-toro-todorov"></a>
+      <a class="doc-hot" href="https://inverso.bio" target="_blank" rel="noopener"
+         style="left:64.416%;top:92.000%;width:11.965%;height:1.825%"
+         aria-label="Open www.inverso.bio"></a>
+      </div>
+    </div>
 
   </div>
 
@@ -47,6 +78,44 @@
 
   <script type="module">
     import { initPage } from "/assets/js/page.js";
+
+    /* Zoom: la hoja crece en % del escenario, y las zonas de enlace, que van en
+       %, crecen con ella. Al pasar del 100% el escenario se vuelve una ventana
+       con scroll, y se conserva el punto que estabas mirando. */
+    const STEPS = [1, 1.25, 1.5, 2, 2.5, 3];
+    const stage = document.querySelector("[data-doc-stage]");
+    const sheet = document.querySelector("[data-doc-sheet]");
+    const pct = document.querySelector("[data-zoom-pct]");
+    const btns = [...document.querySelectorAll("[data-zoom]")];
+    let i = 0;
+
+    const apply = (wasZoomed) => {
+      /* al 100% el escenario no tiene scroll propio: entonces se entra por
+         arriba. Si ya estaba ampliado, se conserva el punto que mirabas. */
+      const centre = wasZoomed && {
+        x: (stage.scrollLeft + stage.clientWidth / 2) / (sheet.offsetWidth || 1),
+        y: (stage.scrollTop + stage.clientHeight / 2) / (sheet.offsetHeight || 1),
+      };
+      sheet.style.width = STEPS[i] * 100 + "%";
+      stage.classList.toggle("is-zoomed", i > 0);
+      pct.textContent = Math.round(STEPS[i] * 100) + "%";
+      btns[0].disabled = i === 0;
+      btns[1].disabled = i === STEPS.length - 1;
+      if (i === 0) return;
+      stage.scrollLeft = centre
+        ? centre.x * sheet.offsetWidth - stage.clientWidth / 2
+        : (sheet.offsetWidth - stage.clientWidth) / 2;
+      stage.scrollTop = centre ? centre.y * sheet.offsetHeight - stage.clientHeight / 2 : 0;
+    };
+
+    btns.forEach((b) =>
+      b.addEventListener("click", () => {
+        const wasZoomed = i > 0;
+        i = Math.min(STEPS.length - 1, Math.max(0, i + (b.dataset.zoom === "in" ? 1 : -1)));
+        apply(wasZoomed);
+      }));
+    apply(false);
+
     initPage();
   </script>
 </body>

@@ -550,8 +550,38 @@ a:hover { color: var(--accent); }
    ============================================================ */
 /* La hoja a pelo, centrada. Nada de visor del navegador: es la página del PDF
    rasterizada a 200 ppp, que se ve igual en todas partes, también en el móvil. */
-.doc-sheet { display: block; width: 100%; max-width: 760px; margin: 0 auto; }
+.doc-ctl {
+  display: flex; align-items: center; gap: 0.75rem;
+  max-width: 760px; margin: 0 auto clamp(1rem,3vh,1.5rem);
+}
+.doc-zoom { display: inline-flex; align-items: center; gap: 0.4rem; }
+.doc-btn {
+  width: 1.9rem; height: 1.9rem; padding: 0;
+  border: 1px solid rgba(125,107,117,0.55); border-radius: 999px; background: transparent;
+  font-family: var(--font-mono); font-size: 0.85rem; line-height: 1; color: var(--paper);
+  cursor: pointer; transition: border-color 0.2s, color 0.2s;
+}
+.doc-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.doc-btn:disabled { border-color: rgba(255,255,255,0.14); color: var(--faint); cursor: default; }
+.doc-pct {
+  min-width: 3.4em; text-align: center;
+  font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em; color: var(--muted);
+}
+.doc-dl { margin-left: auto; }
+
+.doc-stage { max-width: 760px; margin: 0 auto; }
+/* Por encima del 100% el escenario pasa a ser una ventana por la que se navega. */
+.doc-stage.is-zoomed {
+  max-height: 85vh; overflow: auto; overscroll-behavior: contain;
+  border: 1px solid rgba(255,255,255,0.14);
+}
+.doc-sheet { position: relative; width: 100%; }
 .doc-sheet img { display: block; width: 100%; height: auto; }
+/* Los enlaces del PDF, calcados encima de la imagen. */
+.doc-hot { position: absolute; border-radius: 2px; transition: background-color 0.15s; }
+.doc-hot:hover, .doc-hot:focus-visible {
+  background: rgba(125,107,117,0.3); outline: 2px solid rgba(125,107,117,0.75); outline-offset: 1px;
+}
 
 /* ============================================================
    Record — pasado · ahora · lo que viene
