@@ -532,17 +532,133 @@ a:hover { color: var(--accent); }
 .see-all:hover .rec-arrow { transform: translateX(0.4rem); }
 
 /* ============================================================
-   Vision — vídeo
+   Vision — mosaico: texto a la izquierda, vídeo y recorridos a la derecha
    ============================================================ */
-.vid-figure { margin: 0 0 clamp(2.5rem,7vh,3.5rem); }
-.vid-frame {
-  aspect-ratio: 16/9; width: 100%; max-width: 100%;
-  border: 1px solid rgba(255,255,255,0.16); background: var(--bg-soft); overflow: hidden;
+.pg-wrap-vision { max-width: 1120px; }
+.vis-title { margin-bottom: 1.25rem; }
+
+.vis-mosaic { display: flex; align-items: center; gap: 1.25rem; }
+.vis-text {
+  flex: 0 0 clamp(22rem,44vw,34rem); min-height: calc(clamp(22rem,44vw,34rem) * 1.25);
+  padding: clamp(1.5rem,3vw,2.25rem);
+  display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem;
 }
-.vid-frame iframe { display: block; width: 100%; height: 100%; border: none; }
-.vid-cap {
-  margin: 0.8rem 0 0; font-family: var(--font-mono); font-size: 0.7rem;
-  letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
+.vis-prose {
+  display: flex; flex-direction: column; gap: 1.05rem;
+  font-family: var(--font-body); font-size: clamp(0.98rem,0.92rem + 0.2vw,1.08rem);
+  line-height: 1.65; color: rgba(236,231,228,0.90); text-wrap: pretty;
+}
+.vis-prose p { margin: 0; text-align: justify; }
+.vis-prose .rule { margin: 0.25rem 0; width: 3rem; height: 1px; border: none; background: rgba(255,255,255,0.22); }
+.vis-foot {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+.vis-hl {
+  cursor: pointer; background: transparent; border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 999px; padding: 0.5rem 0.95rem; color: var(--paper);
+  font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+.vis-hl:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.vis-stamp {
+  margin: 0; font-family: var(--font-mono); font-size: 0.72rem;
+  letter-spacing: 0.12em; color: var(--faint);
+}
+
+/* ---- palabras clave: se encienden por cercanía del cursor ---- */
+.kw {
+  cursor: pointer; border-radius: 2px; padding: 0 0.18em; margin: 0 -0.18em;
+  background: linear-gradient(rgba(125,107,117,0.6), rgba(125,107,117,0.6)) no-repeat 0 100% / 0% 100%;
+  transition: background-size 0.45s cubic-bezier(0.2,0.7,0.2,1), color 0.25s;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.kw[data-on], [data-pinned] .kw, .kw:focus-visible {
+  background-size: 100% 100%; color: #fff; outline: none;
+}
+@media (prefers-reduced-motion: reduce) { .kw { transition: none; } }
+
+/* ---- el anticipo ---- */
+.vis-pop {
+  position: fixed; z-index: 50; width: min(17rem, calc(100vw - 2rem));
+  pointer-events: none; opacity: 0; transform: translateY(6px);
+  transition: opacity 0.22s, transform 0.3s cubic-bezier(0.2,0.7,0.2,1);
+  border: 1px solid rgba(255,255,255,0.16); border-radius: 4px;
+  background: rgba(21,17,15,0.96); backdrop-filter: blur(10px);
+  padding: 1rem 1.1rem; box-shadow: 0 18px 40px rgba(0,0,0,0.5);
+}
+.vis-pop[data-show] { opacity: 1; transform: none; }
+.vis-pop p { margin: 0; }
+.vis-pop-kicker {
+  font-family: var(--font-mono); font-size: 0.58rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem;
+}
+.vis-pop-title {
+  font-family: var(--font-display); font-weight: 800; font-size: 1rem; line-height: 1.15;
+  text-transform: uppercase; color: var(--paper); margin-bottom: 0.55rem;
+}
+.vis-pop-body { font-family: var(--font-body); font-size: 0.88rem; line-height: 1.5; color: rgba(236,231,228,0.8); }
+.vis-pop-more {
+  margin-top: 0.7rem; font-family: var(--font-mono); font-size: 0.6rem;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+}
+
+/* ---- columna derecha ---- */
+.vis-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 1.25rem; }
+.vis-figure { margin: 0; padding: 0.7rem 0.7rem 1rem; }
+.vis-frame {
+  aspect-ratio: 16/9; width: 100%;
+  border: 1px solid rgba(255,255,255,0.10); background: var(--bg-soft); overflow: hidden;
+}
+.vis-frame iframe { display: block; width: 100%; height: 100%; border: none; }
+.vis-cap { margin: 0.9rem 0.3rem 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.vis-cap-kicker {
+  font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--accent);
+}
+.vis-cap-title { font-family: var(--font-body); font-size: 1rem; line-height: 1.45; color: rgba(236,231,228,0.9); }
+
+/* filete en L, puramente decorativo, que ata el vídeo con los recorridos */
+.vis-div {
+  position: relative; height: 1px; margin-left: -0.625rem;
+  width: calc(33% + 0.625rem); background: rgba(255,255,255,0.22);
+}
+.vis-div span {
+  position: absolute; left: 0; top: -7rem; width: 1px;
+  height: calc(14rem + 1px); background: rgba(255,255,255,0.22);
+}
+
+.vis-walk {
+  width: min(100%, 19rem); padding: 1.4rem;
+  display: flex; flex-direction: column; gap: 1rem;
+}
+.vis-walk-head { display: flex; flex-direction: column; gap: 0.45rem; }
+.vis-walk-kicker {
+  font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--accent);
+}
+.vis-walk-sub { font-family: var(--font-body); font-size: 0.95rem; line-height: 1.45; color: rgba(236,231,228,0.82); }
+.vis-walk-rows { display: flex; flex-direction: column; }
+.vis-walk-row {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+  width: 100%; text-align: left; cursor: not-allowed;
+  background: transparent; border: none; border-top: 1px solid rgba(255,255,255,0.10);
+  padding: 0.8rem 0; color: rgba(236,231,228,0.9);
+  font-family: var(--font-body); font-size: 1rem;
+}
+.vis-walk-note {
+  font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--muted); transition: color 0.2s;
+}
+.vis-walk-row:hover .vis-walk-note { color: var(--paper); }
+
+@media (max-width: 860px) {
+  .vis-mosaic { flex-direction: column; }
+  .vis-text { flex: none; width: 100%; min-height: 0; padding-inline: 0; }
+  .vis-col { width: 100%; flex: none; }
+  .vis-div { display: none; }
+  .vis-walk { width: 100%; padding-inline: 0; }
+  .vis-figure { padding-inline: 0; }
 }
 
 /* ============================================================
